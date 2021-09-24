@@ -31,25 +31,31 @@ class Player:
         else:
             legal_cards = requested_cards + white_cards
 
-        # print(f"color: {requested_color}\n hand: {self.hand}\n legal: {legal_cards}")
+        #  print(f"\ncolor: {requested_color}\n hand: {self.hand}\n legal: {legal_cards}\n")
         card = random.choice(legal_cards)
         if self.player_type == "heuristic":
 
             # dodge win as high as possible if I am already at my goal
             if self.guesses == self.trick_wins:
-                for card_option in sorted(legal_cards, key=lambda x: x[1], reverse=True):
-                    if game.Game.trick_winner(
-                        played_cards + [card_option] + [(0, 0)] * (2 - len(played_cards)), trump
-                    ) != len(played_cards):
+                for card_option in sorted(
+                    legal_cards, key=lambda x: x[1], reverse=True
+                ):
+                    if (
+                        game.Game.trick_winner(
+                            played_cards
+                            + [card_option]
+                            + [(0, 0)] * (2 - len(played_cards)),
+                            trump,
+                        )
+                        != len(played_cards)
+                    ):
                         card = card_option
                         break
 
-            # see if I can win this round with lowest card possible
+            # see if I can for sure win this round with lowest card possible
             elif len(played_cards) == 2:
                 for card_option in sorted(legal_cards, key=lambda x: x[1]):
-                    if game.Game.trick_winner(
-                        played_cards + [card_option], trump
-                    ) == 2:
+                    if game.Game.trick_winner(played_cards + [card_option], trump) == 2:
                         card = card_option
                         break
 

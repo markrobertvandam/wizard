@@ -11,8 +11,13 @@ class Game:
         self.player1 = Player("player1", "heuristic")
         self.player2 = Player("player2")
         self.player3 = Player("player3")
-        self.players = [self.player1, self.player2, self.player3]  # at the start of rounds
+        self.players = [
+            self.player1,
+            self.player2,
+            self.player3,
+        ]  # at the start of rounds
         self.scores = {self.player1: 0, self.player2: 0, self.player3: 0}
+        self.offs = [0, 0]
         self.played_cards = []
 
         for card_value in range(15):  # (joker, 1-13, wizard)
@@ -38,20 +43,33 @@ class Game:
         player_order = self.players[:]  # order will change after every trick
         for trick in range(self.game_round):
             self.played_cards = []
-            self.played_cards.append(player_order[0].play_card(self.trump, 4, []))
-            requested_color = self.played_cards[0][0]
-            for player in player_order[1:]:
-                self.played_cards.append(
-                    player.play_card(self.trump, requested_color, self.played_cards)
-                )
-    #  print(f"Order: {[player.player_name for player in player_order]}, Played: {self.played_cards}\n{self.trump}")
+            self.play_trick(player_order, 4, 0)
+            # print(
+            #     f"Order: {[player.player_name for player in player_order]}, Played: {self.played_cards}\n{self.trump}"
+            # )
             winner = self.trick_winner(self.played_cards, self.trump)
             player_order[winner].trick_wins += 1
             player_order = player_order[winner:] + player_order[:winner]
 
         self.update_scores()
 
-    def play_game(self) -> list:
+    def play_trick(self, player_order: list, requested_color: int, player: int) -> None:
+        if player != 3:
+            self.played_cards.append(
+                player_order[player].play_card(
+                    self.trump, requested_color, self.played_cards
+                )
+            )
+            if requested_color == 4:
+                # Joker and Wizard do not change requested color
+                if (
+                    self.played_cards[player][1] != 0
+                    and self.played_cards[player][1] != 14
+                ):
+                    requested_color = self.played_cards[player][0]
+            self.play_trick(player_order, requested_color, player + 1)
+
+    def play_game(self) -> tuple[list[int], list[int]]:
         for game_round in range(10):
             self.deck = self.full_deck[:]
             random.shuffle(self.deck)
@@ -62,11 +80,14 @@ class Game:
                 player.trick_wins = 0
                 player.win_cards = []
 
-        return [
-            self.scores[self.player1],
-            self.scores[self.player2],
-            self.scores[self.player3],
-        ]
+        return (
+            [
+                self.scores[self.player1],
+                self.scores[self.player2],
+                self.scores[self.player3],
+            ],
+            self.offs,
+        )
 
     @staticmethod
     def trick_winner(played_cards: list, trump: int) -> int:
@@ -103,4 +124,9 @@ class Game:
                 self.scores[player] += 20 + 10 * player.guesses
             else:
                 self.scores[player] -= 10 * off_mark
+                if player.player_name == "player1":
+                    if player.guesses > player.trick_wins:
+                        self.offs[0] += 1
+                    else:
+                        self.offs[1] += 1
         #  print("\n\n")
