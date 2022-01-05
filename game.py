@@ -15,22 +15,31 @@ class Game:
             self.player1,
             self.player2,
             self.player3,
-        ]  # at the start of rounds
+        ]
+        # at the start of the game
         self.scores = {self.player1: 0, self.player2: 0, self.player3: 0}
-        self.offs = [0, 0]
+        self.offs = [
+            0,
+            0,
+        ]  # for keeping track of what goes wrong for the learning agent
         self.played_cards = []
 
+        # Make the deck
         for card_value in range(15):  # (joker, 1-13, wizard)
             for suit in range(4):  # (blue, yellow, red, green)
                 self.full_deck.append((suit, card_value))
 
     def play_round(self) -> None:
+
+        # Players get dealt their hands
         for player in self.players:
             self.deck = player.draw_cards(self.game_round, self.deck)
 
-        if self.game_round < 20:  # No trump card in final round
+        if self.game_round < 20:
+            # Trump card becomes top card after hands are dealt
             self.trump = self.deck.pop()[0]
         else:
+            # No trump card in final round
             self.trump = 4
 
         # Guessing phase
@@ -54,7 +63,15 @@ class Game:
         self.update_scores()
 
     def play_trick(self, player_order: list, requested_color: int, player: int) -> None:
-        if player != 3:
+        """
+        plays one entire trick (each player plays 1 card)
+        :param player_order: order in which players play
+        :param requested_color: the requested color that has to be played if possible
+                                (blue, yellow, red, green, None yet, None this round)
+        :param player: how manieth player it is in this particular trick
+        :return: None
+        """
+        while player != 3:
             self.played_cards.append(
                 player_order[player].play_card(
                     self.trump, requested_color, self.played_cards
@@ -67,7 +84,12 @@ class Game:
                     and self.played_cards[player][1] != 14
                 ):
                     requested_color = self.played_cards[player][0]
-            self.play_trick(player_order, requested_color, player + 1)
+
+                # Wizard means no requested color this round
+                elif self.played_cards[player][1] == 14:
+                    requested_color = 5
+
+            player += 1
 
     def play_game(self) -> tuple[list[int], list[int]]:
         for game_round in range(10):
