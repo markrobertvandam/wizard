@@ -1,16 +1,17 @@
 from player import Player
 import random
+import numpy as np
 
 
 class Game:
-    def __init__(self) -> None:
-        self.full_deck = []
+    def __init__(self, full_deck, guess_agent1=None, epsilon=None, playing_agent1=None) -> None:
+        self.full_deck = full_deck
         self.deck = []
         self.trump = 4  # placeholder trump, only 0-3 exist
         self.game_round = 1
-        self.player1 = Player("player1", "heuristic")
-        self.player2 = Player("player2")
-        self.player3 = Player("player3")
+        self.player1 = Player("player1", "learning", guess_agent1, epsilon)
+        self.player2 = Player("player2", "heuristic")
+        self.player3 = Player("player3", "heuristic")
         self.players = [
             self.player1,
             self.player2,
@@ -22,12 +23,10 @@ class Game:
             0,
             0,
         ]  # for keeping track of what goes wrong for the learning agent
-        self.played_cards = []
 
-        # Make the deck
-        for card_value in range(15):  # (joker, 1-13, wizard)
-            for suit in range(4):  # (blue, yellow, red, green)
-                self.full_deck.append((suit, card_value))
+        # for info per trick
+        self.played_cards = []
+        self.guesses = []
 
     def play_round(self) -> None:
 
@@ -43,8 +42,12 @@ class Game:
             self.trump = 4
 
         # Guessing phase
+        self.guesses = []    # reset guesses every round
         for player in self.players:
-            player.guess_wins(self.game_round, self.trump)
+            if player.player_type != "learning":
+                self.guesses.append(player.guess_wins(self.game_round, self.trump))
+            else:
+                self.guesses.append(player.guess_wins(self.game_round, self.trump, self.guessing_state_space(player)))
             # print("Hand: ", player.hand)
             # print("Player guess: ", player.guesses, "\n")
 
@@ -92,7 +95,7 @@ class Game:
             player += 1
 
     def play_game(self) -> tuple[list[int], list[int]]:
-        for game_round in range(10):
+        for game_round in range(20):
             self.deck = self.full_deck[:]
             random.shuffle(self.deck)
             self.play_round()
@@ -141,14 +144,28 @@ class Game:
     def update_scores(self):
         for player in self.players:
             #  print(player.player_name, player.trick_wins, player.guesses)
-            off_mark = abs(player.trick_wins - player.guesses)
+            off_mark = abs(player.get_trick_wins() - player.get_guesses())
             if off_mark == 0:
-                self.scores[player] += 20 + 10 * player.guesses
+                self.scores[player] += 20 + 10 * player.get_guesses()
+                if player.player_type == "learning":
+                    player.update_agent(3)
             else:
+                if player.player_type == "learning":
+                    player.update_agent(-1*off_mark)
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":
-                    if player.guesses > player.trick_wins:
+                    if player.get_guesses() > player.get_trick_wins():
                         self.offs[0] += 1
                     else:
                         self.offs[1] += 1
         #  print("\n\n")
+
+    def guessing_state_space(self, player: Player):
+        cards_in_hand = np.hstack(player.get_hand())
+        cards_in_hand = np.concatenate((cards_in_hand, [4, 0] * int((20-len(cards_in_hand)/2))))
+        trump = [self.trump]
+        previous_guesses = self.guesses[:]
+        previous_guesses += [21] * (3-len(previous_guesses))
+        round_number = [self.game_round]
+        state_space = np.concatenate((cards_in_hand, trump, previous_guesses, round_number))
+        return state_space

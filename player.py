@@ -1,3 +1,4 @@
+import numpy as np
 import random
 import game
 
@@ -6,13 +7,27 @@ import game
 
 
 class Player:
-    def __init__(self, player_name: str, player_type="random") -> None:
+    def __init__(self, player_name: str, player_type="random", guess_agent=None, epsilon=None) -> None:
         self.player_name = player_name
         self.hand = []
         self.win_cards = []
-        self.guesses = 0
+        self.player_guesses = 0
         self.trick_wins = 0
         self.player_type = player_type
+        if player_type == "learning":
+            self.guess_agent = guess_agent
+            self.guess_agent.avg_reward = 0
+            self.current_state = None
+            self.epsilon = epsilon
+
+    def get_hand(self):
+        return self.hand[:]
+
+    def get_guesses(self):
+        return self.player_guesses
+
+    def get_trick_wins(self):
+        return self.trick_wins
 
     def draw_cards(self, amount: int, deck: list) -> list:
         """
@@ -56,9 +71,9 @@ class Player:
         elif self.player_type == "random":
             card = random.choice(legal_cards)
 
-        elif self.player_type == "heuristic":
+        elif self.player_type == "heuristic" or self.player_type == "learning":
             # dodge win as high as possible if I am already at my goal
-            if self.guesses == self.trick_wins:
+            if self.player_guesses == self.trick_wins:
                 sorted_legal = sorted(legal_cards, key=lambda x: x[1], reverse=True)
                 for card_option in sorted_legal:
                     if (
@@ -92,7 +107,7 @@ class Player:
         self.hand.remove(card)
         return card
 
-    def guess_wins(self, max_guesses: int, trump: int) -> None:
+    def guess_wins(self, max_guesses: int, trump: int, state_space=None) -> int:
         """
         Guess how many tricks the player will win this round
         :param max_guesses: max guesses (amount of tricks in this round)
@@ -100,30 +115,52 @@ class Player:
         :return: None
         """
         if self.player_type == "random":
-            self.guesses = random.randrange(max_guesses)
+            self.player_guesses = random.randrange(max_guesses)
         else:
             # print("im the smart one")
-            guesses = 0
-            for card in self.hand:
+            if self.player_type == "learning":
+                self.current_state = state_space
+                if np.random.random() > self.epsilon:
+                    # Get action from Q table
+                    self.player_guesses = np.argmax(self.guess_agent.get_qs(state_space))
+                else:
+                    # Get random action
+                    self.player_guesses = np.random.randint(0, self.guess_agent.guess_max)
+            else:
+                guesses = 0
+                for card in self.hand:
 
-                # count wizards as win
-                if card[1] == 14:
-                    guesses += 1
-                    self.win_cards.append(card)
+                    # count wizards as win
+                    if card[1] == 14:
+                        guesses += 1
+                        self.win_cards.append(card)
 
-                # count high trumps as win
-                elif card[0] == trump and card[1] > 7:
-                    guesses += 1
-                    self.win_cards.append(card)
+                    # count high trumps as win
+                    elif card[0] == trump and card[1] > 7:
+                        guesses += 1
+                        self.win_cards.append(card)
 
-                # count low trumps when there are few cards
-                elif max_guesses < 5 and card[0] == trump and card[1] > 0:
-                    guesses += 1
-                    self.win_cards.append(card)
+                    # count low trumps when there are few cards
+                    elif max_guesses < 5 and card[0] == trump and card[1] > 0:
+                        guesses += 1
+                        self.win_cards.append(card)
 
-                # count non-trump high cards as win except for early rounds
-                elif max_guesses > 4 and card[1] > 10:
-                    guesses += 1
-                    self.win_cards.append(card)
+                    # count non-trump high cards as win except for early rounds
+                    elif max_guesses > 4 and card[1] > 10:
+                        guesses += 1
+                        self.win_cards.append(card)
 
-            self.guesses = guesses
+                self.player_guesses = guesses
+
+        return self.player_guesses
+
+    def update_agent(self, reward):
+        # safety catch
+        if self.player_type != "learning":
+            print("No agent available for this player!")
+            exit()
+
+        self.guess_agent.update_replay_memory((self.current_state, self.player_guesses, reward))
+        self.guess_agent.avg_reward += reward / self.guess_agent.guess_max
+        self.guess_agent.train()
+
