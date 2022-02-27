@@ -21,7 +21,7 @@ class GuessingAgent:
 
         self.input_size = input_size
         self.guess_max = guess_max
-        self.avg_reward = 0             # stores avg reward every game
+        self.avg_reward = 0  # stores avg reward every game
 
         # Main model
         self.model = self.create_model()
@@ -29,21 +29,25 @@ class GuessingAgent:
         # An array with last n steps for training
         self.replay_memory = deque(maxlen=REPLAY_MEMORY_SIZE)
 
-
     def create_model(self):
 
         model = Sequential()
-        model.add(Input(self.input_size))        # input size is 48
+        model.add(Input(self.input_size))  # input size is 48
         model.add(Dense(200))
-        model.add(Activation('relu'))
+        model.add(Activation("relu"))
         model.add(Dropout(0.1))
         model.add(Dense(100))
-        model.add(Activation('relu'))
+        model.add(Activation("relu"))
         model.add(Dropout(0.1))
         model.add(Dense(50))
-        model.add(Dense(self.guess_max, activation='linear'))  # guess_max = how many rounds (output_size) (20)
-        model.compile(loss="mse", optimizer=adam_v2.Adam(learning_rate=0.001),
-                      metrics=['accuracy'])
+        model.add(
+            Dense(self.guess_max, activation="linear")
+        )  # guess_max = how many rounds (output_size) (20)
+        model.compile(
+            loss="mse",
+            optimizer=adam_v2.Adam(learning_rate=0.001),
+            metrics=["accuracy"],
+        )
         print(model.summary())
         return model
 
@@ -83,7 +87,13 @@ class GuessingAgent:
             y.append(current_qs)
 
         # Fit on all samples as one batch, log only on terminal state
-        self.model.fit(np.array(X), np.array(y), batch_size=MINIBATCH_SIZE, verbose=0, shuffle=False)
+        self.model.fit(
+            np.array(X),
+            np.array(y),
+            batch_size=MINIBATCH_SIZE,
+            verbose=0,
+            shuffle=False,
+        )
 
     # Queries main network for Q values given current observation space (environment state)
     def get_qs(self, state):

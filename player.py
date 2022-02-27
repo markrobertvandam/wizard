@@ -7,7 +7,14 @@ import game
 
 
 class Player:
-    def __init__(self, player_name: str, player_type="random", guess_agent=None, epsilon=None, verbose=False) -> None:
+    def __init__(
+        self,
+        player_name: str,
+        player_type="random",
+        guess_agent=None,
+        epsilon=None,
+        verbose=False,
+    ) -> None:
         self.verbose = verbose
         self.player_name = player_name
         self.hand = []
@@ -78,15 +85,12 @@ class Player:
             if self.player_guesses == self.trick_wins:
                 sorted_legal = sorted(legal_cards, key=lambda x: x[1], reverse=True)
                 for card_option in sorted_legal:
-                    if (
-                        game.Game.trick_winner(
-                            played_cards
-                            + [card_option]
-                            + [(0, 0)] * (2 - len(played_cards)),
-                            trump,
-                        )
-                        != len(played_cards)
-                    ):
+                    if game.Game.trick_winner(
+                        played_cards
+                        + [card_option]
+                        + [(0, 0)] * (2 - len(played_cards)),
+                        trump,
+                    ) != len(played_cards):
                         card = card_option
                         break
 
@@ -127,10 +131,14 @@ class Player:
                 self.current_state = state_space
                 if np.random.random() > self.epsilon:
                     # Get action from Q table
-                    self.player_guesses = np.argmax(self.guess_agent.get_qs(state_space))
+                    self.player_guesses = np.argmax(
+                        self.guess_agent.get_qs(state_space)
+                    )
                 else:
                     # Get random action
-                    self.player_guesses = np.random.randint(0, self.guess_agent.guess_max)
+                    self.player_guesses = np.random.randint(
+                        0, self.guess_agent.guess_max
+                    )
             elif self.player_type == "learned":
                 self.current_state = state_space
                 self.player_guesses = np.argmax(self.guess_agent.get_qs(state_space))
@@ -165,7 +173,8 @@ class Player:
     def update_agent(self, reward):
         # safety catch
         if self.player_type == "learning":
-            self.guess_agent.update_replay_memory((self.current_state, self.player_guesses, reward))
+            self.guess_agent.update_replay_memory(
+                (self.current_state, self.player_guesses, reward)
+            )
             self.guess_agent.avg_reward += reward / self.guess_agent.guess_max
             self.guess_agent.train()
-

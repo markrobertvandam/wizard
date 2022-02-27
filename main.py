@@ -10,7 +10,9 @@ def avg_n_games(n, model_path="", save_bool="y"):
     input_size = 48
     guess_agent = GuessingAgent(input_size=input_size, guess_max=20)
     if model_path != "":
-        guess_agent.model = tf.keras.models.load_model(os.path.join("models", model_path))
+        guess_agent.model = tf.keras.models.load_model(
+            os.path.join("models", model_path)
+        )
 
     # Exploration settings
     epsilon = 1  # not a constant, going to be decayed
@@ -31,8 +33,10 @@ def avg_n_games(n, model_path="", save_bool="y"):
     last_ten_performance = np.zeros(20)
     for game_instance in range(n):
         if game_instance % 10 == 0:
-            print(f"Game {game_instance}, avg_reward: {int(guess_agent.avg_reward)}, Epsilon: {round(epsilon,2)}, "
-                  f"Last10: {last_ten_performance}")
+            print(
+                f"Game {game_instance}, avg_reward: {int(guess_agent.avg_reward)}, Epsilon: {round(epsilon,2)}, "
+                f"Last10: {last_ten_performance}"
+            )
             last_ten_performance *= 0
         wizard = game.Game(full_deck, guess_agent, epsilon, verbose=True)
         scores, offs = wizard.play_game()
@@ -52,7 +56,9 @@ def avg_n_games(n, model_path="", save_bool="y"):
     print(score_counter, win_counter, total_offs)
 
     if save_bool.startswith("y"):
-        guess_agent.model.save(f'models/guessing{input_size}_{round(guess_agent.avg_reward, 2)}_{str(int(time.time()/3600))[-3:]}_{n}.model')
+        guess_agent.model.save(
+            f"models/guessing{input_size}_{round(guess_agent.avg_reward, 2)}_{str(int(time.time()/3600))[-3:]}_{n}.model"
+        )
 
 
 if __name__ == "__main__":
