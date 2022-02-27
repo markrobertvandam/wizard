@@ -7,7 +7,7 @@ from Guessing_Agent import GuessingAgent
 
 
 def avg_n_games(n, model_path="", save_bool="y"):
-    input_size = 48
+    input_size = 68
     guess_agent = GuessingAgent(input_size=input_size, guess_max=20)
     if model_path != "":
         guess_agent.model = tf.keras.models.load_model(
@@ -24,11 +24,15 @@ def avg_n_games(n, model_path="", save_bool="y"):
     total_offs = [0, 0]
 
     full_deck = []
+    deck_dict = {}
 
     # Make the deck
-    for card_value in range(15):  # (joker, 1-13, wizard)
-        for suit in range(4):  # (blue, yellow, red, green)
+    for suit in range(4):  # (blue, yellow, red, green)
+        for card_value in range(15):  # (joker, 1-13, wizard)
             full_deck.append((suit, card_value))
+
+            # to go from card to index for one-hot
+            deck_dict[(suit, card_value)] = card_value + suit * 15
 
     last_ten_performance = np.zeros(20)
     for game_instance in range(n):
@@ -38,7 +42,7 @@ def avg_n_games(n, model_path="", save_bool="y"):
                 f"Last10: {last_ten_performance}"
             )
             last_ten_performance *= 0
-        wizard = game.Game(full_deck, guess_agent, epsilon, verbose=True)
+        wizard = game.Game(full_deck, deck_dict, guess_agent, epsilon, verbose=True)
         scores, offs = wizard.play_game()
         last_ten_performance += wizard.get_game_performance()
         for player in range(3):

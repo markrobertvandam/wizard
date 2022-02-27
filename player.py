@@ -124,9 +124,6 @@ class Player:
             self.player_guesses = random.randrange(max_guesses)
         else:
             # print("im the smart one")
-            if self.verbose:
-                print("Guessed: ", self.player_guesses)
-                print("Hand: ", self.get_hand(), "Trump: ", trump)
             if self.player_type == "learning":
                 self.current_state = state_space
                 if np.random.random() > self.epsilon:
@@ -167,6 +164,9 @@ class Player:
                         self.win_cards.append(card)
 
                 self.player_guesses = guesses
+            if self.verbose:
+                print("\nGuessed: ", self.player_guesses)
+                print("Hand: ", self.get_hand(), "Trump: ", trump)
 
         return self.player_guesses
 

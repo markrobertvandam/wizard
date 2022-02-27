@@ -7,6 +7,7 @@ class Game:
     def __init__(
         self,
         full_deck,
+        deck_dict,
         guess_agent1=None,
         epsilon=None,
         playing_agent1=None,
@@ -14,6 +15,7 @@ class Game:
     ) -> None:
         self.verbose = verbose
         self.full_deck = full_deck
+        self.deck_dict = deck_dict
         self.deck = []
         self.trump = 4  # placeholder trump, only 0-3 exist
         self.game_round = 1
@@ -74,6 +76,9 @@ class Game:
             #     f"Order: {[player.player_name for player in player_order]}, Played: {self.played_cards}\n{self.trump}"
             # )
             winner = self.trick_winner(self.played_cards, self.trump)
+            if self.verbose:
+                print("Played: ", self.played_cards)
+                print("Winner: ", winner)
             player_order[winner].trick_wins += 1
             player_order = player_order[winner:] + player_order[:winner]
 
@@ -171,7 +176,12 @@ class Game:
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":
                     if self.verbose:
-                        print("Off-mark: ", off_mark)
+                        print(
+                            "player_won: ",
+                            player.get_trick_wins(),
+                            "player_guessed",
+                            player.get_guesses(),
+                        )
                     if player.get_guesses() > player.get_trick_wins():
                         self.offs[0] += 1
                     else:
@@ -179,18 +189,19 @@ class Game:
         #  print("\n\n")
 
     def guessing_state_space(self, player: Player):
-        cards_in_hand = np.hstack(player.get_hand())
-        cards_in_hand = np.concatenate(
-            (cards_in_hand, [4, 15] * int((20 - len(cards_in_hand) / 2)))
-        )
+        cards_in_hand = player.get_hand()
+        one_hot_hand = np.zeros(60)
+        for card in cards_in_hand:
+            one_hot_hand[self.deck_dict[card]] = 1
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
         previous_guesses = self.guesses[:]
         previous_guesses += [21] * (2 - len(previous_guesses))
         round_number = [self.game_round]
         state_space = np.concatenate(
-            (cards_in_hand, trump, previous_guesses, round_number)
+            (one_hot_hand, trump, previous_guesses, round_number)
         )
+
         return state_space
 
     def get_game_performance(self):
