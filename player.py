@@ -7,14 +7,15 @@ import game
 
 
 class Player:
-    def __init__(self, player_name: str, player_type="random", guess_agent=None, epsilon=None) -> None:
+    def __init__(self, player_name: str, player_type="random", guess_agent=None, epsilon=None, verbose=False) -> None:
+        self.verbose = verbose
         self.player_name = player_name
         self.hand = []
         self.win_cards = []
         self.player_guesses = 0
         self.trick_wins = 0
         self.player_type = player_type
-        if player_type == "learning":
+        if self.player_type.startswith("learn"):
             self.guess_agent = guess_agent
             self.guess_agent.avg_reward = 0
             self.current_state = None
@@ -37,6 +38,7 @@ class Player:
         """
         for card in range(amount):
             self.hand.append(deck.pop())
+        self.hand.sort(key=lambda x: (x[0], x[1]))
         return deck
 
     def play_card(self, trump: int, requested_color: int, played_cards: list) -> tuple:
@@ -71,7 +73,7 @@ class Player:
         elif self.player_type == "random":
             card = random.choice(legal_cards)
 
-        elif self.player_type == "heuristic" or self.player_type == "learning":
+        elif self.player_type == "heuristic" or self.player_type.startswith("learn"):
             # dodge win as high as possible if I am already at my goal
             if self.player_guesses == self.trick_wins:
                 sorted_legal = sorted(legal_cards, key=lambda x: x[1], reverse=True)
@@ -118,6 +120,9 @@ class Player:
             self.player_guesses = random.randrange(max_guesses)
         else:
             # print("im the smart one")
+            if self.verbose:
+                print("Guessed: ", self.player_guesses)
+                print("Hand: ", self.get_hand(), "Trump: ", trump)
             if self.player_type == "learning":
                 self.current_state = state_space
                 if np.random.random() > self.epsilon:
@@ -126,6 +131,9 @@ class Player:
                 else:
                     # Get random action
                     self.player_guesses = np.random.randint(0, self.guess_agent.guess_max)
+            elif self.player_type == "learned":
+                self.current_state = state_space
+                self.player_guesses = np.argmax(self.guess_agent.get_qs(state_space))
             else:
                 guesses = 0
                 for card in self.hand:
@@ -156,11 +164,8 @@ class Player:
 
     def update_agent(self, reward):
         # safety catch
-        if self.player_type != "learning":
-            print("No agent available for this player!")
-            exit()
-
-        self.guess_agent.update_replay_memory((self.current_state, self.player_guesses, reward))
-        self.guess_agent.avg_reward += reward / self.guess_agent.guess_max
-        self.guess_agent.train()
+        if self.player_type == "learning":
+            self.guess_agent.update_replay_memory((self.current_state, self.player_guesses, reward))
+            self.guess_agent.avg_reward += reward / self.guess_agent.guess_max
+            self.guess_agent.train()
 

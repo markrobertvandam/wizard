@@ -4,12 +4,13 @@ import numpy as np
 
 
 class Game:
-    def __init__(self, full_deck, guess_agent1=None, epsilon=None, playing_agent1=None) -> None:
+    def __init__(self, full_deck, guess_agent1=None, epsilon=None, playing_agent1=None, verbose=False) -> None:
+        self.verbose = verbose
         self.full_deck = full_deck
         self.deck = []
         self.trump = 4  # placeholder trump, only 0-3 exist
         self.game_round = 1
-        self.player1 = Player("player1", "learning", guess_agent1, epsilon)
+        self.player1 = Player("player1", "learned", guess_agent1, epsilon, verbose)
         self.player2 = Player("player2", "heuristic")
         self.player3 = Player("player3", "heuristic")
         self.players = [
@@ -19,11 +20,13 @@ class Game:
         ]
         # at the start of the game
         self.scores = {self.player1: 0, self.player2: 0, self.player3: 0}
+
+        # for keeping track of what goes wrong for the learning agent
         self.offs = [
             0,
             0,
-        ]  # for keeping track of what goes wrong for the learning agent
-
+        ]
+        self.off_game = np.zeros(20)
         # for info per trick
         self.played_cards = []
         self.guesses = []
@@ -44,10 +47,10 @@ class Game:
         # Guessing phase
         self.guesses = []    # reset guesses every round
         for player in self.players:
-            if player.player_type != "learning":
-                self.guesses.append(player.guess_wins(self.game_round, self.trump))
-            else:
+            if player.player_type.startswith("learn"):
                 self.guesses.append(player.guess_wins(self.game_round, self.trump, self.guessing_state_space(player)))
+            else:
+                self.guesses.append(player.guess_wins(self.game_round, self.trump))
             # print("Hand: ", player.hand)
             # print("Player guess: ", player.guesses, "\n")
 
@@ -145,15 +148,19 @@ class Game:
         for player in self.players:
             #  print(player.player_name, player.trick_wins, player.guesses)
             off_mark = abs(player.get_trick_wins() - player.get_guesses())
+            if player.player_name == "player1":
+                self.off_game[off_mark] += 1
             if off_mark == 0:
                 self.scores[player] += 20 + 10 * player.get_guesses()
                 if player.player_type == "learning":
-                    player.update_agent(3)
+                    player.update_agent(1000)
             else:
                 if player.player_type == "learning":
-                    player.update_agent(-1*off_mark)
+                    player.update_agent(-200*off_mark**3)
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":
+                    if self.verbose:
+                        print("Off-mark: ", off_mark)
                     if player.get_guesses() > player.get_trick_wins():
                         self.offs[0] += 1
                     else:
@@ -162,10 +169,14 @@ class Game:
 
     def guessing_state_space(self, player: Player):
         cards_in_hand = np.hstack(player.get_hand())
-        cards_in_hand = np.concatenate((cards_in_hand, [4, 0] * int((20-len(cards_in_hand)/2))))
-        trump = [self.trump]
+        cards_in_hand = np.concatenate((cards_in_hand, [4, 15] * int((20-len(cards_in_hand)/2))))
+        trump = [0, 0, 0, 0, 0]
+        trump[self.trump] = 1
         previous_guesses = self.guesses[:]
-        previous_guesses += [21] * (3-len(previous_guesses))
+        previous_guesses += [21] * (2-len(previous_guesses))
         round_number = [self.game_round]
         state_space = np.concatenate((cards_in_hand, trump, previous_guesses, round_number))
         return state_space
+
+    def get_game_performance(self):
+        return self.off_game

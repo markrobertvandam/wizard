@@ -1,7 +1,7 @@
 import numpy as np
 from keras.models import Sequential
+from keras.layers import Input, Dense, Activation, Dropout
 from keras.optimizers import adam_v2
-from keras.layers import Input, Dense, Activation
 from keras.callbacks import TensorBoard
 import tensorflow as tf
 from collections import deque
@@ -10,9 +10,9 @@ import random
 from tqdm import tqdm
 import os
 
-REPLAY_MEMORY_SIZE = 500  # How many last steps to keep for model training
+REPLAY_MEMORY_SIZE = 200  # How many last steps to keep for model training
 MIN_REPLAY_MEMORY_SIZE = 100  # Minimum number of steps in a memory to start training
-MINIBATCH_SIZE = 20  # How many steps (samples) to use for training
+MINIBATCH_SIZE = 32  # How many steps (samples) to use for training
 
 
 # Agent class
@@ -33,15 +33,17 @@ class GuessingAgent:
     def create_model(self):
 
         model = Sequential()
-        model.add(Input(self.input_size))
-        model.add(Dense(180))
+        model.add(Input(self.input_size))        # input size is 48
+        model.add(Dense(200))
         model.add(Activation('relu'))
-        model.add(Dense(90))
+        model.add(Dropout(0.1))
+        model.add(Dense(100))
         model.add(Activation('relu'))
-        model.add(Dense(64))
-
-        model.add(Dense(self.guess_max, activation='linear'))  # guess_max = how many rounds (output_size) (9)
-        model.compile(loss="mse", optimizer=adam_v2.Adam(learning_rate=0.001), metrics=['accuracy'])
+        model.add(Dropout(0.1))
+        model.add(Dense(50))
+        model.add(Dense(self.guess_max, activation='linear'))  # guess_max = how many rounds (output_size) (20)
+        model.compile(loss="mse", optimizer=adam_v2.Adam(learning_rate=0.001),
+                      metrics=['accuracy'])
         print(model.summary())
         return model
 
