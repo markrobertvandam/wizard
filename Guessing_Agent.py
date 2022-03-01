@@ -1,17 +1,14 @@
 import numpy as np
+
+from collections import deque
 from keras.models import Sequential
 from keras.layers import Input, Dense, Activation, Dropout
 from keras.optimizers import adam_v2
-from keras.callbacks import TensorBoard
-import tensorflow as tf
-from collections import deque
-import time
-import random
-from tqdm import tqdm
-import os
 
-REPLAY_MEMORY_SIZE = 200  # How many last steps to keep for model training
-MIN_REPLAY_MEMORY_SIZE = 100  # Minimum number of steps in a memory to start training
+import random
+
+REPLAY_MEMORY_SIZE = 200  # How many last steps to keep for model training, 200 means remember last 10 games
+MIN_REPLAY_MEMORY_SIZE = 100  # Minimum number of steps in a memory to start training, 100 means at least 5 games played
 MINIBATCH_SIZE = 32  # How many steps (samples) to use for training
 
 
@@ -32,7 +29,7 @@ class GuessingAgent:
     def create_model(self):
 
         model = Sequential()
-        model.add(Input(self.input_size))  # input size is 48
+        model.add(Input(self.input_size))  # input size is 68
         model.add(Dense(200))
         model.add(Activation("relu"))
         model.add(Dropout(0.1))
