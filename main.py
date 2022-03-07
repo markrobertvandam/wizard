@@ -19,14 +19,15 @@ def avg_n_games(n, model_path="", save_bool="y"):
     epsilon_decay = 0.997
     min_epsilon = 0.02
 
+    # For keeping track of performance
     win_counter = [0, 0, 0]
     score_counter = [0, 0, 0]
     total_offs = [0, 0]
 
+    # Make the deck
     full_deck = []
     deck_dict = {}
 
-    # Make the deck
     for suit in range(4):  # (blue, yellow, red, green)
         for card_value in range(15):  # (joker, 1-13, wizard)
             full_deck.append((suit, card_value))
@@ -34,6 +35,7 @@ def avg_n_games(n, model_path="", save_bool="y"):
             # to go from card to index for one-hot
             deck_dict[(suit, card_value)] = card_value + suit * 15
 
+    # Run n-amount of games
     last_ten_performance = np.zeros(20)
     for game_instance in range(n):
         if game_instance % 10 == 0:
@@ -44,6 +46,8 @@ def avg_n_games(n, model_path="", save_bool="y"):
             last_ten_performance *= 0
         wizard = game.Game(full_deck, deck_dict, guess_agent, epsilon, verbose=True)
         scores, offs = wizard.play_game()
+
+        # For command-line output while training
         last_ten_performance += wizard.get_game_performance()
         for player in range(3):
             score_counter[player] += scores[player] / n

@@ -1,14 +1,14 @@
 import numpy as np
 
 from collections import deque
-from keras.models import Sequential
-from keras.layers import Input, Dense, Activation, Dropout
+from keras.models import Model
+from keras.layers import Input, Dense, Activation, concatenate
 from keras.optimizers import adam_v2
 
 import random
 
-REPLAY_MEMORY_SIZE = 200  # How many last steps to keep for model training, 200 means remember last 10 games
-MIN_REPLAY_MEMORY_SIZE = 100  # Minimum number of steps in a memory to start training, 100 means at least 5 games played
+REPLAY_MEMORY_SIZE = 2000  # How many last steps to keep for model training, 2000 means remember last 100 games
+MIN_REPLAY_MEMORY_SIZE = 1000  # Minimum number of steps in a memory to start training, 100 means at least 5 games played
 MINIBATCH_SIZE = 32  # How many steps (samples) to use for training
 
 
@@ -28,18 +28,19 @@ class GuessingAgent:
 
     def create_model(self):
 
-        model = Sequential()
-        model.add(Input(self.input_size))  # input size is 68
-        model.add(Dense(200))
-        model.add(Activation("relu"))
-        model.add(Dropout(0.1))
-        model.add(Dense(100))
-        model.add(Activation("relu"))
-        model.add(Dropout(0.1))
-        model.add(Dense(50))
-        model.add(
-            Dense(self.guess_max, activation="linear")
+        input1 = Input(self.input_size)  # input size for observation state is 68
+        # input2 = Input(1)  # scalar input for action taken
+        #
+        # combined = concatenate([input1, input2])
+        x = Dense(200, activation="relu")(input1)
+        x = Dense(100, activation="relu")(x)
+        x = Dense(50, activation="relu")(x)
+        x = Dense(self.guess_max, activation="linear")(
+            x
         )  # guess_max = how many rounds (output_size) (20)
+
+        model = Model(inputs=input1, outputs=x)
+
         model.compile(
             loss="mse",
             optimizer=adam_v2.Adam(learning_rate=0.001),
@@ -48,8 +49,8 @@ class GuessingAgent:
         print(model.summary())
         return model
 
-    # Adds step's data to a memory replay array
-    # (observation space, action, reward, new observation space, done)
+    # Adds data to a memory replay array
+    # (current state, guess made by player, reward)
     def update_replay_memory(self, transition):
         self.replay_memory.append(transition)
 

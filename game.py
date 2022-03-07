@@ -169,10 +169,10 @@ class Game:
             if off_mark == 0:
                 self.scores[player] += 20 + 10 * player.get_guesses()
                 if player.player_type == "learning":
-                    player.update_agent(1000)
+                    player.update_agent(100)
             else:
                 if player.player_type == "learning":
-                    player.update_agent(-200 * off_mark**3)
+                    player.update_agent(0)
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":
                     if self.verbose:
