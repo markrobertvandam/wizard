@@ -52,7 +52,11 @@ class GuessingAgent:
     # Adds data to a memory replay array
     # (current state, guess made by player, reward)
     def update_replay_memory(self, transition):
-        self.replay_memory.append(transition)
+        if transition[2] == 100:
+            for i in range(50):
+                self.replay_memory.append(transition)
+        else:
+            self.replay_memory.append(transition)
 
     # Trains main network every step during episode
     def train(self):

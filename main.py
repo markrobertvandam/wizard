@@ -44,7 +44,7 @@ def avg_n_games(n, model_path="", save_bool="y"):
                 f"Last10: {last_ten_performance}"
             )
             last_ten_performance *= 0
-        wizard = game.Game(full_deck, deck_dict, guess_agent, epsilon, verbose=True)
+        wizard = game.Game(full_deck, deck_dict, guess_agent, epsilon, verbose=False)
         scores, offs = wizard.play_game()
 
         # For command-line output while training
