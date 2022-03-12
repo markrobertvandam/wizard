@@ -1,15 +1,54 @@
+import argparse
 import game
 import numpy as np
+import matplotlib.pyplot as plt
 import os
 import time
 import tensorflow as tf
 from Guessing_Agent import GuessingAgent
 
 
-def avg_n_games(n, model_path="", save_bool="y"):
+def parse_args() -> argparse.Namespace:
+    """
+    Function to parse arguments.
+    Returns:
+    parser: Argument parser containing arguments.
+    """
+
+    parser = argparse.ArgumentParser(description="Run n-games")
+    parser.add_argument("games", help="How many games to run", type=int)
+    parser.add_argument(
+        "runtype",
+        help="type of agent for player 1 (random, heuristic, learning, learned)",
+    )
+    parser.add_argument(
+        "save", help="argument to determine whether model should be saved when learning"
+    )
+    parser.add_argument(
+        "--verbose",
+        help="optional argument to set how verbose the run is",
+        default=0,
+        type=int,
+    )
+    parser.add_argument(
+        "--model", help="optional argument to load in the weights of a saved model"
+    )
+
+    return parser.parse_args()
+
+
+def plot_accuracy(accuracy_history, game_instance, time_label):
+    plt.plot(list(range(10, game_instance + 1, 10)), accuracy_history)
+    plt.xlabel("Games", fontsize=15)
+    plt.ylabel("Accuracy", fontsize=15)
+    plt.savefig(f"plots/accuracy_plot{time_label}")
+    plt.close()
+
+
+def avg_n_games(n, run_type, save_bool, model_path, verbose):
     input_size = 68
     guess_agent = GuessingAgent(input_size=input_size, guess_max=20)
-    if model_path != "":
+    if model_path is not None:
         guess_agent.model = tf.keras.models.load_model(
             os.path.join("models", model_path)
         )
@@ -37,14 +76,13 @@ def avg_n_games(n, model_path="", save_bool="y"):
 
     # Run n-amount of games
     last_ten_performance = np.zeros(20)
-    for game_instance in range(n):
-        if game_instance % 10 == 0:
-            print(
-                f"Game {game_instance}, avg_reward: {int(guess_agent.avg_reward)}, Epsilon: {round(epsilon,2)}, "
-                f"Last10: {last_ten_performance}"
-            )
-            last_ten_performance *= 0
-        wizard = game.Game(full_deck, deck_dict, guess_agent, epsilon, verbose=False)
+    accuracy_history = []
+    last_max = 0
+    max_acc = 0
+    for game_instance in range(1, n + 1):
+        wizard = game.Game(
+            full_deck, deck_dict, run_type, guess_agent, epsilon, verbose=verbose
+        )
         scores, offs = wizard.play_game()
 
         # For command-line output while training
@@ -56,6 +94,37 @@ def avg_n_games(n, model_path="", save_bool="y"):
         total_offs[0] += offs[0]
         total_offs[1] += offs[1]
 
+        if game_instance % 10 == 0:
+            accuracy = last_ten_performance[0] / 200
+            guess_agent.accuracy = accuracy
+            accuracy_history.append(accuracy)
+            print(
+                f"Game {game_instance}, accuracy: {accuracy}, Epsilon: {round(epsilon,2)}, "
+                f"Last10: {last_ten_performance}"
+            )
+            last_ten_performance *= 0
+
+            # for early stopping
+            if accuracy > max_acc and run_type == "learning":
+                last_max = game_instance
+                max_acc = accuracy
+
+        if run_type == "learning":
+
+            if game_instance % 500 == 0:
+                time_label = str(int(time.time() / 3600))[-3:]
+                plot_accuracy(accuracy_history, game_instance, time_label)
+                if save_bool.startswith("y"):
+                    guess_agent.model.save(
+                        f"models/guessing{input_size}_"
+                        f"{round(guess_agent.avg_reward, 2)}_"
+                        f"{time_label}_"
+                        f"{game_instance}.model"
+                    )
+
+            if game_instance - last_max > 500:
+                break
+
         # Decay epsilon
         if epsilon > min_epsilon:
             epsilon *= epsilon_decay
@@ -63,14 +132,7 @@ def avg_n_games(n, model_path="", save_bool="y"):
 
     print(score_counter, win_counter, total_offs)
 
-    if save_bool.startswith("y"):
-        guess_agent.model.save(
-            f"models/guessing{input_size}_{round(guess_agent.avg_reward, 2)}_{str(int(time.time()/3600))[-3:]}_{n}.model"
-        )
-
 
 if __name__ == "__main__":
-    n = int(input("How many games: "))
-    model = input("Saved model-name: ")
-    save = input("Save the model? (y/n): ")
-    avg_n_games(n, model, save)
+    args = parse_args()
+    avg_n_games(args.games, args.runtype, args.save, args.model, args.verbose)

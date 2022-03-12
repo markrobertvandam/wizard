@@ -8,6 +8,7 @@ class Game:
         self,
         full_deck,
         deck_dict,
+        run_type,
         guess_agent1=None,
         epsilon=None,
         playing_agent1=None,
@@ -19,7 +20,7 @@ class Game:
         self.deck = []
         self.trump = 4  # placeholder trump, only 0-3 exist
         self.game_round = 1
-        self.player1 = Player("player1", "learned", guess_agent1, epsilon, verbose)
+        self.player1 = Player("player1", run_type, guess_agent1, epsilon, verbose)
         self.player2 = Player("player2", "heuristic")
         self.player3 = Player("player3", "heuristic")
         self.players = [
@@ -113,7 +114,7 @@ class Game:
 
             player += 1
 
-    def play_game(self) -> tuple[list[int], list[int]]:
+    def play_game(self) -> tuple:
         for game_round in range(20):
             self.deck = self.full_deck[:]
             random.shuffle(self.deck)
