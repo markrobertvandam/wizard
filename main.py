@@ -6,7 +6,7 @@ import os
 import time
 import tensorflow as tf
 from Guessing_Agent import GuessingAgent
-
+from tensorflow.python.client import device_lib 
 
 def parse_args() -> argparse.Namespace:
     """
@@ -55,7 +55,7 @@ def avg_n_games(n, run_type, save_bool, model_path, verbose):
 
     # Exploration settings
     epsilon = 1  # not a constant, going to be decayed
-    epsilon_decay = 0.997
+    epsilon_decay = 0.9985
     min_epsilon = 0.02
 
     # For keeping track of performance
@@ -111,18 +111,25 @@ def avg_n_games(n, run_type, save_bool, model_path, verbose):
 
         if run_type == "learning":
 
-            if game_instance % 500 == 0:
+            if game_instance % 1000 == 0:
                 time_label = str(int(time.time() / 3600))[-3:]
                 plot_accuracy(accuracy_history, game_instance, time_label)
                 if save_bool.startswith("y"):
                     guess_agent.model.save(
                         f"models/guessing{input_size}_"
-                        f"{round(guess_agent.avg_reward, 2)}_"
                         f"{time_label}_"
+                        f"{round(guess_agent.avg_reward, 2)}_"
                         f"{game_instance}.model"
                     )
 
-            if game_instance - last_max > 500:
+            if game_instance - last_max > 8000:
+                if save_bool.startswith("y"):
+                    guess_agent.model.save(
+                        f"models/guessing{input_size}_"
+                        f"{time_label}_"
+                        f"{round(guess_agent.avg_reward, 2)}_"
+                        f"{game_instance}.model"
+                    )
                 break
 
         # Decay epsilon
