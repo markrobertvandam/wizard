@@ -107,6 +107,14 @@ class Player:
                             card = card_option
                             break
 
+                    if card is None:
+                        card = reversed_sort_legal[0]
+                        # Throw away lowest non-trump (if there is one), unless card is much higher than trump
+                        if card[0] == trump:
+                            for card_option in reversed_sort_legal[1:]:
+                                if card_option[0] != trump and card_option[1] - card[1] < 10:
+                                    card = card_option
+                                    break
         if card is None:
             card = random.choice(legal_cards)
 
