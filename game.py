@@ -28,6 +28,8 @@ class Game:
             self.player2,
             self.player3,
         ]
+        random.shuffle(self.players)
+
         # at the start of the game
         self.scores = {self.player1: 0, self.player2: 0, self.player3: 0}
 
