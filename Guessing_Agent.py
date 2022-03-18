@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 
 from collections import deque
 from keras.models import Model
@@ -27,18 +28,23 @@ class GuessingAgent:
         # An array with last n steps for training
         self.replay_memory = deque(maxlen=REPLAY_MEMORY_SIZE)
 
+    @staticmethod
+    def dense_layer(num_units):
+        return Dense(num_units, activation="relu",kernel_initializer=tf.keras.initializers.VarianceScaling(
+            scale=2.0, mode='fan_in', distribution='truncated_normal'))
+
     def create_model(self):
 
         input1 = Input(self.input_size)  # input size for observation state is 68
         # input2 = Input(1)  # scalar input for action taken
         #
         # combined = concatenate([input1, input2])
-        x = Dense(128, activation="relu")(input1)
-        x = Dense(64, activation="relu")(x)
-        x = Dense(32, activation="relu")(x)
-        x = Dense(self.guess_max, activation="linear")(
-            x
-        )  # guess_max = how many rounds (output_size) (20)
+        x = self.dense_layer(128)(input1)
+        x = self.dense_layer(64)(x)
+        x = self.dense_layer(32)(x)
+        x = Dense(self.guess_max, activation="linear", kernel_initializer=tf.keras.initializers.RandomUniform(
+            minval=-0.03, maxval=0.03), bias_initializer=tf.keras.initializers.Constant(-0.2))(x)
+        # guess_max = how many rounds (output_size) (20)
 
         model = Model(inputs=input1, outputs=x)
 

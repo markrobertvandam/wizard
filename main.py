@@ -25,9 +25,9 @@ def parse_args() -> argparse.Namespace:
         "save", help="argument to determine whether model should be saved when learning"
     )
     parser.add_argument(
-	"--save_folder",
-	help="folder name for plots and models for this run",
-	default="1"
+        "--save_folder",
+        help="folder name for plots and models for this run",
+        default="1"
     )
     parser.add_argument(
         "--verbose",
