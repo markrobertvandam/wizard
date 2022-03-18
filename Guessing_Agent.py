@@ -9,7 +9,7 @@ import random
 
 REPLAY_MEMORY_SIZE = 2000  # How many last steps to keep for model training, 2000 means remember last 100 games
 MIN_REPLAY_MEMORY_SIZE = 1000  # Minimum number of steps in memory to start training, 1000 means at least 50 games
-MINIBATCH_SIZE = 64  # How many steps (samples) to use for training
+MINIBATCH_SIZE = 32  # How many steps (samples) to use for training
 
 
 # Agent class
@@ -33,8 +33,7 @@ class GuessingAgent:
         # input2 = Input(1)  # scalar input for action taken
         #
         # combined = concatenate([input1, input2])
-        x = Dense(256, activation="relu")(input1)
-        x = Dense(128, activation="relu")(x)
+        x = Dense(128, activation="relu")(input1)
         x = Dense(64, activation="relu")(x)
         x = Dense(32, activation="relu")(x)
         x = Dense(self.guess_max, activation="linear")(

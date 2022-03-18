@@ -25,6 +25,11 @@ def parse_args() -> argparse.Namespace:
         "save", help="argument to determine whether model should be saved when learning"
     )
     parser.add_argument(
+	"--save_folder",
+	help="folder name for plots and models for this run",
+	default="1"
+    )
+    parser.add_argument(
         "--verbose",
         help="optional argument to set how verbose the run is",
         default=0,
@@ -36,16 +41,15 @@ def parse_args() -> argparse.Namespace:
 
     return parser.parse_args()
 
-
-def plot_accuracy(accuracy_history, game_instance, time_label):
+def plot_accuracy(accuracy_history, game_instance, save_folder):
     plt.plot(list(range(10, game_instance + 1, 10)), accuracy_history)
     plt.xlabel("Games", fontsize=15)
     plt.ylabel("Accuracy", fontsize=15)
-    plt.savefig(f"plots/accuracy_plot{time_label}")
+    plt.savefig(f"plots/{save_folder}/accuracy_plot")
     plt.close()
 
 
-def avg_n_games(n, run_type, save_bool, model_path, verbose):
+def avg_n_games(n, run_type, save_bool, save_folder, model_path, verbose):
     input_size = 68
     guess_agent = GuessingAgent(input_size=input_size, guess_max=20)
     if model_path is not None:
@@ -113,21 +117,21 @@ def avg_n_games(n, run_type, save_bool, model_path, verbose):
 
             if game_instance % 2000 == 0:
                 time_label = str(int(time.time() / 3600))[-3:]
-                plot_accuracy(accuracy_history, game_instance, time_label)
+                plot_accuracy(accuracy_history, game_instance, save_folder)
                 if save_bool.startswith("y"):
                     guess_agent.model.save(
-                        f"models/guessing{input_size}_"
+                        f"models/{save_folder}/guessing{input_size}_"
                         f"{time_label}_"
-                        f"{round(guess_agent.avg_reward, 2)}_"
+                        f"{accuracy}_"
                         f"{game_instance}.model"
                     )
 
             if game_instance - last_max > 6000:
                 if save_bool.startswith("y"):
                     guess_agent.model.save(
-                        f"models/guessing{input_size}_"
+                        f"models/{save_folder}/guessing{input_size}_"
                         f"{time_label}_"
-                        f"{round(guess_agent.avg_reward, 2)}_"
+                        f"{accuracy}_"
                         f"{game_instance}.model"
                     )
                 break
@@ -142,4 +146,4 @@ def avg_n_games(n, run_type, save_bool, model_path, verbose):
 
 if __name__ == "__main__":
     args = parse_args()
-    avg_n_games(args.games, args.runtype, args.save, args.model, args.verbose)
+    avg_n_games(args.games, args.runtype, args.save, args.save_folder, args.model, args.verbose)
