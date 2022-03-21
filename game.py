@@ -193,16 +193,16 @@ class Game:
 
     def guessing_state_space(self, player: Player):
         cards_in_hand = player.get_hand()
-        one_hot_hand = np.zeros(60)
-        for card in cards_in_hand:
-            one_hot_hand[self.deck_dict[card]] = 1
+        encoded_hand = np.full(20, -1)
+        for card in range(len(cards_in_hand)):
+            encoded_hand[card] = self.deck_dict[cards_in_hand[card]]
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
         previous_guesses = self.guesses[:]
         previous_guesses += [21] * (2 - len(previous_guesses))
         round_number = [self.game_round]
         state_space = np.concatenate(
-            (one_hot_hand, trump, previous_guesses, round_number)
+            (encoded_hand, trump, previous_guesses, round_number)
         )
 
         return state_space

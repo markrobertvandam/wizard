@@ -50,7 +50,7 @@ def plot_accuracy(accuracy_history, game_instance, save_folder):
 
 
 def avg_n_games(n, run_type, save_bool, save_folder, model_path, verbose):
-    input_size = 68
+    input_size = 28
     guess_agent = GuessingAgent(input_size=input_size, guess_max=20)
     if model_path is not None:
         guess_agent.model = tf.keras.models.load_model(
@@ -59,7 +59,7 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, verbose):
 
     # Exploration settings
     epsilon = 1  # not a constant, going to be decayed
-    epsilon_decay = 0.9985
+    epsilon_decay = 0.997
     min_epsilon = 0.02
 
     # For keeping track of performance
@@ -71,12 +71,12 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, verbose):
     full_deck = []
     deck_dict = {}
 
-    for suit in range(4):  # (blue, yellow, red, green)
-        for card_value in range(15):  # (joker, 1-13, wizard)
+    for card_value in range(15):  # (joker, 1-13, wizard)
+        for suit in range(4):  # (blue, yellow, red, green)
             full_deck.append((suit, card_value))
 
-            # to go from card to index for one-hot
-            deck_dict[(suit, card_value)] = card_value + suit * 15
+            # to go from card to index
+            deck_dict[(suit, card_value)] = suit + card_value * 4
 
     # Run n-amount of games
     last_ten_performance = np.zeros(20)
