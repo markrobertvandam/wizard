@@ -6,6 +6,7 @@ import os
 import time
 import tensorflow as tf
 from Guessing_Agent import GuessingAgent
+#from Playing_Agent import PlayingAgent
 from tensorflow.python.client import device_lib 
 
 def parse_args() -> argparse.Namespace:
@@ -38,8 +39,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model", help="optional argument to load in the weights of a saved model"
     )
+    parser.add_argument(
+        "--play_model", help="optional argument to load in the weights of a saved player model"
+    )
 
     return parser.parse_args()
+
 
 def plot_accuracy(accuracy_history, game_instance, save_folder):
     plt.plot(list(range(10, game_instance + 1, 10)), accuracy_history)
@@ -49,13 +54,19 @@ def plot_accuracy(accuracy_history, game_instance, save_folder):
     plt.close()
 
 
-def avg_n_games(n, run_type, save_bool, save_folder, model_path, verbose):
-    input_size = 28
+def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, verbose):
+    input_size = 68
     guess_agent = GuessingAgent(input_size=input_size, guess_max=20)
+    playing_agent = None
+    #playing_agent = PlayingAgent()
     if model_path is not None:
         guess_agent.model = tf.keras.models.load_model(
             os.path.join("models", model_path)
         )
+    # if player_model is not None:
+    #     playing_agent.model = tf.keras.models.load_model(
+    #         os.path.join("models", player_model)
+    #     )
 
     # Exploration settings
     epsilon = 1  # not a constant, going to be decayed
@@ -85,7 +96,7 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, verbose):
     max_acc = 0
     for game_instance in range(1, n + 1):
         wizard = game.Game(
-            full_deck, deck_dict, run_type, guess_agent, epsilon, verbose=verbose
+            full_deck, deck_dict, run_type, guess_agent, playing_agent, epsilon, verbose=verbose
         )
         scores, offs = wizard.play_game()
 
@@ -146,4 +157,4 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, verbose):
 
 if __name__ == "__main__":
     args = parse_args()
-    avg_n_games(args.games, args.runtype, args.save, args.save_folder, args.model, args.verbose)
+    avg_n_games(args.games, args.runtype, args.save, args.save_folder, args.model, args.play_model, args.verbose)

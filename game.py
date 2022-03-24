@@ -9,9 +9,9 @@ class Game:
         full_deck,
         deck_dict,
         run_type,
-        guess_agent1=None,
+        guess_agent=None,
+        playing_agent=None,
         epsilon=None,
-        playing_agent1=None,
         verbose=False,
     ) -> None:
         self.verbose = verbose
@@ -20,7 +20,7 @@ class Game:
         self.deck = []
         self.trump = 4  # placeholder trump, only 0-3 exist
         self.game_round = 1
-        self.player1 = Player("player1", run_type, guess_agent1, epsilon, verbose)
+        self.player1 = Player("player1", run_type, guess_agent, playing_agent, epsilon, verbose)
         self.player2 = Player("player2", "heuristic")
         self.player3 = Player("player3", "heuristic")
         self.players = [
@@ -193,16 +193,16 @@ class Game:
 
     def guessing_state_space(self, player: Player):
         cards_in_hand = player.get_hand()
-        encoded_hand = np.full(20, -1)
-        for card in range(len(cards_in_hand)):
-            encoded_hand[card] = self.deck_dict[cards_in_hand[card]]
+        one_hot_hand = np.zeros(60)
+        for card in cards_in_hand:
+            one_hot_hand[self.deck_dict[card]] = 1
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
         previous_guesses = self.guesses[:]
         previous_guesses += [21] * (2 - len(previous_guesses))
         round_number = [self.game_round]
         state_space = np.concatenate(
-            (encoded_hand, trump, previous_guesses, round_number)
+            (one_hot_hand, trump, previous_guesses, round_number)
         )
 
         return state_space

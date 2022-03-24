@@ -12,6 +12,7 @@ class Player:
         player_name: str,
         player_type="random",
         guess_agent=None,
+        play_agent=None,
         epsilon=None,
         verbose=False,
     ) -> None:
@@ -25,6 +26,7 @@ class Player:
         if self.player_type.startswith("learn"):
             self.guess_agent = guess_agent
             self.guess_agent.avg_reward = 0
+            self.play_agent = play_agent
             self.current_state = None
             self.epsilon = epsilon
 
@@ -48,13 +50,14 @@ class Player:
         self.hand.sort(key=lambda x: (x[0], x[1]))
         return deck
 
-    def play_card(self, trump: int, requested_color: int, played_cards: list) -> tuple:
+    def play_card(self, trump: int, requested_color: int, played_cards: list, state_space=None) -> tuple:
         """
         Plays a card from players hand
         :param trump: The trump card of the current round
         :param requested_color: The requested color that has to be played if possible
                                 (blue, yellow, red, green, None yet, None this round)
         :param played_cards: Cards played so far
+        :param state_space: Observation state used for playing agent
         :return: the played card
         """
         requested_cards = []
@@ -115,6 +118,17 @@ class Player:
                                 if card_option[0] != trump and card_option[1] - card[1] < 10:
                                     card = card_option
                                     break
+
+        # if self.player_type == "learning":
+        #     self.current_state = state_space
+        #     if np.random.random() > self.epsilon:
+        #         # Get action from MCTS
+        #         card = self.play_agent.predict(state_space)
+
+        # elif self.player_type == "learned":
+        #     self.current_state = state_space
+        #     card = self.play_agent.predict(state_space))
+
         if card is None:
             card = random.choice(legal_cards)
 
@@ -126,6 +140,7 @@ class Player:
         Guess how many tricks the player will win this round
         :param max_guesses: max guesses (amount of tricks in this round)
         :param trump: trump in this round
+        :param state_space: observation state used for guessing agent
         :return: None
         """
         if self.player_type == "random":
