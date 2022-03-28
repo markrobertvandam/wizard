@@ -207,5 +207,28 @@ class Game:
 
         return state_space
 
+    def playing_state_space(self, player: Player):
+        cards_in_hand = player.get_hand()
+        one_hot_hand = np.zeros(60)
+        for card in cards_in_hand:
+            one_hot_hand[self.deck_dict[card]] = 1
+        trump = [0, 0, 0, 0, 0]
+        trump[self.trump] = 1
+        previous_guesses = self.guesses[:]
+        previous_guesses += [21] * (2 - len(previous_guesses))
+        round_number = [self.game_round]
+        tricks_needed = player.get_guesses() - player.get_trick_wins()
+
+        # TODO: PLAYED CARDS
+        played_this_trick = None
+        played_this_round = None
+
+        state_space = np.concatenate(
+            (one_hot_hand, trump, previous_guesses, round_number,
+             tricks_needed, played_this_trick, played_this_round)
+        )
+
+        return state_space
+
     def get_game_performance(self):
         return self.off_game

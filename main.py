@@ -6,7 +6,7 @@ import os
 import time
 import tensorflow as tf
 from Guessing_Agent import GuessingAgent
-#from Playing_Agent import PlayingAgent
+from Playing_Agent import PlayingAgent
 from tensorflow.python.client import device_lib 
 
 def parse_args() -> argparse.Namespace:
@@ -57,16 +57,15 @@ def plot_accuracy(accuracy_history, game_instance, save_folder):
 def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, verbose):
     input_size = 68
     guess_agent = GuessingAgent(input_size=input_size, guess_max=20)
-    playing_agent = None
-    #playing_agent = PlayingAgent()
+    playing_agent = PlayingAgent()
     if model_path is not None:
         guess_agent.model = tf.keras.models.load_model(
             os.path.join("models", model_path)
         )
-    # if player_model is not None:
-    #     playing_agent.model = tf.keras.models.load_model(
-    #         os.path.join("models", player_model)
-    #     )
+    if player_model is not None:
+        playing_agent.model = tf.keras.models.load_model(
+            os.path.join("models", player_model)
+        )
 
     # Exploration settings
     epsilon = 1  # not a constant, going to be decayed
@@ -82,12 +81,12 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, v
     full_deck = []
     deck_dict = {}
 
-    for card_value in range(15):  # (joker, 1-13, wizard)
-        for suit in range(4):  # (blue, yellow, red, green)
+    for suit in range(4):  # (blue, yellow, red, green)
+        for card_value in range(15):  # (joker, 1-13, wizard)
             full_deck.append((suit, card_value))
 
             # to go from card to index
-            deck_dict[(suit, card_value)] = suit + card_value * 4
+            deck_dict[(suit, card_value)] = card_value + suit * 15
 
     # Run n-amount of games
     last_ten_performance = np.zeros(20)
@@ -139,6 +138,7 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, v
 
             if game_instance - last_max > 6000:
                 if save_bool.startswith("y"):
+                    time_label = str(int(time.time() / 3600))[-3:]
                     guess_agent.model.save(
                         f"models/{save_folder}/guessing{input_size}_"
                         f"{time_label}_"
