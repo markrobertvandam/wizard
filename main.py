@@ -7,7 +7,8 @@ import time
 import tensorflow as tf
 from Guessing_Agent import GuessingAgent
 from Playing_Agent import PlayingAgent
-from tensorflow.python.client import device_lib 
+from tensorflow.python.client import device_lib
+
 
 def parse_args() -> argparse.Namespace:
     """
@@ -28,7 +29,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--save_folder",
         help="folder name for plots and models for this run",
-        default="1"
+        default="1",
     )
     parser.add_argument(
         "--verbose",
@@ -40,7 +41,8 @@ def parse_args() -> argparse.Namespace:
         "--model", help="optional argument to load in the weights of a saved model"
     )
     parser.add_argument(
-        "--play_model", help="optional argument to load in the weights of a saved player model"
+        "--play_model",
+        help="optional argument to load in the weights of a saved player model",
     )
 
     return parser.parse_args()
@@ -95,7 +97,13 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, v
     max_acc = 0
     for game_instance in range(1, n + 1):
         wizard = game.Game(
-            full_deck, deck_dict, run_type, guess_agent, playing_agent, epsilon, verbose=verbose
+            full_deck,
+            deck_dict,
+            run_type,
+            guess_agent,
+            playing_agent,
+            epsilon,
+            verbose=verbose,
         )
         scores, offs = wizard.play_game()
 
@@ -157,4 +165,12 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, v
 
 if __name__ == "__main__":
     args = parse_args()
-    avg_n_games(args.games, args.runtype, args.save, args.save_folder, args.model, args.play_model, args.verbose)
+    avg_n_games(
+        args.games,
+        args.runtype,
+        args.save,
+        args.save_folder,
+        args.model,
+        args.play_model,
+        args.verbose,
+    )

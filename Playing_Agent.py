@@ -90,11 +90,10 @@ class PlayingAgent:
     def ucb1(self, node):
         wins = node.wins
         sims = node.visited
-        avg_value = wins/sims
-        ucb1 = avg_value + sqrt(2* log(node.parent.visited) / sims)
+        avg_value = wins / sims
+        ucb1 = avg_value + sqrt(2 * log(node.parent.visited) / sims)
         return ucb1
 
     def predict(self, play_state):
         root_node = self.nodes[play_state]
         return self.best_child(root_node)
-

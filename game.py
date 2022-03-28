@@ -20,7 +20,9 @@ class Game:
         self.deck = []
         self.trump = 4  # placeholder trump, only 0-3 exist
         self.game_round = 1
-        self.player1 = Player("player1", run_type, guess_agent, playing_agent, epsilon, verbose)
+        self.player1 = Player(
+            "player1", run_type, guess_agent, playing_agent, epsilon, verbose
+        )
         self.player2 = Player("player2", "heuristic")
         self.player3 = Player("player3", "heuristic")
         self.players = [
@@ -224,8 +226,15 @@ class Game:
         played_this_round = None
 
         state_space = np.concatenate(
-            (one_hot_hand, trump, previous_guesses, round_number,
-             tricks_needed, played_this_trick, played_this_round)
+            (
+                one_hot_hand,
+                trump,
+                previous_guesses,
+                round_number,
+                tricks_needed,
+                played_this_trick,
+                played_this_round,
+            )
         )
 
         return state_space

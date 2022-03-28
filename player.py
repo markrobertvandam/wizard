@@ -50,7 +50,9 @@ class Player:
         self.hand.sort(key=lambda x: (x[0], x[1]))
         return deck
 
-    def play_card(self, trump: int, requested_color: int, played_cards: list, state_space=None) -> tuple:
+    def play_card(
+        self, trump: int, requested_color: int, played_cards: list, state_space=None
+    ) -> tuple:
         """
         Plays a card from players hand
         :param trump: The trump card of the current round
@@ -115,7 +117,10 @@ class Player:
                         # Throw away lowest non-trump (if there is one), unless card is much higher than trump
                         if card[0] == trump:
                             for card_option in reversed_sort_legal[1:]:
-                                if card_option[0] != trump and card_option[1] - card[1] < 10:
+                                if (
+                                    card_option[0] != trump
+                                    and card_option[1] - card[1] < 10
+                                ):
                                     card = card_option
                                     break
 
