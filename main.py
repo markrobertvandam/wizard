@@ -44,6 +44,12 @@ def parse_args() -> argparse.Namespace:
         "--play_model",
         help="optional argument to load in the weights of a saved player model",
     )
+    parser.add_argument(
+        "--use_agent",
+        help="optional argument to set whether opponents should be fixed agents",
+        default=0,
+        type=bool,
+    )
 
     return parser.parse_args()
 
@@ -56,7 +62,7 @@ def plot_accuracy(accuracy_history, game_instance, save_folder):
     plt.close()
 
 
-def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, verbose):
+def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, verbose, use_agent):
     input_size = 68
     guess_agent = GuessingAgent(input_size=input_size, guess_max=20)
     playing_agent = PlayingAgent()
@@ -104,6 +110,7 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, v
             playing_agent,
             epsilon,
             verbose=verbose,
+            use_agent=use_agent
         )
         scores, offs = wizard.play_game()
 
@@ -175,4 +182,5 @@ if __name__ == "__main__":
         args.model,
         args.play_model,
         args.verbose,
+        args.use_agent
     )

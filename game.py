@@ -1,4 +1,6 @@
 from player import Player
+
+import copy
 import random
 import numpy as np
 
@@ -13,6 +15,7 @@ class Game:
         playing_agent=None,
         epsilon=None,
         verbose=False,
+        use_agent=False,
     ) -> None:
         self.verbose = verbose
         self.full_deck = full_deck
@@ -23,8 +26,14 @@ class Game:
         self.player1 = Player(
             "player1", run_type, guess_agent, playing_agent, epsilon, verbose
         )
-        self.player2 = Player("player2", "heuristic")
-        self.player3 = Player("player3", "heuristic")
+        if use_agent:
+            guess_agent_fixed = copy.copy(guess_agent)
+            playing_agent_fixed = copy.copy(playing_agent)
+            self.player2 = Player("player2", "learned", guess_agent, playing_agent)
+            self.player3 = Player("player3",  "learned", guess_agent, playing_agent)
+        else:
+            self.player2 = Player("player2", "heuristic")
+            self.player3 = Player("player3", "heuristic")
         self.players = [
             self.player1,
             self.player2,
@@ -209,7 +218,7 @@ class Game:
 
         return state_space
 
-    def playing_state_space(self, player: Player):
+    def playing_state_space(self, player: Player, played_trick, played_round):
         cards_in_hand = player.get_hand()
         one_hot_hand = np.zeros(60)
         for card in cards_in_hand:
@@ -221,8 +230,11 @@ class Game:
         round_number = [self.game_round]
         tricks_needed = player.get_guesses() - player.get_trick_wins()
 
+        played_this_trick = np.zeros(60)
+        for card in played_trick:
+            played_this_trick[self.deck_dict[card]] = 1
+
         # TODO: PLAYED CARDS
-        played_this_trick = None
         played_this_round = None
 
         state_space = np.concatenate(
