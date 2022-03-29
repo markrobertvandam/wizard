@@ -22,9 +22,8 @@ class Node:
 
 # Agent class
 class PlayingAgent:
-    def __init__(self, input_size):
+    def __init__(self):
 
-        self.input_size = input_size
         self.avg_reward = 0  # stores avg reward every game
         self.accuracy = 0.02
         self.nodes = dict()

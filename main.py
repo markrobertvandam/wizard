@@ -144,7 +144,7 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, v
                         f"{game_instance}.model"
                     )
 
-            if game_instance - last_max > 6000:
+            if game_instance - last_max > 10000:
                 if save_bool.startswith("y"):
                     time_label = str(int(time.time() / 3600))[-3:]
                     guess_agent.model.save(
@@ -160,7 +160,9 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, v
             epsilon *= epsilon_decay
             epsilon = max(min_epsilon, epsilon)
 
-    print(score_counter, win_counter, total_offs)
+    print("Scores: ", score_counter)
+    print("Wins: ",  win_counter)
+    print("Mistakes: ", total_offs)
 
 
 if __name__ == "__main__":
