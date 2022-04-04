@@ -229,7 +229,11 @@ class Game:
         previous_guesses += [21] * (2 - len(previous_guesses))
         round_number = [self.game_round]
         tricks_needed = player.get_guesses() - player.get_trick_wins()
-
+        tricks_needed_others = []
+        for other_player in self.players:
+            if player != other_player:
+                tricks = other_player.get_guesses() - other_player.get_trick_wins()
+                tricks_needed_others.append(tricks)
         played_this_trick = np.zeros(60)
         for card in played_trick:
             played_this_trick[self.deck_dict[card]] = 1
@@ -244,6 +248,7 @@ class Game:
                 previous_guesses,
                 round_number,
                 tricks_needed,
+                tricks_needed_others,
                 played_this_trick,
                 played_this_round,
             )

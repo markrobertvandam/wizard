@@ -96,3 +96,7 @@ class PlayingAgent:
     def predict(self, play_state):
         root_node = self.nodes[play_state]
         return self.best_child(root_node)
+
+    def create_node(self, parent, move):
+        node = Node()
+        return node
