@@ -186,7 +186,7 @@ class Game:
                     player.update_agent(100)
             else:
                 if player.player_type == "learning":
-                    player.update_agent(0)
+                    player.update_agent(-1)
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":
                     if self.verbose:
