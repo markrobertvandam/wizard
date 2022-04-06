@@ -67,7 +67,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def plot_accuracy(accuracy_history, game_instance, save_folder, iters_done):
-    plt.plot(list(range(iters_done + 10, game_instance + 1 + iters_done, 10)), accuracy_history)
+    plt.plot(list(range(iters_done + 10, game_instance + 1, 10)), accuracy_history)
     plt.xlabel("Games", fontsize=15)
     plt.ylabel("Accuracy", fontsize=15)
     plt.savefig(f"plots/{save_folder}/accuracy_plot")
@@ -111,7 +111,7 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path,
     # Run n-amount of games
     last_ten_performance = np.zeros(20)
     accuracy_history = []
-    last_max = 0
+    last_max = iters_done
     max_acc = 0
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
         wizard = game.Game(
@@ -152,7 +152,7 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path,
 
         if run_type == "learning":
 
-            if game_instance % 2000 == 0:
+            if game_instance % 1000 == 0:
                 time_label = str(int(time.time() / 3600))[-3:]
                 plot_accuracy(accuracy_history, game_instance, save_folder, iters_done)
                 if save_bool.startswith("y"):
