@@ -50,19 +50,35 @@ def parse_args() -> argparse.Namespace:
         default=0,
         type=bool,
     )
+    parser.add_argument(
+        "--epsilon",
+        help="optional argument to set starting epsilon",
+        default=1,
+        type=float,
+    )
+    parser.add_argument(
+        "--iters_done",
+        help="optional argument to set iters done in previous run",
+        default=0,
+        type=int,
+    )
 
     return parser.parse_args()
 
 
-def plot_accuracy(accuracy_history, game_instance, save_folder):
-    plt.plot(list(range(10, game_instance + 1, 10)), accuracy_history)
+def plot_accuracy(accuracy_history, game_instance, save_folder, iters_done):
+    if iters_done == 0:
+        plt.plot(list(range(10, game_instance + 1, 10)), accuracy_history)
+    else:
+        plt.plot(list(range(iters_done, game_instance + 1, 10)), accuracy_history)
     plt.xlabel("Games", fontsize=15)
     plt.ylabel("Accuracy", fontsize=15)
     plt.savefig(f"plots/{save_folder}/accuracy_plot")
     plt.close()
 
 
-def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, verbose, use_agent):
+def avg_n_games(n, run_type, save_bool, save_folder, model_path,
+                player_model, verbose, use_agent, epsilon, iters_done):
     input_size = 68
     guess_agent = GuessingAgent(input_size=input_size, guess_max=20)
     playing_agent = PlayingAgent()
@@ -76,7 +92,6 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, v
         )
 
     # Exploration settings
-    epsilon = 1  # not a constant, going to be decayed
     epsilon_decay = 0.997
     min_epsilon = 0.02
 
@@ -101,7 +116,7 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, v
     accuracy_history = []
     last_max = 0
     max_acc = 0
-    for game_instance in range(1, n + 1):
+    for game_instance in range(1 + iters_done, n + 1 + iters_done):
         wizard = game.Game(
             full_deck,
             deck_dict,
@@ -142,7 +157,7 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, v
 
             if game_instance % 2000 == 0:
                 time_label = str(int(time.time() / 3600))[-3:]
-                plot_accuracy(accuracy_history, game_instance, save_folder)
+                plot_accuracy(accuracy_history, game_instance, save_folder, iters_done)
                 if save_bool.startswith("y"):
                     guess_agent.model.save(
                         f"models/{save_folder}/guessing{input_size}_"
@@ -154,6 +169,7 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path, player_model, v
             if game_instance - last_max > 10000:
                 if save_bool.startswith("y"):
                     time_label = str(int(time.time() / 3600))[-3:]
+                    plot_accuracy(accuracy_history, game_instance, save_folder, iters_done)
                     guess_agent.model.save(
                         f"models/{save_folder}/guessing{input_size}_"
                         f"{time_label}_"
@@ -182,5 +198,7 @@ if __name__ == "__main__":
         args.model,
         args.play_model,
         args.verbose,
-        args.use_agent
+        args.use_agent,
+        args.epsilon,
+        args.iters_done,
     )
