@@ -67,10 +67,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def plot_accuracy(accuracy_history, game_instance, save_folder, iters_done):
-    if iters_done == 0:
-        plt.plot(list(range(10, game_instance + 1, 10)), accuracy_history)
-    else:
-        plt.plot(list(range(iters_done, game_instance + 1, 10)), accuracy_history)
+    plt.plot(list(range(iters_done + 10, game_instance + 1 + iters_done, 10)), accuracy_history)
     plt.xlabel("Games", fontsize=15)
     plt.ylabel("Accuracy", fontsize=15)
     plt.savefig(f"plots/{save_folder}/accuracy_plot")
