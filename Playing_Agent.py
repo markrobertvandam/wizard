@@ -74,8 +74,9 @@ class PlayingAgent:
         return random.choice(node.children)
 
     def best_child(self, node):
-        max_value = -10000
-        for child in node.children:
+        best_child = node.children[0]
+        max_value = self.ucb1(best_child)
+        for child in node.children[1:]:
             value = self.ucb1(child)
             if value > max_value:
                 best_child = child
@@ -86,6 +87,7 @@ class PlayingAgent:
 
         return best_child
 
+    # TODO: Replace with network
     def ucb1(self, node):
         wins = node.wins
         sims = node.visited

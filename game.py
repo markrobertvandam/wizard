@@ -50,7 +50,9 @@ class Game:
             0,
         ]
         self.off_game = np.zeros(20)
-        # for info per trick
+
+        # for info per round/trick
+        self.played_round = []
         self.played_cards = []
         self.guesses = []
 
@@ -90,6 +92,7 @@ class Game:
             #     f"Order: {[player.player_name for player in player_order]}, Played: {self.played_cards}\n{self.trump}"
             # )
             winner = self.trick_winner(self.played_cards, self.trump)
+            self.played_round.append(self.played_cards)
             if self.verbose:
                 print("Played: ", self.played_cards)
                 print("Winner: ", winner)
@@ -108,9 +111,10 @@ class Game:
         :return: None
         """
         while player != 3:
+            playing_state = self.playing_state_space(player_order[player], self.played_cards, self.played_round)
             self.played_cards.append(
                 player_order[player].play_card(
-                    self.trump, requested_color, self.played_cards
+                    self.trump, requested_color, self.played_cards, playing_state
                 )
             )
             if requested_color == 4:
@@ -129,6 +133,7 @@ class Game:
 
     def play_game(self) -> tuple:
         for game_round in range(20):
+            self.played_round = []
             self.deck = self.full_deck[:]
             random.shuffle(self.deck)
             self.play_round()
@@ -228,7 +233,7 @@ class Game:
         previous_guesses = self.guesses[:]
         previous_guesses += [21] * (2 - len(previous_guesses))
         round_number = [self.game_round]
-        tricks_needed = player.get_guesses() - player.get_trick_wins()
+        tricks_needed = [player.get_guesses() - player.get_trick_wins()]
         tricks_needed_others = []
         for other_player in self.players:
             if player != other_player:
@@ -238,8 +243,14 @@ class Game:
         for card in played_trick:
             played_this_trick[self.deck_dict[card]] = 1
 
-        # TODO: PLAYED CARDS
-        played_this_round = None
+        # 20 rounds of 3 cards that are one-hot encoded
+        played_this_round = np.zeros(3600)
+        for trick in range(len(self.played_round)):
+            trick_plays = self.played_round[trick]
+            for turn in range(3):
+                card = trick_plays[turn]
+                one_hot = self.deck_dict[card]
+                played_this_round[one_hot + turn*60 + trick*180] = 1
 
         state_space = np.concatenate(
             (
