@@ -114,6 +114,7 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path,
     last_max = iters_done
     max_acc = 0
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
+        print("Game instance: ", game_instance)
         wizard = game.Game(
             full_deck,
             deck_dict,

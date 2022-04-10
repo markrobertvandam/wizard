@@ -27,10 +27,10 @@ class Game:
             "player1", run_type, guess_agent, playing_agent, epsilon, verbose
         )
         if use_agent:
-            guess_agent_fixed = copy.copy(guess_agent)
-            playing_agent_fixed = copy.copy(playing_agent)
-            self.player2 = Player("player2", "learned", guess_agent, playing_agent)
-            self.player3 = Player("player3",  "learned", guess_agent, playing_agent)
+            guess_agent_fixed = copy.deepcopy(guess_agent)
+            playing_agent_fixed = copy.deepcopy(playing_agent)
+            self.player2 = Player("player2", "learned", guess_agent_fixed, playing_agent_fixed)
+            self.player3 = Player("player3",  "learned", guess_agent_fixed, playing_agent_fixed)
         else:
             self.player2 = Player("player2", "heuristic")
             self.player3 = Player("player3", "heuristic")
@@ -114,7 +114,7 @@ class Game:
             playing_state = self.playing_state_space(player_order[player], self.played_cards, self.played_round)
             self.played_cards.append(
                 player_order[player].play_card(
-                    self.trump, requested_color, self.played_cards, playing_state
+                    self.trump, requested_color, self.played_cards, self, playing_state
                 )
             )
             if requested_color == 4:

@@ -51,7 +51,7 @@ class Player:
         return deck
 
     def play_card(
-        self, trump: int, requested_color: int, played_cards: list, state_space=None
+        self, trump: int, requested_color: int, played_cards: list, game_instance, state_space=None
     ) -> tuple:
         """
         Plays a card from players hand
@@ -59,6 +59,7 @@ class Player:
         :param requested_color: The requested color that has to be played if possible
                                 (blue, yellow, red, green, None yet, None this round)
         :param played_cards: Cards played so far
+        :param game: instance of game to use for simulating moves with playing agent
         :param state_space: Observation state used for playing agent
         :return: the played card
         """
@@ -85,7 +86,7 @@ class Player:
         elif self.player_type == "random":
             card = random.choice(legal_cards)
 
-        elif self.player_type == "heuristic" or self.player_type.startswith("learn"):
+        elif self.player_type == "heuristic":
             # dodge win as high as possible if I am already at my goal
             if self.player_guesses == self.trick_wins:
                 sorted_legal = sorted(legal_cards, key=lambda x: x[1], reverse=True)
@@ -124,15 +125,15 @@ class Player:
                                     card = card_option
                                     break
 
-        # if self.player_type == "learning":
-        #     self.current_state = state_space
-        #     if np.random.random() > self.epsilon:
-        #         # Get action from MCTS
-        #         card = self.play_agent.predict(state_space)
+        if self.player_type == "learning":
+            self.current_state = state_space
+            if np.random.random() > self.epsilon:
+                # Get action from MCTS
+                card = self.play_agent.predict(game_instance, state_space, legal_cards)
 
-        # elif self.player_type == "learned":
-        #     self.current_state = state_space
-        #     card = self.play_agent.predict(state_space))
+        elif self.player_type == "learned":
+            self.current_state = state_space
+            card = self.play_agent.predict(game_instance, state_space, legal_cards)
 
         if card is None:
             card = random.choice(legal_cards)
