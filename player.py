@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import game
+from Playing_Agent import PlayingAgent
 
 #
 # TODO: MAKE HAND SORTED ONCE AT START
@@ -79,8 +80,32 @@ class Player:
 
         #  print(f"\ncolor: {requested_color}\n hand: {self.hand}\n legal: {legal_cards}\n")
         card = None
+
+        if self.player_type == "learning":
+            self.current_state = state_space
+
+            # if the node is seen before and stored
+            if state_space in self.play_agent.nodes.keys():
+                node = self.play_agent.nodes[state_space]
+                if node.expanded:
+                    # Selection
+                    card = self.play_agent.predict(state_space)
+                else:
+                    # leaf node, add children and get rollout
+                    self.play_agent.expand(legal_cards, )
+                    card = self.play_agent.rollout_policy(state_space)
+            else:
+                # Create the root node and add all legal moves as children, then rollout
+                self.play_agent.unseen_state(state_space)
+                card = self.play_agent.rollout_policy(state_space)
+
+        elif self.player_type == "learned":
+            # get action from network
+            self.current_state = state_space
+            card = self.play_agent.predict(state_space)
+
         # Play the only legal card if theres only one
-        if len(legal_cards) == 1:
+        elif len(legal_cards) == 1:
             card = legal_cards[0]
 
         elif self.player_type == "random":
@@ -124,16 +149,6 @@ class Player:
                                 ):
                                     card = card_option
                                     break
-
-        if self.player_type == "learning":
-            self.current_state = state_space
-            if np.random.random() > self.epsilon:
-                # Get action from MCTS
-                card = self.play_agent.predict(game_instance, state_space, legal_cards)
-
-        elif self.player_type == "learned":
-            self.current_state = state_space
-            card = self.play_agent.predict(game_instance, state_space, legal_cards)
 
         if card is None:
             card = random.choice(legal_cards)

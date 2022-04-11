@@ -7,8 +7,8 @@ from keras.optimizers import adam_v2
 
 import random
 
-REPLAY_MEMORY_SIZE = 2000  # How many last steps to keep for model training, 2000 means remember last 100 games
-MIN_REPLAY_MEMORY_SIZE = 1000  # Minimum number of steps in memory to start training, 1000 means at least 50 games
+REPLAY_MEMORY_SIZE = 42000  # How many last tricks to keep for model training, 42000 means remember last 200 games
+MIN_REPLAY_MEMORY_SIZE = 10500  # Minimum number of tricks in memory to start training, 10500 means at least 50 games
 MINIBATCH_SIZE = 32  # How many steps (samples) to use for training
 
 
@@ -54,7 +54,7 @@ class PlayingNetwork:
         return model
 
     # Adds data to a memory replay array
-    # (current state, guess made by player, reward)
+    # (state, reward)
     def update_replay_memory(self, transition):
         self.replay_memory.append(transition)
 
@@ -68,34 +68,20 @@ class PlayingNetwork:
         # Get a minibatch of random samples from memory replay table
         minibatch = random.sample(self.replay_memory, MINIBATCH_SIZE)
 
-        # Get current states from minibatch, then query NN model for Q values
-        current_states = np.array([transition[0] for transition in minibatch])
-        current_qs_list = self.model.predict(current_states)
-
-        X = []
-        y = []
-
-        # Now we need to enumerate our batches
-        for index, (current_state, action, reward) in enumerate(minibatch):
-
-            new_q = reward
-
-            # Update Q value for given state
-            current_qs = current_qs_list[index]
-            current_qs[action] = new_q
-
-            # And append to our training data
-            X.append(current_state)
-            y.append(current_qs)
+        # Get states (x) and rewards (y) from minibatch
+        states = np.array([transition[0] for transition in minibatch])
+        rewards = np.array([transition[1] for transition in minibatch])
 
         # Fit on all samples as one batch, log only on terminal state
         self.model.fit(
-            np.array(X),
-            np.array(y),
+            states,
+            rewards,
             batch_size=MINIBATCH_SIZE,
             verbose=0,
             shuffle=False,
         )
 
     def predict(self, state):
+        print(state.reshape(-1, *state.shape))
+        print(self.model.predict(state.reshape(-1, *state.shape))[0])
         return self.model.predict(state.reshape(-1, *state.shape))[0]

@@ -1,25 +1,19 @@
 import copy
 import random
 
-from math import sqrt, log
 from Playing_Network import PlayingNetwork
 
 
 class Node:
-    def __init__(self, state, legal_moves, leaf=0, root=0):
+    def __init__(self, state, root=0, card=None, parent=None, expanded=False, terminal=False):
         self.state = state
-        self.parent = None
+        self.parent = parent
         self.wins = 0
         self.children = []
-        self.legal_moves = legal_moves
-        self.leaf = leaf
         self.root = root
-        self.visited = 0
-        self.terminal = 0
-        self.winner = None
-
-    def fully_expanded(self):
-        return len(self.legal_moves) == len(self.children)
+        self.expanded = expanded
+        self.terminal = terminal
+        self.card = card
 
 
 # Agent class
@@ -29,51 +23,20 @@ class PlayingAgent:
         self.game = None
         self.nodes = dict()
         self.network_policy = PlayingNetwork(3732)
-
-    # main function for the Monte Carlo Tree Search
-    def monte_carlo_tree_search(self, root):
-        while True:
-            leaf = self.traverse(root)
-            simulation_result = self.rollout(leaf)
-            self.backpropagate(leaf, simulation_result)
-            if True:
-                break
-
-        return self.best_child(root)
-
-    # function for node traversal
-    def traverse(self, node: Node):
-        if not node.leaf:
-            node = self.best_child(node)
-            return self.traverse(node)
-
-        # Expand the node
-        elif node.visited == 0:
-            for move in node.legal_moves:
-                new_node = self.create_node(node, move)
-            node = self.pick_unvisited(node)
-
-        return self.rollout(node)
-
-    # function for the result of the simulation
-    def rollout(self, node: Node):
-        while node.terminal is False:
-            node = self.rollout_policy(node)
-        return node.winner
+        self.last_terminal_node = None
 
     # function for randomly selecting a child node
     def rollout_policy(self, node: Node):
-        return self.create_child(node, random.choice(node.legal_moves))
+        return random.choice(node.children).card
 
     # function for backpropagation
     def backpropagate(self, node: Node, result):
         if node.root:
             return
-        node.value = self.update_stats(node, result)
-        self.backpropagate(node.parent)
-
-    def pick_unvisited(self, node: Node):
-        return random.choice(node.children)
+        node.wins += result/100
+        self.network_policy.update_replay_memory([node.state, result])
+        self.network_policy.train()
+        self.backpropagate(node.parent, result)
 
     def best_child(self, node):
         best_child = node.children[0]
@@ -87,26 +50,54 @@ class PlayingAgent:
                 best_child = child
                 max_value = value
 
-        return best_child
+        return best_child.card
 
-    # TODO: Replace with network
     def evaluate_state(self, node):
         return self.network_policy.predict(node.state)
 
-    def predict(self, game,  play_state, legal_moves):
+    def predict(self, play_state):
         """
         Use network to get best move
         :param play_state: feature vector of current state
-        :param legal_moves: legal cards to play
         :return:
         """
-        start_node = Node(play_state, legal_moves)
-        for move in legal_moves:
-            self.create_child(game, start_node, move)
-        return self.best_child(start_node)
+        node = self.nodes[play_state]
+        node.expanded = True
+        return self.best_child(node)
 
-    def create_child(self, game, parent, move):
-        #TODO: Make the move and get new state
-        temp_game = copy.deepcopy(game)
-        node = Node()
+    def unseen_state(self, play_state):
+        """
+        Create node with children for unseen state
+        :param play_state:
+        :param game:
+        :param player:
+        :return:
+        """
+        root_node = Node(play_state, root=1)
+        self.nodes[play_state] = root_node
+
+    def expand(self, legal_moves, parent, play_state):
+        if len(legal_moves) > 1:
+            for move in legal_moves:
+                self.create_child(parent, move, play_state)
+        else:
+            # terminal node
+            self.create_child(parent, legal_moves[0], play_state, terminal_node=True)
+
+    def create_child(self, parent, move, play_state, terminal_node=True):
+        """
+
+        :param game:
+        :param player:
+        :param parent:
+        :param move:
+        :return:
+        """
+        node = Node(play_state, card=move, parent=parent, terminal=terminal_node)
+        parent.children.append(node)
+        self.nodes[play_state] = node
+
+        if terminal_node:
+            self.last_terminal_node = node
+
         return node

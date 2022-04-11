@@ -111,7 +111,7 @@ class Game:
         :return: None
         """
         while player != 3:
-            playing_state = self.playing_state_space(player_order[player], self.played_cards, self.played_round)
+            playing_state = self.playing_state_space(player_order[player], self.played_cards)
             self.played_cards.append(
                 player_order[player].play_card(
                     self.trump, requested_color, self.played_cards, self, playing_state
@@ -189,9 +189,11 @@ class Game:
                 self.scores[player] += 20 + 10 * player.get_guesses()
                 if player.player_type == "learning":
                     player.update_agent(100)
+                    player.play_agent.backpropagate(player.play_agent.last_terminal_node, 100)
             else:
                 if player.player_type == "learning":
                     player.update_agent(0)
+                    player.play_agent.backpropagate(player.play_agent.last_terminal_node, 0)
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":
                     if self.verbose:
@@ -223,7 +225,7 @@ class Game:
 
         return state_space
 
-    def playing_state_space(self, player: Player, played_trick, played_round):
+    def playing_state_space(self, player: Player, played_trick):
         cards_in_hand = player.get_hand()
         one_hot_hand = np.zeros(60)
         for card in cards_in_hand:
@@ -233,12 +235,15 @@ class Game:
         previous_guesses = self.guesses[:]
         previous_guesses += [21] * (2 - len(previous_guesses))
         round_number = [self.game_round]
+
         tricks_needed = [player.get_guesses() - player.get_trick_wins()]
         tricks_needed_others = []
+
         for other_player in self.players:
             if player != other_player:
                 tricks = other_player.get_guesses() - other_player.get_trick_wins()
                 tricks_needed_others.append(tricks)
+
         played_this_trick = np.zeros(60)
         for card in played_trick:
             played_this_trick[self.deck_dict[card]] = 1
