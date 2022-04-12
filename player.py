@@ -52,7 +52,7 @@ class Player:
         return deck
 
     def play_card(
-        self, trump: int, requested_color: int, played_cards: list, game_instance, state_space=None
+        self, trump: int, requested_color: int, played_cards: list, player_order, game_instance, state_space=None
     ) -> tuple:
         """
         Plays a card from players hand
@@ -92,11 +92,12 @@ class Player:
                     card = self.play_agent.predict(state_space)
                 else:
                     # leaf node, add children and get rollout
-                    self.play_agent.expand(legal_cards, )
+                    self.play_agent.expand(legal_cards, state_space, player_order, game_instance)
                     card = self.play_agent.rollout_policy(state_space)
             else:
                 # Create the root node and add all legal moves as children, then rollout
-                self.play_agent.unseen_state(state_space)
+                self.play_agent.unseen_state(state_space, legal_cards)
+                self.play_agent.expand(legal_cards, state_space, player_order, game_instance, requested_color, played_cards)
                 card = self.play_agent.rollout_policy(state_space)
 
         elif self.player_type == "learned":

@@ -69,30 +69,27 @@ class PlayingAgent:
         """
         Create node with children for unseen state
         :param play_state:
-        :param game:
-        :param player:
         :return:
         """
-        root_node = Node(play_state, root=1)
+        root_node = Node(play_state, root=1, expanded=True)
         self.nodes[play_state] = root_node
 
-    def expand(self, legal_moves, parent, play_state):
+    def expand(self, legal_moves, parent, player_order, game_instance, requested_color, played_cards):
         if len(legal_moves) > 1:
             for move in legal_moves:
-                self.create_child(parent, move, play_state)
+                self.create_child(parent, move, player_order,
+                                  game_instance, requested_color, played_cards)
         else:
             # terminal node
-            self.create_child(parent, legal_moves[0], play_state, terminal_node=True)
+            self.create_child(parent, legal_moves[0], player_order,
+                              game_instance, requested_color, played_cards, terminal_node=True)
 
-    def create_child(self, parent, move, play_state, terminal_node=True):
-        """
-
-        :param game:
-        :param player:
-        :param parent:
-        :param move:
-        :return:
-        """
+    def create_child(self, parent, move, player_order, game_instance, requested_color, played_cards, terminal_node=False):
+        temp_game = copy.deepcopy(game_instance)
+        player = len(played_cards)
+        temp_game.play_trick(player_order, requested_color, player, card=move)
+        temp_game.play_till_player(player_order, player_limit=player)
+        play_state = temp_game.playing_state_space(player_order[player], temp_game.played_cards)
         node = Node(play_state, card=move, parent=parent, terminal=terminal_node)
         parent.children.append(node)
         self.nodes[play_state] = node

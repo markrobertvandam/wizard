@@ -101,7 +101,7 @@ class Game:
 
         self.update_scores()
 
-    def play_trick(self, player_order: list, requested_color: int, player: int) -> None:
+    def play_trick(self, player_order: list, requested_color: int, player: int, card=None, player_limit=None) -> None:
         """
         plays one entire trick (each player plays 1 card)
         :param player_order: order in which players play
@@ -111,12 +111,18 @@ class Game:
         :return: None
         """
         while player != 3:
+            if player_order[player] == player_limit:
+                break
             playing_state = self.playing_state_space(player_order[player], self.played_cards)
-            self.played_cards.append(
-                player_order[player].play_card(
-                    self.trump, requested_color, self.played_cards, self, playing_state
+            if card is None:
+                self.played_cards.append(
+                    player_order[player].play_card(
+                        self.trump, requested_color, self.played_cards, player_order, self, playing_state
+                    )
                 )
-            )
+            else:
+                player_order[player].hand.remove(card)
+                self.played_cards.append(card)
             if requested_color == 4:
                 # Joker and Wizard do not change requested color
                 if (
@@ -274,3 +280,12 @@ class Game:
 
     def get_game_performance(self):
         return self.off_game
+
+    def play_till_player(self, player_order: list, player_limit):
+        limit = player_order[player_limit]
+        winner = self.trick_winner(self.played_cards, self.trump)
+        self.played_round.append(self.played_cards)
+        player_order[winner].trick_wins += 1
+        player_order = player_order[winner:] + player_order[:winner]
+        self.played_cards = []
+        self.play_trick(player_order, 4, 0, player_limit=limit)
