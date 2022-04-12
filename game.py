@@ -27,8 +27,8 @@ class Game:
             "player1", run_type, guess_agent, playing_agent, epsilon, verbose
         )
         if use_agent:
-            guess_agent_fixed = copy.deepcopy(guess_agent)
-            playing_agent_fixed = copy.deepcopy(playing_agent)
+            guess_agent_fixed = copy.copy(guess_agent)
+            playing_agent_fixed = copy.copy(playing_agent)
             self.player2 = Player(
                 "player2", "learned", guess_agent_fixed, playing_agent_fixed
             )
@@ -90,13 +90,18 @@ class Game:
         # Playing phase
         player_order = self.players[:]  # order will change after every trick
         for trick in range(self.game_round):
+            print("Player order in regular round: ", [p.player_name for p in player_order])
             self.played_cards = []
             self.play_trick(player_order, 4, 0)
             # print(
             #     f"Order: {[player.player_name for player in player_order]}, Played: {self.played_cards}\n{self.trump}"
             # )
+            print("We made it HERE!")
             winner = self.trick_winner(self.played_cards, self.trump)
+            print("The winner is: ", winner, self.played_cards, self.trump)
             self.played_round.append(self.played_cards)
+            print("Played in actual trick: ", self.played_cards)
+            print("Winner: ", winner)
             if self.verbose:
                 print("Played: ", self.played_cards)
                 print("Winner: ", winner)
@@ -110,8 +115,6 @@ class Game:
         player_order: list,
         requested_color: int,
         player: int,
-        card=None,
-        player_limit=None,
     ) -> None:
         """
         plays one entire trick (each player plays 1 card)
@@ -121,26 +124,23 @@ class Game:
         :param player: how manieth player it is in this particular trick
         :return: None
         """
+        print("Playtrick called")
         while player != 3:
-            if player_order[player] == player_limit:
-                break
+            print("Trick iteration with player", player)
             playing_state = self.playing_state_space(
                 player_order[player], self.played_cards
             )
-            if card is None:
-                self.played_cards.append(
-                    player_order[player].play_card(
-                        self.trump,
-                        requested_color,
-                        self.played_cards,
-                        player_order,
-                        self,
-                        playing_state,
-                    )
+            self.played_cards.append(
+                player_order[player].play_card(
+                    self.trump,
+                    requested_color,
+                    self.played_cards,
+                    player_order,
+                    self,
+                    playing_state,
                 )
-            else:
-                player_order[player].hand.remove(card)
-                self.played_cards.append(card)
+            )
+
             if requested_color == 4:
                 # Joker and Wizard do not change requested color
                 if (
@@ -154,9 +154,11 @@ class Game:
                     requested_color = 5
 
             player += 1
+            print("check")
+        print("Done with while loop ", player)
 
     def play_game(self) -> tuple:
-        for game_round in range(20):
+        for game_round in range(3):
             self.played_round = []
             self.deck = self.full_deck[:]
             random.shuffle(self.deck)
@@ -302,12 +304,3 @@ class Game:
 
     def get_game_performance(self):
         return self.off_game
-
-    def play_till_player(self, player_order: list, player_limit):
-        limit = player_order[player_limit]
-        winner = self.trick_winner(self.played_cards, self.trump)
-        self.played_round.append(self.played_cards)
-        player_order[winner].trick_wins += 1
-        player_order = player_order[winner:] + player_order[:winner]
-        self.played_cards = []
-        self.play_trick(player_order, 4, 0, player_limit=limit)

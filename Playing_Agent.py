@@ -28,7 +28,9 @@ class PlayingAgent:
         self.last_terminal_node = None
 
     # function for randomly selecting a child node
-    def rollout_policy(self, node: Node):
+    def rollout_policy(self, node_space):
+        node = self.nodes[tuple(node_space)]
+        print("Rollout policy used...", node.children)
         return random.choice(node.children).card
 
     # function for backpropagation
@@ -63,7 +65,7 @@ class PlayingAgent:
         :param play_state: feature vector of current state
         :return:
         """
-        node = self.nodes[play_state]
+        node = self.nodes[tuple(play_state)]
         node.expanded = True
         return self.best_child(node)
 
@@ -73,22 +75,24 @@ class PlayingAgent:
         :param play_state:
         :return:
         """
+        print("Adding unseen node..")
         root_node = Node(play_state, root=1, expanded=True)
-        self.nodes[play_state] = root_node
+        self.nodes[tuple(play_state)] = root_node
 
     def expand(
         self,
         legal_moves,
-        parent,
+        parent_space,
         player_order,
         game_instance,
         requested_color,
         played_cards,
     ):
+        print("Expanding the following moves: ", legal_moves)
         if len(legal_moves) > 1:
             for move in legal_moves:
                 self.create_child(
-                    parent,
+                    parent_space,
                     move,
                     player_order,
                     game_instance,
@@ -98,7 +102,7 @@ class PlayingAgent:
         else:
             # terminal node
             self.create_child(
-                parent,
+                parent_space,
                 legal_moves[0],
                 player_order,
                 game_instance,
@@ -109,7 +113,7 @@ class PlayingAgent:
 
     def create_child(
         self,
-        parent,
+        parent_space,
         move,
         player_order,
         game_instance,
@@ -117,18 +121,13 @@ class PlayingAgent:
         played_cards,
         terminal_node=False,
     ):
-        temp_game = copy.deepcopy(game_instance)
-        player = len(played_cards)
-        temp_game.play_trick(player_order, requested_color, player, card=move)
-        temp_game.play_till_player(player_order, player_limit=player)
-        play_state = temp_game.playing_state_space(
-            player_order[player], temp_game.played_cards
-        )
+        print("Creating a child node...", move, played_cards)
+        parent = self.nodes[tuple(parent_space)]
+        # TODO: play_state, get next playstate somehow without changing game
         node = Node(play_state, card=move, parent=parent, terminal=terminal_node)
         parent.children.append(node)
-        self.nodes[play_state] = node
+        self.nodes[tuple(play_state)] = node
 
         if terminal_node:
             self.last_terminal_node = node
 
-        return node
