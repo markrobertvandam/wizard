@@ -5,7 +5,9 @@ from Playing_Network import PlayingNetwork
 
 
 class Node:
-    def __init__(self, state, root=0, card=None, parent=None, expanded=False, terminal=False):
+    def __init__(
+        self, state, root=0, card=None, parent=None, expanded=False, terminal=False
+    ):
         self.state = state
         self.parent = parent
         self.wins = 0
@@ -33,7 +35,7 @@ class PlayingAgent:
     def backpropagate(self, node: Node, result):
         if node.root:
             return
-        node.wins += result/100
+        node.wins += result / 100
         self.network_policy.update_replay_memory([node.state, result])
         self.network_policy.train()
         self.backpropagate(node.parent, result)
@@ -74,22 +76,54 @@ class PlayingAgent:
         root_node = Node(play_state, root=1, expanded=True)
         self.nodes[play_state] = root_node
 
-    def expand(self, legal_moves, parent, player_order, game_instance, requested_color, played_cards):
+    def expand(
+        self,
+        legal_moves,
+        parent,
+        player_order,
+        game_instance,
+        requested_color,
+        played_cards,
+    ):
         if len(legal_moves) > 1:
             for move in legal_moves:
-                self.create_child(parent, move, player_order,
-                                  game_instance, requested_color, played_cards)
+                self.create_child(
+                    parent,
+                    move,
+                    player_order,
+                    game_instance,
+                    requested_color,
+                    played_cards,
+                )
         else:
             # terminal node
-            self.create_child(parent, legal_moves[0], player_order,
-                              game_instance, requested_color, played_cards, terminal_node=True)
+            self.create_child(
+                parent,
+                legal_moves[0],
+                player_order,
+                game_instance,
+                requested_color,
+                played_cards,
+                terminal_node=True,
+            )
 
-    def create_child(self, parent, move, player_order, game_instance, requested_color, played_cards, terminal_node=False):
+    def create_child(
+        self,
+        parent,
+        move,
+        player_order,
+        game_instance,
+        requested_color,
+        played_cards,
+        terminal_node=False,
+    ):
         temp_game = copy.deepcopy(game_instance)
         player = len(played_cards)
         temp_game.play_trick(player_order, requested_color, player, card=move)
         temp_game.play_till_player(player_order, player_limit=player)
-        play_state = temp_game.playing_state_space(player_order[player], temp_game.played_cards)
+        play_state = temp_game.playing_state_space(
+            player_order[player], temp_game.played_cards
+        )
         node = Node(play_state, card=move, parent=parent, terminal=terminal_node)
         parent.children.append(node)
         self.nodes[play_state] = node

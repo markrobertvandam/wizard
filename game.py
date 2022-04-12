@@ -29,8 +29,12 @@ class Game:
         if use_agent:
             guess_agent_fixed = copy.deepcopy(guess_agent)
             playing_agent_fixed = copy.deepcopy(playing_agent)
-            self.player2 = Player("player2", "learned", guess_agent_fixed, playing_agent_fixed)
-            self.player3 = Player("player3",  "learned", guess_agent_fixed, playing_agent_fixed)
+            self.player2 = Player(
+                "player2", "learned", guess_agent_fixed, playing_agent_fixed
+            )
+            self.player3 = Player(
+                "player3", "learned", guess_agent_fixed, playing_agent_fixed
+            )
         else:
             self.player2 = Player("player2", "heuristic")
             self.player3 = Player("player3", "heuristic")
@@ -101,7 +105,14 @@ class Game:
 
         self.update_scores()
 
-    def play_trick(self, player_order: list, requested_color: int, player: int, card=None, player_limit=None) -> None:
+    def play_trick(
+        self,
+        player_order: list,
+        requested_color: int,
+        player: int,
+        card=None,
+        player_limit=None,
+    ) -> None:
         """
         plays one entire trick (each player plays 1 card)
         :param player_order: order in which players play
@@ -113,11 +124,18 @@ class Game:
         while player != 3:
             if player_order[player] == player_limit:
                 break
-            playing_state = self.playing_state_space(player_order[player], self.played_cards)
+            playing_state = self.playing_state_space(
+                player_order[player], self.played_cards
+            )
             if card is None:
                 self.played_cards.append(
                     player_order[player].play_card(
-                        self.trump, requested_color, self.played_cards, player_order, self, playing_state
+                        self.trump,
+                        requested_color,
+                        self.played_cards,
+                        player_order,
+                        self,
+                        playing_state,
                     )
                 )
             else:
@@ -195,11 +213,15 @@ class Game:
                 self.scores[player] += 20 + 10 * player.get_guesses()
                 if player.player_type == "learning":
                     player.update_agent(100)
-                    player.play_agent.backpropagate(player.play_agent.last_terminal_node, 100)
+                    player.play_agent.backpropagate(
+                        player.play_agent.last_terminal_node, 100
+                    )
             else:
                 if player.player_type == "learning":
                     player.update_agent(0)
-                    player.play_agent.backpropagate(player.play_agent.last_terminal_node, 0)
+                    player.play_agent.backpropagate(
+                        player.play_agent.last_terminal_node, 0
+                    )
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":
                     if self.verbose:
@@ -261,7 +283,7 @@ class Game:
             for turn in range(3):
                 card = trick_plays[turn]
                 one_hot = self.deck_dict[card]
-                played_this_round[one_hot + turn*60 + trick*180] = 1
+                played_this_round[one_hot + turn * 60 + trick * 180] = 1
 
         state_space = np.concatenate(
             (

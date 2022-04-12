@@ -74,8 +74,18 @@ def plot_accuracy(accuracy_history, game_instance, save_folder, iters_done):
     plt.close()
 
 
-def avg_n_games(n, run_type, save_bool, save_folder, model_path,
-                player_model, verbose, use_agent, epsilon, iters_done):
+def avg_n_games(
+    n,
+    run_type,
+    save_bool,
+    save_folder,
+    model_path,
+    player_model,
+    verbose,
+    use_agent,
+    epsilon,
+    iters_done,
+):
     input_size = 68
     guess_agent = GuessingAgent(input_size=input_size, guess_max=20)
     playing_agent = PlayingAgent()
@@ -123,7 +133,7 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path,
             playing_agent,
             epsilon,
             verbose=verbose,
-            use_agent=use_agent
+            use_agent=use_agent,
         )
         scores, offs = wizard.play_game()
 
@@ -167,7 +177,9 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path,
             if game_instance - last_max > 10000:
                 if save_bool.startswith("y"):
                     time_label = str(int(time.time() / 3600))[-3:]
-                    plot_accuracy(accuracy_history, game_instance, save_folder, iters_done)
+                    plot_accuracy(
+                        accuracy_history, game_instance, save_folder, iters_done
+                    )
                     guess_agent.model.save(
                         f"models/{save_folder}/guessing{input_size}_"
                         f"{time_label}_"
@@ -182,7 +194,7 @@ def avg_n_games(n, run_type, save_bool, save_folder, model_path,
             epsilon = max(min_epsilon, epsilon)
 
     print("Scores: ", score_counter)
-    print("Wins: ",  win_counter)
+    print("Wins: ", win_counter)
     print("Mistakes: ", total_offs)
 
 

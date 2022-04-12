@@ -41,7 +41,7 @@ class PlayingNetwork:
         x = self.dense_layer(128)(x)
         x = self.dense_layer(64)(x)
         x = self.dense_layer(32)(x)
-        x = Dense(1, activation="linear")(x) # evaluation
+        x = Dense(1, activation="linear")(x)  # evaluation
 
         model = Model(inputs=input1, outputs=x)
 
