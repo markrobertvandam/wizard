@@ -91,21 +91,22 @@ class Game:
         # Playing phase
         player_order = self.players[:]  # order will change after every trick
         for trick in range(self.game_round):
-            print("Player order in regular round: ", [p.player_name for p in player_order])
+            if self.verbose == 2:
+                print("Player order in regular round: ", [p.player_name for p in player_order])
             self.played_cards = []
             self.play_trick(player_order, 4, 0)
             # print(
             #     f"Order: {[player.player_name for player in player_order]}, Played: {self.played_cards}\n{self.trump}"
             # )
-            print("We made it HERE!")
+            if self.verbose == 2:
+                print("We made it HERE! Trick was played!")
             winner = self.trick_winner(self.played_cards, self.trump)
-            print("The winner is: ", winner, self.played_cards, self.trump)
+            if self.verbose == 2:
+                print("The winner is: ", winner, self.played_cards, "trump: ", self.trump)
             self.played_round.append(self.played_cards)
-            print("Played in actual trick: ", self.played_cards)
-            print("Winner: ", winner)
             if self.verbose:
-                print("Played: ", self.played_cards)
-                print("Winner: ", winner)
+                print("Played in actual trick: ", self.played_cards)
+                print("Winner index: ", winner, "name: ", player_order[winner].player_name)
             player_order[winner].trick_wins += 1
             player_order = player_order[winner:] + player_order[:winner]
 
@@ -127,9 +128,11 @@ class Game:
         :param player: how manieth player it is in this particular trick
         :return: None
         """
-        print("Playtrick called with card: ", card)
+        if self.verbose == 2:
+            print("\nPlaytrick called with card: ", card)
         while player != 3:
-            print("Trick iteration with player", player)
+            if self.verbose == 2:
+                print("Trick iteration with player", player)
             if player_order[player] == player_limit:
                 break
             playing_state = self.playing_state_space(
@@ -146,8 +149,9 @@ class Game:
                         playing_state,
                     ))
             else:
-                print([p.player_name for p in player_order], card)
-                print(player_order[player].hand)
+                if self.verbose == 2:
+                    print("Players and card: ", [p.player_name for p in player_order], card)
+                    print("Players hand in playtrick with card: ", player_order[player].hand)
                 player_order[player].hand.remove(card)
                 self.played_cards.append(card)
 
@@ -165,9 +169,10 @@ class Game:
 
             player += 1
             card = None
-            print("check")
-
-        print("Done with while loop ", player)
+            if self.verbose == 2:
+                print("finished one iteration of playtrick")
+        if self.verbose == 2:
+            print("Done with while loop ", player)
 
     def play_game(self) -> tuple:
         for game_round in range(3):

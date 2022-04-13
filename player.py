@@ -91,23 +91,28 @@ class Player:
             self.current_state = state_space
 
             # if the node is seen before and stored
-            print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
+            if self.verbose:
+                print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
             if tuple(state_space) in self.play_agent.nodes.keys():
-                print("Node is known and stored")
+                if self.verbose == 2:
+                    print("Node is known and stored")
                 node = self.play_agent.nodes[tuple(state_space)]
                 if node.expanded:
                     # Selection
                     card = self.play_agent.predict(state_space)
-                    print("Card from expanded node: ", card, legal_cards)
+                    if self.verbose == 2:
+                        print("Card from expanded node: ", card, legal_cards)
                 else:
                     # leaf node, add children and get rollout
                     self.play_agent.expand(
                         legal_cards, state_space, player_order, game_instance, requested_color, played_cards
                     )
                     card = self.play_agent.rollout_policy(state_space)
-                    print("Card from rollout after expanding: ", card, legal_cards)
+                    if self.verbose == 2:
+                        print("Card from rollout after expanding: ", card, legal_cards)
             else:
-                print("Creating a root node...")
+                if self.verbose == 2:
+                    print("Creating a root node...")
                 # Create the root node and add all legal moves as children, then rollout
                 self.play_agent.unseen_state(state_space)
                 self.play_agent.expand(
@@ -119,8 +124,9 @@ class Player:
                     played_cards,
                 )
                 card = self.play_agent.rollout_policy(state_space)
-                print("card from rollout after unseen node: ", card, legal_cards)
-                print("Card3 game instance hand: ", game_instance.player1.hand)
+                if self.verbose == 2:
+                    print("card from rollout after unseen node: ", card, legal_cards)
+                    print("Card3 game instance hand: ", game_instance.player1.hand)
 
         elif self.player_type == "learned":
             # get action from network
@@ -176,7 +182,8 @@ class Player:
         if card is None:
             card = random.choice(legal_cards)
 
-        print("Reg: ", self.hand, card)
+        if self.verbose == 2:
+            print("Card at end of play_card: ", self.hand, card)
         self.hand.remove(card)
         return card
 

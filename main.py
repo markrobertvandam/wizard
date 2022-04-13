@@ -88,7 +88,7 @@ def avg_n_games(
 ):
     input_size = 68
     guess_agent = GuessingAgent(input_size=input_size, guess_max=20)
-    playing_agent = PlayingAgent()
+    playing_agent = PlayingAgent(verbose=verbose)
     if model_path is not None:
         guess_agent.model = tf.keras.models.load_model(
             os.path.join("models", model_path)
@@ -124,7 +124,8 @@ def avg_n_games(
     last_max = iters_done
     max_acc = 0
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
-        print("Game instance: ", game_instance)
+        if verbose:
+            print("\nGame instance: ", game_instance)
         wizard = game.Game(
             full_deck,
             deck_dict,

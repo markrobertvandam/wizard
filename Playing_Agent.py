@@ -21,17 +21,19 @@ class Node:
 
 # Agent class
 class PlayingAgent:
-    def __init__(self):
+    def __init__(self, verbose=0):
 
         self.game = None
         self.nodes = dict()
         self.network_policy = PlayingNetwork(3732)
         self.last_terminal_node = None
+        self.verbose = verbose
 
     # function for randomly selecting a child node
     def rollout_policy(self, node_space):
         node = self.nodes[tuple(node_space)]
-        print("Rollout policy used...", node.children)
+        if self.verbose:
+            print("Rollout policy used...")
         return random.choice(node.children).card
 
     # function for backpropagation
@@ -89,7 +91,8 @@ class PlayingAgent:
         requested_color,
         played_cards,
     ):
-        print("Expanding the following moves: ", legal_moves)
+        if self.verbose:
+            print("Expanding the following moves: ", legal_moves)
         if len(legal_moves) > 1:
             for move in legal_moves:
                 self.create_child(
@@ -122,7 +125,8 @@ class PlayingAgent:
         played_cards,
         terminal_node=False,
     ):
-        print("Creating a child node...", move, played_cards)
+        if self.verbose:
+            print("Creating a child node...", move, played_cards)
         parent = self.nodes[tuple(parent_space)]
 
         temp_game = game.Game(full_deck=copy.deepcopy(game_instance.full_deck),
@@ -157,9 +161,7 @@ class PlayingAgent:
         player_order_names = [p.player_name for p in player_order]
         new_player_dict = {"player1": temp_game.player1, "player2": temp_game.player2, "player3": temp_game.player3}
         new_player_order = [new_player_dict[p] for p in player_order_names]
-        print("before temp play game instance hand: ", game_instance.player1.hand)
         temp_game.play_trick(new_player_order, requested_color, player, card=move)
-        print("end of child, game instance hand: ", game_instance.player1.hand)
 
         if not terminal_node:
             temp_game.play_till_player(new_player_order, player_limit=player)
