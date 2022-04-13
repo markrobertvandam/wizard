@@ -57,7 +57,10 @@ class GuessingAgent:
     # (current state, guess made by player, reward)
     def update_replay_memory(self, transition):
         if transition[2] == 100:
-            priority = min(50, int(1 / self.accuracy))
+            if self.accuracy == 0:
+                priority = 50
+            else:
+                priority = min(50, int(1 / self.accuracy))
             for i in range(priority):
                 self.replay_memory.append(transition)
         else:

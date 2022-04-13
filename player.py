@@ -88,8 +88,7 @@ class Player:
         card = None
 
         if self.player_type == "learning":
-            self.current_state = state_space
-
+            print("Round: ", state_space[67])
             # if the node is seen before and stored
             if self.verbose:
                 print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
@@ -105,7 +104,13 @@ class Player:
                 else:
                     # leaf node, add children and get rollout
                     self.play_agent.expand(
-                        legal_cards, state_space, player_order, game_instance, requested_color, played_cards
+                        legal_cards,
+                        state_space,
+                        player_order,
+                        game_instance,
+                        requested_color,
+                        played_cards,
+                        self.hand,
                     )
                     card = self.play_agent.rollout_policy(state_space)
                     if self.verbose == 2:
@@ -113,6 +118,28 @@ class Player:
             else:
                 if self.verbose == 2:
                     print("Creating a root node...")
+
+                if len(self.hand) < state_space[67]:
+                    # not first trick of the round yet child state is not known?
+                    print("unknown child: ", self.hand, played_cards)
+                    f = open("state_diff.txt", "a")
+                    f.write("\n\n\n")
+                    np.set_printoptions(threshold=np.inf)
+                    f.write(
+                        "Hand: " + str(np.nonzero(state_space[:60])[0].tolist()) + "\n"
+                    )
+                    f.write("Trump: " + str(state_space[60:65]) + "\n")
+                    f.write("Guesses: " + str(state_space[65:67]) + "\n")
+                    f.write("Round: " + str(state_space[67]) + "\n")
+                    f.write("Tricks needed: " + str(state_space[68]) + "\n")
+                    f.write("Tricks needed others: " + str(state_space[69:71]) + "\n")
+                    f.write(
+                        "played trick: "
+                        + str(np.nonzero(state_space[71:131])[0].tolist())
+                        + "\n"
+                    )
+                    f.close()
+                    exit()
                 # Create the root node and add all legal moves as children, then rollout
                 self.play_agent.unseen_state(state_space)
                 self.play_agent.expand(
@@ -122,6 +149,7 @@ class Player:
                     game_instance,
                     requested_color,
                     played_cards,
+                    self.hand,
                 )
                 card = self.play_agent.rollout_policy(state_space)
                 if self.verbose == 2:
@@ -130,7 +158,6 @@ class Player:
 
         elif self.player_type == "learned":
             # get action from network
-            self.current_state = state_space
             card = self.play_agent.predict(state_space)
 
         # Play the only legal card if theres only one

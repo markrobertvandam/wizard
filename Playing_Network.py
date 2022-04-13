@@ -7,7 +7,7 @@ from keras.optimizers import adam_v2
 
 import random
 
-REPLAY_MEMORY_SIZE = 42000  # How many last tricks to keep for model training, 42000 means remember last 200 games
+REPLAY_MEMORY_SIZE = 42000  # How many of last tricks to keep for model training, 42000 means remember last 200 games
 MIN_REPLAY_MEMORY_SIZE = 10500  # Minimum number of tricks in memory to start training, 10500 means at least 50 games
 MINIBATCH_SIZE = 32  # How many steps (samples) to use for training
 
@@ -60,7 +60,7 @@ class PlayingNetwork:
 
     # Trains main network every step during episode
     def train(self):
-
+        # print("Replay size: ", len(self.replay_memory))
         # Start training only if certain number of samples is already saved
         if len(self.replay_memory) < MIN_REPLAY_MEMORY_SIZE:
             return
@@ -82,6 +82,8 @@ class PlayingNetwork:
         )
 
     def predict(self, state):
-        print(state.reshape(-1, *state.shape))
+        print(state.shape)
+        print(state.reshape(-1, *state.shape).shape)
         print(self.model.predict(state.reshape(-1, *state.shape))[0])
+        print(self.model.predict(state)[0])
         return self.model.predict(state.reshape(-1, *state.shape))[0]

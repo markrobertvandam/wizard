@@ -92,7 +92,10 @@ class Game:
         player_order = self.players[:]  # order will change after every trick
         for trick in range(self.game_round):
             if self.verbose == 2:
-                print("Player order in regular round: ", [p.player_name for p in player_order])
+                print(
+                    "Player order in regular round: ",
+                    [p.player_name for p in player_order],
+                )
             self.played_cards = []
             self.play_trick(player_order, 4, 0)
             # print(
@@ -102,11 +105,15 @@ class Game:
                 print("We made it HERE! Trick was played!")
             winner = self.trick_winner(self.played_cards, self.trump)
             if self.verbose == 2:
-                print("The winner is: ", winner, self.played_cards, "trump: ", self.trump)
+                print(
+                    "The winner is: ", winner, self.played_cards, "trump: ", self.trump
+                )
             self.played_round.append(self.played_cards)
             if self.verbose:
                 print("Played in actual trick: ", self.played_cards)
-                print("Winner index: ", winner, "name: ", player_order[winner].player_name)
+                print(
+                    "Winner index: ", winner, "name: ", player_order[winner].player_name
+                )
             player_order[winner].trick_wins += 1
             player_order = player_order[winner:] + player_order[:winner]
 
@@ -147,11 +154,19 @@ class Game:
                         player_order,
                         self,
                         playing_state,
-                    ))
+                    )
+                )
             else:
                 if self.verbose == 2:
-                    print("Players and card: ", [p.player_name for p in player_order], card)
-                    print("Players hand in playtrick with card: ", player_order[player].hand)
+                    print(
+                        "Players and card: ",
+                        [p.player_name for p in player_order],
+                        card,
+                    )
+                    print(
+                        "Players hand in playtrick with card: ",
+                        player_order[player].hand,
+                    )
                 player_order[player].hand.remove(card)
                 self.played_cards.append(card)
 
@@ -169,8 +184,11 @@ class Game:
 
             player += 1
             card = None
-            if self.verbose == 2:
-                print("finished one iteration of playtrick")
+            if self.verbose:
+                print(
+                    "finished one iteration of playtrick, chosen card: ",
+                    self.played_cards[-1],
+                )
         if self.verbose == 2:
             print("Done with while loop ", player)
 
@@ -264,7 +282,10 @@ class Game:
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
         previous_guesses = self.guesses[:]
+        if len(previous_guesses) >= 2:
+            previous_guesses = previous_guesses[:2]
         previous_guesses += [21] * (2 - len(previous_guesses))
+        print("Guesses: ", previous_guesses)
         round_number = [self.game_round]
         state_space = np.concatenate(
             (one_hot_hand, trump, previous_guesses, round_number)
@@ -280,7 +301,10 @@ class Game:
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
         previous_guesses = self.guesses[:]
+        if len(previous_guesses) >= 2:
+            previous_guesses = previous_guesses[:2]
         previous_guesses += [21] * (2 - len(previous_guesses))
+        print("Play guesses: ", previous_guesses)
         round_number = [self.game_round]
 
         tricks_needed = [player.get_guesses() - player.get_trick_wins()]
