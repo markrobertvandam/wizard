@@ -26,6 +26,7 @@ class Game:
         self.player1 = Player(
             "player1", run_type, guess_agent, playing_agent, epsilon, verbose
         )
+        self.use_agent = use_agent
         if use_agent:
             guess_agent_fixed = copy.copy(guess_agent)
             playing_agent_fixed = copy.copy(playing_agent)
@@ -115,6 +116,8 @@ class Game:
         player_order: list,
         requested_color: int,
         player: int,
+        card=None,
+        player_limit=None,
     ) -> None:
         """
         plays one entire trick (each player plays 1 card)
@@ -124,22 +127,29 @@ class Game:
         :param player: how manieth player it is in this particular trick
         :return: None
         """
-        print("Playtrick called")
+        print("Playtrick called with card: ", card)
         while player != 3:
             print("Trick iteration with player", player)
+            if player_order[player] == player_limit:
+                break
             playing_state = self.playing_state_space(
                 player_order[player], self.played_cards
             )
-            self.played_cards.append(
-                player_order[player].play_card(
-                    self.trump,
-                    requested_color,
-                    self.played_cards,
-                    player_order,
-                    self,
-                    playing_state,
-                )
-            )
+            if card is None:
+                self.played_cards.append(
+                    player_order[player].play_card(
+                        self.trump,
+                        requested_color,
+                        self.played_cards,
+                        player_order,
+                        self,
+                        playing_state,
+                    ))
+            else:
+                print([p.player_name for p in player_order], card)
+                print(player_order[player].hand)
+                player_order[player].hand.remove(card)
+                self.played_cards.append(card)
 
             if requested_color == 4:
                 # Joker and Wizard do not change requested color
@@ -154,7 +164,9 @@ class Game:
                     requested_color = 5
 
             player += 1
+            card = None
             print("check")
+
         print("Done with while loop ", player)
 
     def play_game(self) -> tuple:
@@ -304,3 +316,12 @@ class Game:
 
     def get_game_performance(self):
         return self.off_game
+
+    def play_till_player(self, player_order: list, player_limit):
+        limit = player_order[player_limit]
+        winner = self.trick_winner(self.played_cards, self.trump)
+        self.played_round.append(self.played_cards)
+        player_order[winner].trick_wins += 1
+        player_order = player_order[winner:] + player_order[:winner]
+        self.played_cards = []
+        self.play_trick(player_order, 4, 0, player_limit=limit)

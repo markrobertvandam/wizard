@@ -91,22 +91,21 @@ class Player:
             self.current_state = state_space
 
             # if the node is seen before and stored
-            print(self.play_agent.nodes.keys())
-            print("hoi")
+            print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
             if tuple(state_space) in self.play_agent.nodes.keys():
-                print("fuck")
-                node = self.play_agent.nodes[state_space]
+                print("Node is known and stored")
+                node = self.play_agent.nodes[tuple(state_space)]
                 if node.expanded:
                     # Selection
                     card = self.play_agent.predict(state_space)
-                    print("Card1: ", card, legal_cards)
+                    print("Card from expanded node: ", card, legal_cards)
                 else:
                     # leaf node, add children and get rollout
                     self.play_agent.expand(
-                        legal_cards, state_space, player_order, game_instance
+                        legal_cards, state_space, player_order, game_instance, requested_color, played_cards
                     )
                     card = self.play_agent.rollout_policy(state_space)
-                    print("Card2: ", card, legal_cards)
+                    print("Card from rollout after expanding: ", card, legal_cards)
             else:
                 print("Creating a root node...")
                 # Create the root node and add all legal moves as children, then rollout
@@ -120,7 +119,8 @@ class Player:
                     played_cards,
                 )
                 card = self.play_agent.rollout_policy(state_space)
-                print("Card3: ", card, legal_cards)
+                print("card from rollout after unseen node: ", card, legal_cards)
+                print("Card3 game instance hand: ", game_instance.player1.hand)
 
         elif self.player_type == "learned":
             # get action from network
@@ -176,6 +176,7 @@ class Player:
         if card is None:
             card = random.choice(legal_cards)
 
+        print("Reg: ", self.hand, card)
         self.hand.remove(card)
         return card
 

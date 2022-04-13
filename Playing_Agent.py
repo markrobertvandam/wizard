@@ -1,4 +1,5 @@
 import copy
+import game
 import random
 
 from Playing_Network import PlayingNetwork
@@ -123,7 +124,48 @@ class PlayingAgent:
     ):
         print("Creating a child node...", move, played_cards)
         parent = self.nodes[tuple(parent_space)]
-        # TODO: play_state, get next playstate somehow without changing game
+
+        temp_game = game.Game(full_deck=copy.deepcopy(game_instance.full_deck),
+                              deck_dict=copy.deepcopy(game_instance.deck_dict),
+                              run_type=copy.deepcopy(game_instance.player1.player_type),
+                              guess_agent=copy.copy(game_instance.player1.guess_agent),
+                              playing_agent=copy.copy(game_instance.player1.play_agent),
+                              epsilon=copy.deepcopy(game_instance.player1.epsilon),
+                              verbose=copy.deepcopy(game_instance.player1.verbose),
+                              use_agent=copy.deepcopy(game_instance.use_agent)
+                              )
+        temp_game.deck = copy.deepcopy(game_instance.deck)
+        temp_game.trump = copy.deepcopy(game_instance.trump)
+        temp_game.game_round = copy.deepcopy(game_instance.game_round)
+        temp_game.played_cards = copy.deepcopy(game_instance.played_cards)
+        temp_game.guesses = copy.deepcopy(game_instance.guesses)
+
+        temp_game.player1.hand = copy.deepcopy(game_instance.player1.hand)
+        temp_game.player2.hand = copy.deepcopy(game_instance.player2.hand)
+        temp_game.player3.hand = copy.deepcopy(game_instance.player3.hand)
+
+        temp_game.player1.player_guesses = copy.deepcopy(game_instance.player1.player_guesses)
+        temp_game.player2.player_guesses = copy.deepcopy(game_instance.player2.player_guesses)
+        temp_game.player3.player_guesses = copy.deepcopy(game_instance.player3.player_guesses)
+
+        temp_game.player1.trick_wins = copy.deepcopy(game_instance.player1.trick_wins)
+        temp_game.player2.trick_wins = copy.deepcopy(game_instance.player2.trick_wins)
+        temp_game.player3.trick_wins = copy.deepcopy(game_instance.player3.trick_wins)
+
+
+        player = len(played_cards)
+        player_order_names = [p.player_name for p in player_order]
+        new_player_dict = {"player1": temp_game.player1, "player2": temp_game.player2, "player3": temp_game.player3}
+        new_player_order = [new_player_dict[p] for p in player_order_names]
+        print("before temp play game instance hand: ", game_instance.player1.hand)
+        temp_game.play_trick(new_player_order, requested_color, player, card=move)
+        print("end of child, game instance hand: ", game_instance.player1.hand)
+
+        if not terminal_node:
+            temp_game.play_till_player(new_player_order, player_limit=player)
+        play_state = temp_game.playing_state_space(
+            new_player_order[player], temp_game.played_cards
+        )
         node = Node(play_state, card=move, parent=parent, terminal=terminal_node)
         parent.children.append(node)
         self.nodes[tuple(play_state)] = node
