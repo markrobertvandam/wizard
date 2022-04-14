@@ -4,6 +4,7 @@ import numpy as np
 import random
 
 from Playing_Network import PlayingNetwork
+from scipy.sparse import coo_matrix
 
 
 class Node:
@@ -26,14 +27,34 @@ class PlayingAgent:
 
         self.game = None
         self.nodes = dict()
-        self.network_policy = PlayingNetwork(3732)
+        self.network_policy = PlayingNetwork(3731)
         self.last_terminal_nodes = None
         self.verbose = verbose
         self.counter = 0
 
+
+    def get_node(self, state_space):
+        key_state = self.state_to_key(state_space)
+        return self.nodes[key_state]
+
+    @staticmethod
+    def state_to_key(state_space):
+        compressed_state = coo_matrix(state_space)
+        key_state = tuple(np.concatenate((compressed_state.data, compressed_state.row, compressed_state.col)))
+        return key_state
+
+    @staticmethod
+    def key_to_state(node_state):
+        split = int(len(node_state)/3)
+        sparse_state = coo_matrix((node_state[:split],
+                            (node_state[split:split*2], node_state[split*2:]))).toarray()[0].astype('float32')
+        #print(len(sparse_state))
+        sparse_state = np.pad(sparse_state, (0, 3731 - len(sparse_state)), 'constant')
+        return sparse_state
+
     # function for randomly selecting a child node
     def rollout_policy(self, node_space):
-        node = self.nodes[tuple(node_space)]
+        node = self.nodes[self.state_to_key(node_space)]
         if self.verbose:
             print("Rollout policy used...")
         return random.choice(node.children).card
@@ -43,6 +64,8 @@ class PlayingAgent:
         self.counter += 1
         if self.counter % 100 == 0:
             print(self.counter)
+        if self.counter % 2500 == 0:
+            self.nodes = dict()
         if node.root:
             return
         node.wins += result / 100
@@ -67,7 +90,8 @@ class PlayingAgent:
         return best_child.card
 
     def evaluate_state(self, node):
-        return self.network_policy.predict(node.state)
+        sparse_state = self.key_to_state(node.state)
+        return self.network_policy.predict(sparse_state)
 
     def predict(self, play_state):
         """
@@ -75,7 +99,7 @@ class PlayingAgent:
         :param play_state: feature vector of current state
         :return:
         """
-        node = self.nodes[tuple(play_state)]
+        node = self.nodes[self.state_to_key(play_state)]
         node.expanded = True
         return self.best_child(node)
 
@@ -87,8 +111,9 @@ class PlayingAgent:
         """
         if self.verbose:
             print("Adding unseen node..")
-        root_node = Node(play_state, root=1, expanded=True)
-        self.nodes[tuple(play_state)] = root_node
+        key_state = self.state_to_key(play_state)
+        root_node = Node(key_state, root=1, expanded=True)
+        self.nodes[key_state] = root_node
 
     def expand(
         self,
@@ -136,7 +161,7 @@ class PlayingAgent:
     ):
         if self.verbose:
             print("Creating a child node...", move, played_cards)
-        parent = self.nodes[tuple(parent_space)]
+        parent = self.nodes[self.state_to_key(parent_space)]
 
         temp_game = game.Game(
             full_deck=copy.deepcopy(game_instance.full_deck),
@@ -216,9 +241,10 @@ class PlayingAgent:
             )
             f.write("played round: " + str(np.nonzero(play_state[131:])[0].tolist()) + "\n")
             f.close()
-        node = Node(play_state, card=move, parent=parent, terminal=terminal_node)
+        key_state = self.state_to_key(play_state)
+        node = Node(key_state, card=move, parent=parent, terminal=terminal_node)
         parent.children.append(node)
-        self.nodes[tuple(play_state)] = node
+        self.nodes[key_state] = node
 
         if terminal_node:
             self.last_terminal_node = node

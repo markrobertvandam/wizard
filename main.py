@@ -119,7 +119,7 @@ def avg_n_games(
             deck_dict[(suit, card_value)] = card_value + suit * 15
 
     # Run n-amount of games
-    last_ten_performance = np.zeros(21)
+    last_ten_performance = np.zeros(21, dtype=int)
     accuracy_history = []
     last_max = iters_done
     max_acc = 0

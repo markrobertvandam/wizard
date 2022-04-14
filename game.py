@@ -54,7 +54,7 @@ class Game:
             0,
             0,
         ]
-        self.off_game = np.zeros(21)
+        self.off_game = np.zeros(21, dtype=int)
 
         # for info per round/trick
         self.played_round = []
@@ -279,7 +279,7 @@ class Game:
 
     def guessing_state_space(self, player: Player):
         cards_in_hand = player.get_hand()
-        one_hot_hand = np.zeros(60)
+        one_hot_hand = np.zeros(60, dtype=int)
         for card in cards_in_hand:
             one_hot_hand[self.deck_dict[card]] = 1
         trump = [0, 0, 0, 0, 0]
@@ -290,7 +290,7 @@ class Game:
         previous_guesses += [21] * (2 - len(previous_guesses))
         round_number = [self.game_round]
         state_space = np.concatenate(
-            (one_hot_hand, trump, previous_guesses, round_number)
+            (one_hot_hand, trump, previous_guesses, round_number), dtype=int
         )
 
         return state_space
@@ -302,7 +302,7 @@ class Game:
             else:
                 print("This is a real game call!\n")
         cards_in_hand = player.get_hand()
-        one_hot_hand = np.zeros(60)
+        one_hot_hand = np.zeros(60, dtype=int)
         for card in cards_in_hand:
             one_hot_hand[self.deck_dict[card]] = 1
         trump = [0, 0, 0, 0, 0]
@@ -324,12 +324,12 @@ class Game:
                 tricks = other_player.get_guesses() - other_player.get_trick_wins()
                 tricks_needed_others.append(tricks)
 
-        played_this_trick = np.zeros(60)
+        played_this_trick = np.zeros(60, dtype=int)
         for card in played_trick:
             played_this_trick[self.deck_dict[card]] = 1
 
         # 20 rounds of 3 cards that are one-hot encoded
-        played_this_round = np.zeros(3600)
+        played_this_round = np.zeros(3600, dtype=int)
         for trick in range(len(self.played_round)):
             trick_plays = self.played_round[trick]
             for turn in range(3):
@@ -347,7 +347,7 @@ class Game:
                 tricks_needed_others,
                 played_this_trick,
                 played_this_round,
-            )
+            ), dtype=int
         )
 
         return state_space

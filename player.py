@@ -93,10 +93,10 @@ class Player:
             # if the node is seen before and stored
             if self.verbose:
                 print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
-            if tuple(state_space) in self.play_agent.nodes.keys():
+            if self.play_agent.state_to_key(state_space) in self.play_agent.nodes.keys():
                 if self.verbose == 2:
                     print("Node is known and stored")
-                node = self.play_agent.nodes[tuple(state_space)]
+                node = self.play_agent.get_node(state_space)
                 if node.expanded:
                     # Selection
                     card = self.play_agent.predict(state_space)

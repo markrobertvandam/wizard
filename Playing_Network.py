@@ -5,10 +5,11 @@ from keras.models import Model
 from keras.layers import Input, Dense
 from keras.optimizers import adam_v2
 
+import Playing_Agent
 import random
 
 REPLAY_MEMORY_SIZE = 42000  # How many of last tricks to keep for model training, 42000 means remember last 200 games
-MIN_REPLAY_MEMORY_SIZE = 10500  # Minimum number of tricks in memory to start training, 10500 means at least 50 games
+MIN_REPLAY_MEMORY_SIZE = 4200  # Minimum number of tricks in memory to start training, 10500 means at least 20 games
 MINIBATCH_SIZE = 32  # How many steps (samples) to use for training
 
 
@@ -69,7 +70,7 @@ class PlayingNetwork:
         minibatch = random.sample(self.replay_memory, MINIBATCH_SIZE)
 
         # Get states (x) and rewards (y) from minibatch
-        states = np.array([transition[0] for transition in minibatch])
+        states = np.array([Playing_Agent.PlayingAgent.key_to_state(transition[0]) for transition in minibatch])
         rewards = np.array([transition[1] for transition in minibatch])
 
         # Fit on all samples as one batch, log only on terminal state
