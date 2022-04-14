@@ -41,7 +41,7 @@ class GuessingAgent:
         x = self.dense_layer(64)(x)
         x = self.dense_layer(32)(x)
         x = Dense(self.guess_max, activation="linear")(x)
-        # guess_max = how many rounds (output_size) (20)
+        # guess_max = how many rounds + 1 (output_size) (21)
 
         model = Model(inputs=input1, outputs=x)
 

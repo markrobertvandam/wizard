@@ -46,7 +46,8 @@ class PlayingAgent:
         if node.root:
             return
         node.wins += result / 100
-        print("Node card: ", node.card)
+        if self.verbose == 2:
+            print("Node card: ", node.card)
         self.network_policy.update_replay_memory([node.state, result])
         self.network_policy.train()
         self.backpropagate(node.parent, result)
@@ -151,6 +152,7 @@ class PlayingAgent:
         temp_game.trump = copy.deepcopy(game_instance.trump)
         temp_game.game_round = copy.deepcopy(game_instance.game_round)
         temp_game.played_cards = copy.deepcopy(played_cards)
+        temp_game.played_round = copy.deepcopy(game_instance.played_round)
         temp_game.guesses = copy.deepcopy(game_instance.guesses)
 
         temp_game.player1.hand = copy.deepcopy(game_instance.player1.hand)
@@ -179,28 +181,41 @@ class PlayingAgent:
             "player3": temp_game.player3,
         }
         new_player_order = [new_player_dict[p] for p in player_order_names]
+        game_class_players_order = [p.player_name for p in game_instance.players]
+        shuffle_seed = []
+        for i in game_class_players_order:
+            for p in temp_game.players:
+                if p.player_name == i:
+                    shuffle_seed.append(p)
+        temp_game.players = shuffle_seed
+
+        if self.verbose:
+            print("Temporary player order: ", [p.player_name for p in new_player_order])
+            print("Player that is learning: ", player, played_cards)
         temp_game.play_trick(new_player_order, requested_color, player, card=move)
 
+
         if not terminal_node:
-            print("PLAYING TILL PLAYER BCS TERMINAL")
             temp_game.play_till_player(new_player_order, player_limit=player)
         play_state = temp_game.playing_state_space(
-            new_player_order[player], temp_game.played_cards
+            new_player_order[player], temp_game.played_cards, temp=True
         )
-        print("Simulated cards: ", temp_game.played_cards)
-        f = open("state_diff.txt", "a")
-        f.write("\n\n\n")
-        np.set_printoptions(threshold=np.inf)
-        f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
-        f.write("Trump: " + str(play_state[60:65]) + "\n")
-        f.write("Guesses: " + str(play_state[65:67]) + "\n")
-        f.write("Round: " + str(play_state[67]) + "\n")
-        f.write("Tricks needed: " + str(play_state[68]) + "\n")
-        f.write("Tricks needed others: " + str(play_state[69:71]) + "\n")
-        f.write(
-            "played trick: " + str(np.nonzero(play_state[71:131])[0].tolist()) + "\n"
-        )
-        f.close()
+        if self.verbose == 2:
+            f = open("state_diff.txt", "a")
+            f.write("\n\n\n")
+            np.set_printoptions(threshold=np.inf)
+            f.write("Simulated node\n")
+            f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
+            f.write("Trump: " + str(play_state[60:65]) + "\n")
+            f.write("Guesses: " + str(play_state[65:67]) + "\n")
+            f.write("Round: " + str(play_state[67]) + "\n")
+            f.write("Tricks needed: " + str(play_state[68]) + "\n")
+            f.write("Tricks needed others: " + str(play_state[69:71]) + "\n")
+            f.write(
+                "played trick: " + str(np.nonzero(play_state[71:131])[0].tolist()) + "\n"
+            )
+            f.write("played round: " + str(np.nonzero(play_state[131:])[0].tolist()) + "\n")
+            f.close()
         node = Node(play_state, card=move, parent=parent, terminal=terminal_node)
         parent.children.append(node)
         self.nodes[tuple(play_state)] = node

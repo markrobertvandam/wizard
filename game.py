@@ -54,7 +54,7 @@ class Game:
             0,
             0,
         ]
-        self.off_game = np.zeros(20)
+        self.off_game = np.zeros(21)
 
         # for info per round/trick
         self.played_round = []
@@ -139,7 +139,8 @@ class Game:
             print("\nPlaytrick called with card: ", card)
         while player != 3:
             if self.verbose == 2:
-                print("Trick iteration with player", player)
+                print("Trick iteration with player", player, "Name: ", player_order[player].player_name)
+                print("The player order at this moment is: ", [p.player_name for p in player_order])
             if player_order[player] == player_limit:
                 break
             playing_state = self.playing_state_space(
@@ -193,7 +194,7 @@ class Game:
             print("Done with while loop ", player)
 
     def play_game(self) -> tuple:
-        for game_round in range(3):
+        for game_round in range(20):
             self.played_round = []
             self.deck = self.full_deck[:]
             random.shuffle(self.deck)
@@ -245,6 +246,8 @@ class Game:
             #  print(player.player_name, player.trick_wins, player.guesses)
             off_mark = abs(player.get_trick_wins() - player.get_guesses())
             if player.player_name == "player1":
+                if off_mark > 19 or player.get_guesses() > 19:
+                    print(player.get_guesses(), player.get_trick_wins(), self.game_round)
                 self.off_game[off_mark] += 1
             if off_mark == 0:
                 self.scores[player] += 20 + 10 * player.get_guesses()
@@ -285,7 +288,6 @@ class Game:
         if len(previous_guesses) >= 2:
             previous_guesses = previous_guesses[:2]
         previous_guesses += [21] * (2 - len(previous_guesses))
-        print("Guesses: ", previous_guesses)
         round_number = [self.game_round]
         state_space = np.concatenate(
             (one_hot_hand, trump, previous_guesses, round_number)
@@ -293,7 +295,12 @@ class Game:
 
         return state_space
 
-    def playing_state_space(self, player: Player, played_trick):
+    def playing_state_space(self, player: Player, played_trick, temp=False):
+        if self.verbose == 2:
+            if temp:
+                print("This is a temp game call!\n")
+            else:
+                print("This is a real game call!\n")
         cards_in_hand = player.get_hand()
         one_hot_hand = np.zeros(60)
         for card in cards_in_hand:
@@ -304,12 +311,14 @@ class Game:
         if len(previous_guesses) >= 2:
             previous_guesses = previous_guesses[:2]
         previous_guesses += [21] * (2 - len(previous_guesses))
-        print("Play guesses: ", previous_guesses)
         round_number = [self.game_round]
 
         tricks_needed = [player.get_guesses() - player.get_trick_wins()]
         tricks_needed_others = []
 
+        if self.verbose > 2:
+            print("Creating gamespace, players are in the following order: ")
+            print([p.player_name for p in self.players], player.player_name)
         for other_player in self.players:
             if player != other_player:
                 tricks = other_player.get_guesses() - other_player.get_trick_wins()

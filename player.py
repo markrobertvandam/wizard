@@ -88,7 +88,8 @@ class Player:
         card = None
 
         if self.player_type == "learning":
-            print("Round: ", state_space[67])
+            if self.verbose:
+                print("Round: ", state_space[67])
             # if the node is seen before and stored
             if self.verbose:
                 print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
@@ -125,6 +126,7 @@ class Player:
                     f = open("state_diff.txt", "a")
                     f.write("\n\n\n")
                     np.set_printoptions(threshold=np.inf)
+                    f.write("Actual node\n")
                     f.write(
                         "Hand: " + str(np.nonzero(state_space[:60])[0].tolist()) + "\n"
                     )
@@ -138,6 +140,7 @@ class Player:
                         + str(np.nonzero(state_space[71:131])[0].tolist())
                         + "\n"
                     )
+                    f.write("played round: " + str(np.nonzero(state_space[131:])[0].tolist()) + "\n")
                     f.close()
                     exit()
                 # Create the root node and add all legal moves as children, then rollout
@@ -168,6 +171,7 @@ class Player:
             card = random.choice(legal_cards)
 
         elif self.player_type == "heuristic":
+            return legal_cards[0]
             # dodge win as high as possible if I am already at my goal
             if self.player_guesses == self.trick_wins:
                 sorted_legal = sorted(legal_cards, key=lambda x: x[1], reverse=True)
@@ -223,7 +227,7 @@ class Player:
         :return: None
         """
         if self.player_type == "random":
-            self.player_guesses = random.randrange(max_guesses)
+            self.player_guesses = random.randrange(max_guesses+1)
         else:
             # print("im the smart one")
             if self.player_type == "learning":
@@ -235,9 +239,7 @@ class Player:
                     )
                 else:
                     # Get random action
-                    self.player_guesses = np.random.randint(
-                        0, self.guess_agent.guess_max
-                    )
+                    self.player_guesses = random.randrange(max_guesses+1)
             elif self.player_type == "learned":
                 self.current_state = state_space
                 self.player_guesses = np.argmax(self.guess_agent.get_qs(state_space))

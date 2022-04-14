@@ -87,7 +87,7 @@ def avg_n_games(
     iters_done,
 ):
     input_size = 68
-    guess_agent = GuessingAgent(input_size=input_size, guess_max=20)
+    guess_agent = GuessingAgent(input_size=input_size, guess_max=21)
     playing_agent = PlayingAgent(verbose=verbose)
     if model_path is not None:
         guess_agent.model = tf.keras.models.load_model(
@@ -119,7 +119,7 @@ def avg_n_games(
             deck_dict[(suit, card_value)] = card_value + suit * 15
 
     # Run n-amount of games
-    last_ten_performance = np.zeros(20)
+    last_ten_performance = np.zeros(21)
     accuracy_history = []
     last_max = iters_done
     max_acc = 0
