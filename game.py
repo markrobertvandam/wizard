@@ -290,10 +290,10 @@ class Game:
         previous_guesses += [21] * (2 - len(previous_guesses))
         round_number = [self.game_round]
         state_space = np.concatenate(
-            (one_hot_hand, trump, previous_guesses, round_number), dtype=int
+            (one_hot_hand, trump, previous_guesses, round_number)
         )
 
-        return state_space
+        return state_space.astype(int)
 
     def playing_state_space(self, player: Player, played_trick, temp=False):
         if self.verbose == 2:
@@ -347,8 +347,8 @@ class Game:
                 tricks_needed_others,
                 played_this_trick,
                 played_this_round,
-            ), dtype=int
-        )
+            )
+        ).astype(int)
 
         return state_space
 
