@@ -194,6 +194,10 @@ def avg_n_games(
             epsilon *= epsilon_decay
             epsilon = max(min_epsilon, epsilon)
 
+        if game_instance % 500 == 0:
+            print("Forgetting ", len(wizard.player1.play_agent.nodes.keys()), " nodes..")
+            wizard.player1.play_agent.nodes = dict()
+
     print("Scores: ", score_counter)
     print("Wins: ", win_counter)
     print("Mistakes: ", total_offs)

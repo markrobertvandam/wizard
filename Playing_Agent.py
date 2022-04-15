@@ -62,7 +62,7 @@ class PlayingAgent:
     # function for backpropagation
     def backpropagate(self, node: Node, result):
         self.counter += 1
-        if self.counter % 1000 == 0:
+        if self.counter % 2000 == 0:
             print(self.counter)
         if node.root:
             return
