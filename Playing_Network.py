@@ -83,8 +83,4 @@ class PlayingNetwork:
         )
 
     def predict(self, state):
-        print(state.shape)
-        print(state.reshape(-1, *state.shape).shape)
-        print(self.model.predict(state.reshape(-1, *state.shape))[0])
-        print(self.model.predict(state)[0])
         return self.model.predict(state.reshape(-1, *state.shape))[0]

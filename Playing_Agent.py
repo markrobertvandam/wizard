@@ -62,10 +62,8 @@ class PlayingAgent:
     # function for backpropagation
     def backpropagate(self, node: Node, result):
         self.counter += 1
-        if self.counter % 100 == 0:
+        if self.counter % 500 == 0:
             print(self.counter)
-        if self.counter % 2500 == 0:
-            self.nodes = dict()
         if node.root:
             return
         node.wins += result / 100

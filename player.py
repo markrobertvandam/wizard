@@ -171,7 +171,6 @@ class Player:
             card = random.choice(legal_cards)
 
         elif self.player_type == "heuristic":
-            return legal_cards[0]
             # dodge win as high as possible if I am already at my goal
             if self.player_guesses == self.trick_wins:
                 sorted_legal = sorted(legal_cards, key=lambda x: x[1], reverse=True)
@@ -211,6 +210,7 @@ class Player:
                                     break
 
         if card is None:
+            return legal_cards[0]
             card = random.choice(legal_cards)
 
         if self.verbose == 2:
