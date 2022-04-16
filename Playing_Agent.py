@@ -21,7 +21,7 @@ class Node:
         self.card = card
 
 def write_state(play_state, actual=False):
-    f = open("state_diff.txt", "a")
+    f = open("..\state_diff.txt", "a")
     f.write("\n\n\n")
     np.set_printoptions(threshold=np.inf)
     if actual:
