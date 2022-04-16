@@ -20,6 +20,25 @@ class Node:
         self.terminal = terminal
         self.card = card
 
+def write_state(play_state, actual=False):
+    f = open("state_diff.txt", "a")
+    f.write("\n\n\n")
+    np.set_printoptions(threshold=np.inf)
+    if actual:
+        f.write("Actual node\n")
+    else:
+        f.write("Simulated node\n")
+    f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
+    f.write("Trump: " + str(play_state[60:65]) + "\n")
+    f.write("Guesses: " + str(play_state[65:67]) + "\n")
+    f.write("Round: " + str(play_state[67]) + "\n")
+    f.write("Tricks needed: " + str(play_state[68]) + "\n")
+    f.write("Tricks needed others: " + str(play_state[69:71]) + "\n")
+    f.write(
+        "played trick: " + str(np.nonzero(play_state[71:131])[0].tolist()) + "\n"
+    )
+    f.write("played round: " + str(np.nonzero(play_state[131:])[0].tolist()) + "\n")
+    f.close()
 
 # Agent class
 class PlayingAgent:
@@ -223,22 +242,8 @@ class PlayingAgent:
         play_state = temp_game.playing_state_space(
             new_player_order[player], temp_game.played_cards, temp=True
         )
-        if self.verbose == 2:
-            f = open("state_diff.txt", "a")
-            f.write("\n\n\n")
-            np.set_printoptions(threshold=np.inf)
-            f.write("Simulated node\n")
-            f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
-            f.write("Trump: " + str(play_state[60:65]) + "\n")
-            f.write("Guesses: " + str(play_state[65:67]) + "\n")
-            f.write("Round: " + str(play_state[67]) + "\n")
-            f.write("Tricks needed: " + str(play_state[68]) + "\n")
-            f.write("Tricks needed others: " + str(play_state[69:71]) + "\n")
-            f.write(
-                "played trick: " + str(np.nonzero(play_state[71:131])[0].tolist()) + "\n"
-            )
-            f.write("played round: " + str(np.nonzero(play_state[131:])[0].tolist()) + "\n")
-            f.close()
+        write_state(play_state)
+
         key_state = self.state_to_key(play_state)
         node = Node(key_state, card=move, parent=parent, terminal=terminal_node)
         parent.children.append(node)

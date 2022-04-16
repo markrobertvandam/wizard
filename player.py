@@ -1,5 +1,7 @@
 import numpy as np
 import random
+
+import Playing_Agent
 import game
 from Playing_Agent import PlayingAgent
 
@@ -123,26 +125,8 @@ class Player:
                 if len(self.hand) < state_space[67]:
                     # not first trick of the round yet child state is not known?
                     print("unknown child: ", self.hand, played_cards)
-                    f = open("state_diff.txt", "a")
-                    f.write("\n\n\n")
-                    np.set_printoptions(threshold=np.inf)
-                    f.write("Actual node\n")
-                    f.write(
-                        "Hand: " + str(np.nonzero(state_space[:60])[0].tolist()) + "\n"
-                    )
-                    f.write("Trump: " + str(state_space[60:65]) + "\n")
-                    f.write("Guesses: " + str(state_space[65:67]) + "\n")
-                    f.write("Round: " + str(state_space[67]) + "\n")
-                    f.write("Tricks needed: " + str(state_space[68]) + "\n")
-                    f.write("Tricks needed others: " + str(state_space[69:71]) + "\n")
-                    f.write(
-                        "played trick: "
-                        + str(np.nonzero(state_space[71:131])[0].tolist())
-                        + "\n"
-                    )
-                    f.write("played round: " + str(np.nonzero(state_space[131:])[0].tolist()) + "\n")
-                    f.close()
-                    exit()
+                    Playing_Agent.write_state(state_space, True)
+
                 # Create the root node and add all legal moves as children, then rollout
                 self.play_agent.unseen_state(state_space)
                 self.play_agent.expand(
