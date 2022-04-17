@@ -139,7 +139,7 @@ def avg_n_games(
     accuracy_history = []
     last_max = iters_done
     max_acc = 0
-    output_path = "../state_err1"
+    output_path = "state_err1"
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
         if verbose:
             print("\nGame instance: ", game_instance)

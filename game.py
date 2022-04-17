@@ -114,7 +114,7 @@ class Game:
 
             f = open(f"{self.output_path}.txt", "a")
             f.write(f"\nActual trick played: {self.played_cards}")
-            f.write(f"By players: {[p.name for p in player_order]}, won by: {player_order[winner].player_name}")
+            f.write(f"By players: {[p.player_name for p in player_order]}, won by: {player_order[winner].player_name}")
 
             if self.verbose:
                 print("Played in actual trick: ", self.played_cards)

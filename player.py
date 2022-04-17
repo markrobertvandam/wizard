@@ -99,6 +99,8 @@ class Player:
                 if self.verbose == 2:
                     print("Node is known and stored")
                 node = self.play_agent.get_node(state_space)
+
+                # TODO: current expanded check is not correct
                 if node.expanded:
                     # Selection
                     card = self.play_agent.predict(state_space)
@@ -124,6 +126,8 @@ class Player:
 
                 if len(self.hand) < state_space[67]:
                     # not first trick of the round yet child state is not known?
+                    # TODO: Can happen even when deterministic:
+                    # TODO: player is in same state because opponents hands are unknown so child is never expanded
                     print("unknown child: ", self.hand, played_cards)
                     Playing_Agent.write_state(state_space, game_instance.output_path, True)
                     game_instance.output_path = game_instance.output_path[:-1] + str(int(game_instance.output_path[-1]) + 1)
