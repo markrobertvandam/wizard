@@ -123,13 +123,16 @@ def avg_n_games(
     accuracy_history = []
     last_max = iters_done
     max_acc = 0
+    output_path = "../state_err1"
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
         if verbose:
             print("\nGame instance: ", game_instance)
+
         wizard = game.Game(
             full_deck,
             deck_dict,
             run_type,
+            output_path,
             guess_agent,
             playing_agent,
             epsilon,
@@ -194,9 +197,16 @@ def avg_n_games(
             epsilon *= epsilon_decay
             epsilon = max(min_epsilon, epsilon)
 
-        if game_instance % 1500 == 0:
+        if game_instance % 1000 == 0:
             print("Forgetting ", len(wizard.player1.play_agent.nodes.keys()), " nodes..")
             wizard.player1.play_agent.nodes = dict()
+
+        if output_path == wizard.get_output_path():
+            # clear game that went as expected
+            open(output_path, 'w').close()
+        else:
+            # game went wrong, keep error data and change outp path
+            output_path = wizard.get_output_path()
 
     print("Scores: ", score_counter)
     print("Wins: ", win_counter)

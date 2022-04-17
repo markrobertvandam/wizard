@@ -11,6 +11,7 @@ class Game:
         full_deck,
         deck_dict,
         run_type,
+        output_path=None,
         guess_agent=None,
         playing_agent=None,
         epsilon=None,
@@ -21,6 +22,7 @@ class Game:
         self.full_deck = full_deck
         self.deck_dict = deck_dict
         self.deck = []
+        self.output_path = output_path
         self.trump = 4  # placeholder trump, only 0-3 exist
         self.game_round = 1
         self.player1 = Player(
@@ -354,6 +356,9 @@ class Game:
 
     def get_game_performance(self):
         return self.off_game
+
+    def get_output_path(self):
+        return self.output_path
 
     def play_till_player(self, player_order: list, player_limit):
         limit = player_order[player_limit]

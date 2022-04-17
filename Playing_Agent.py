@@ -20,8 +20,8 @@ class Node:
         self.terminal = terminal
         self.card = card
 
-def write_state(play_state, actual=False):
-    f = open("..\state_diff.txt", "a")
+def write_state(play_state, output_path, actual=False):
+    f = open(f"{output_path}.txt", "a")
     f.write("\n\n\n")
     np.set_printoptions(threshold=np.inf)
     if actual:
@@ -196,6 +196,7 @@ class PlayingAgent:
         temp_game.played_cards = copy.deepcopy(played_cards)
         temp_game.played_round = copy.deepcopy(game_instance.played_round)
         temp_game.guesses = copy.deepcopy(game_instance.guesses)
+        temp_game.output_path = copy.deepcopy(game_instance.output_path)
 
         temp_game.player1.hand = copy.deepcopy(game_instance.player1.hand)
         temp_game.player2.hand = copy.deepcopy(game_instance.player2.hand)
@@ -242,7 +243,7 @@ class PlayingAgent:
         play_state = temp_game.playing_state_space(
             new_player_order[player], temp_game.played_cards, temp=True
         )
-        write_state(play_state)
+        write_state(play_state, game_instance.output_path)
 
         key_state = self.state_to_key(play_state)
         node = Node(key_state, card=move, parent=parent, terminal=terminal_node)

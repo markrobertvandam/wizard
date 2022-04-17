@@ -125,7 +125,8 @@ class Player:
                 if len(self.hand) < state_space[67]:
                     # not first trick of the round yet child state is not known?
                     print("unknown child: ", self.hand, played_cards)
-                    Playing_Agent.write_state(state_space, True)
+                    Playing_Agent.write_state(state_space, game_instance.output_path, True)
+                    game_instance.output_path = game_instance.output_path[:-1] + str(int(game_instance.output_path[-1]) + 1)
 
                 # Create the root node and add all legal moves as children, then rollout
                 self.play_agent.unseen_state(state_space)
