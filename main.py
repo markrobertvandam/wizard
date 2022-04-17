@@ -203,7 +203,7 @@ def avg_n_games(
 
         if output_path == wizard.get_output_path():
             # clear game that went as expected
-            open(output_path, 'w').close()
+            open(f"{output_path}.txt", 'w').close()
         else:
             # game went wrong, keep error data and change outp path
             output_path = wizard.get_output_path()
