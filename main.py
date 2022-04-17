@@ -74,6 +74,22 @@ def plot_accuracy(accuracy_history, game_instance, save_folder, iters_done):
     plt.close()
 
 
+def save_models(guess_agent, playing_agent, save_folder, input_size, accuracy, game_instance):
+    time_label = str(int(time.time() / 3600))[-3:]
+    guess_agent.model.save(
+        f"models/{save_folder}/guessing{input_size}_"
+        f"{time_label}_"
+        f"{accuracy}_"
+        f"{game_instance}.model"
+    )
+    playing_agent.network_policy.model.save(
+        f"models/{save_folder}/playing_"
+        f"{time_label}_"
+        f"{accuracy}_"
+        f"{game_instance}.model"
+    )
+
+
 def avg_n_games(
     n,
     run_type,
@@ -94,7 +110,7 @@ def avg_n_games(
             os.path.join("models", model_path)
         )
     if player_model is not None:
-        playing_agent.model = tf.keras.models.load_model(
+        playing_agent.network_policy.model = tf.keras.models.load_model(
             os.path.join("models", player_model)
         )
 
@@ -168,15 +184,9 @@ def avg_n_games(
         if run_type == "learning":
 
             if game_instance % 1000 == 0:
-                time_label = str(int(time.time() / 3600))[-3:]
                 plot_accuracy(accuracy_history, game_instance, save_folder, iters_done)
-                if save_bool.startswith("y"):
-                    guess_agent.model.save(
-                        f"models/{save_folder}/guessing{input_size}_"
-                        f"{time_label}_"
-                        f"{accuracy}_"
-                        f"{game_instance}.model"
-                    )
+                save_models(guess_agent, playing_agent, save_folder, input_size, accuracy, game_instance)
+
 
             if game_instance - last_max > 10000:
                 if save_bool.startswith("y"):
@@ -184,12 +194,7 @@ def avg_n_games(
                     plot_accuracy(
                         accuracy_history, game_instance, save_folder, iters_done
                     )
-                    guess_agent.model.save(
-                        f"models/{save_folder}/guessing{input_size}_"
-                        f"{time_label}_"
-                        f"{accuracy}_"
-                        f"{game_instance}.model"
-                    )
+                    save_models(guess_agent, playing_agent, save_folder, input_size, accuracy, game_instance)
                 break
 
         # Decay epsilon
