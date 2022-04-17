@@ -111,6 +111,11 @@ class Game:
                     "The winner is: ", winner, self.played_cards, "trump: ", self.trump
                 )
             self.played_round.append(self.played_cards)
+
+            f = open(f"{self.output_path}.txt", "a")
+            f.write(f"\nActual trick played: {self.played_cards}")
+            f.write(f"By players: {[p.name for p in player_order]}, won by: {player_order[winner].player_name}")
+
             if self.verbose:
                 print("Played in actual trick: ", self.played_cards)
                 print(
