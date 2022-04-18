@@ -8,9 +8,9 @@ import numpy as np
 class Game:
     def __init__(
         self,
-        full_deck,
-        deck_dict,
-        run_type,
+        full_deck: list,
+        deck_dict: dict,
+        run_type: str,
         output_path=None,
         guess_agent=None,
         playing_agent=None,
@@ -62,6 +62,27 @@ class Game:
         self.played_round = []
         self.played_cards = []
         self.guesses = []
+
+    def play_game(self) -> tuple:
+        for game_round in range(20):
+            self.played_round = []
+            self.deck = self.full_deck[:]
+            random.shuffle(self.deck)
+            self.play_round()
+            self.game_round += 1
+            self.players = self.players[1:] + self.players[:1]  # Rotate player order
+            for player in self.players:  # reset trick wins
+                player.trick_wins = 0
+                player.win_cards = []
+
+        return (
+            [
+                self.scores[self.player1],
+                self.scores[self.player2],
+                self.scores[self.player3],
+            ],
+            self.offs,
+        )
 
     def play_round(self) -> None:
 
@@ -200,27 +221,6 @@ class Game:
         if self.verbose == 2:
             print("Done with while loop ", player)
 
-    def play_game(self) -> tuple:
-        for game_round in range(20):
-            self.played_round = []
-            self.deck = self.full_deck[:]
-            random.shuffle(self.deck)
-            self.play_round()
-            self.game_round += 1
-            self.players = self.players[1:] + self.players[:1]  # Rotate player order
-            for player in self.players:  # reset trick wins
-                player.trick_wins = 0
-                player.win_cards = []
-
-        return (
-            [
-                self.scores[self.player1],
-                self.scores[self.player2],
-                self.scores[self.player3],
-            ],
-            self.offs,
-        )
-
     @staticmethod
     def trick_winner(played_cards: list, trump: int) -> int:
         strongest_card = 0
@@ -247,42 +247,6 @@ class Game:
                 strongest_card = i
 
         return strongest_card
-
-    def update_scores(self):
-        for player in self.players:
-            #  print(player.player_name, player.trick_wins, player.guesses)
-            off_mark = abs(player.get_trick_wins() - player.get_guesses())
-            if player.player_name == "player1":
-                if off_mark > 19 or player.get_guesses() > 19:
-                    print(player.get_guesses(), player.get_trick_wins(), self.game_round)
-                self.off_game[off_mark] += 1
-            if off_mark == 0:
-                self.scores[player] += 20 + 10 * player.get_guesses()
-                if player.player_type == "learning":
-                    player.update_agent(100)
-                    player.play_agent.backpropagate(
-                        player.play_agent.last_terminal_node, 100
-                    )
-            else:
-                if player.player_type == "learning":
-                    player.update_agent(0)
-                    player.play_agent.backpropagate(
-                        player.play_agent.last_terminal_node, 0
-                    )
-                self.scores[player] -= 10 * off_mark
-                if player.player_name == "player1":
-                    if self.verbose:
-                        print(
-                            "player_won: ",
-                            player.get_trick_wins(),
-                            "player_guessed",
-                            player.get_guesses(),
-                        )
-                    if player.get_guesses() > player.get_trick_wins():
-                        self.offs[0] += 1
-                    else:
-                        self.offs[1] += 1
-        #  print("\n\n")
 
     def guessing_state_space(self, player: Player):
         cards_in_hand = player.get_hand()
@@ -358,6 +322,42 @@ class Game:
         ).astype(int)
 
         return state_space
+
+    def update_scores(self):
+        for player in self.players:
+            #  print(player.player_name, player.trick_wins, player.guesses)
+            off_mark = abs(player.get_trick_wins() - player.get_guesses())
+            if player.player_name == "player1":
+                if off_mark > 19 or player.get_guesses() > 19:
+                    print(player.get_guesses(), player.get_trick_wins(), self.game_round)
+                self.off_game[off_mark] += 1
+            if off_mark == 0:
+                self.scores[player] += 20 + 10 * player.get_guesses()
+                if player.player_type == "learning":
+                    player.update_agent(100)
+                    player.play_agent.backpropagate(
+                        player.play_agent.last_terminal_node, 100
+                    )
+            else:
+                if player.player_type == "learning":
+                    player.update_agent(0)
+                    player.play_agent.backpropagate(
+                        player.play_agent.last_terminal_node, 0
+                    )
+                self.scores[player] -= 10 * off_mark
+                if player.player_name == "player1":
+                    if self.verbose:
+                        print(
+                            "player_won: ",
+                            player.get_trick_wins(),
+                            "player_guessed",
+                            player.get_guesses(),
+                        )
+                    if player.get_guesses() > player.get_trick_wins():
+                        self.offs[0] += 1
+                    else:
+                        self.offs[1] += 1
+        #  print("\n\n")
 
     def get_game_performance(self):
         return self.off_game

@@ -20,6 +20,7 @@ class Node:
         self.terminal = terminal
         self.card = card
 
+
 def write_state(play_state, output_path, actual=False):
     f = open(f"{output_path}.txt", "a")
     f.write("\n\n\n")
@@ -40,6 +41,7 @@ def write_state(play_state, output_path, actual=False):
     f.write("played round: " + str(np.nonzero(play_state[131:])[0].tolist()) + "\n")
     f.close()
 
+
 # Agent class
 class PlayingAgent:
     def __init__(self, verbose=0):
@@ -47,10 +49,9 @@ class PlayingAgent:
         self.game = None
         self.nodes = dict()
         self.network_policy = PlayingNetwork(3731)
-        self.last_terminal_nodes = None
+        self.last_terminal_node = None
         self.verbose = verbose
         self.counter = 0
-
 
     def get_node(self, state_space):
         key_state = self.state_to_key(state_space)
@@ -66,8 +67,7 @@ class PlayingAgent:
     def key_to_state(node_state):
         split = int(len(node_state)/3)
         sparse_state = coo_matrix((node_state[:split],
-                            (node_state[split:split*2], node_state[split*2:]))).toarray()[0].astype('float32')
-        #print(len(sparse_state))
+                                   (node_state[split:split*2], node_state[split*2:]))).toarray()[0].astype('float32')
         sparse_state = np.pad(sparse_state, (0, 3731 - len(sparse_state)), 'constant')
         return sparse_state
 
@@ -236,7 +236,6 @@ class PlayingAgent:
             print("Temporary player order: ", [p.player_name for p in new_player_order])
             print("Player that is learning: ", player, played_cards)
         temp_game.play_trick(new_player_order, requested_color, player, card=move)
-
 
         if not terminal_node:
             temp_game.play_till_player(new_player_order, player_limit=player)

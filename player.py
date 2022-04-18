@@ -3,7 +3,6 @@ import random
 
 import Playing_Agent
 import game
-from Playing_Agent import PlayingAgent
 
 #
 # TODO: MAKE HAND SORTED ONCE AT START
@@ -33,15 +32,6 @@ class Player:
             self.current_state = None
             self.epsilon = epsilon
 
-    def get_hand(self):
-        return self.hand[:]
-
-    def get_guesses(self):
-        return self.player_guesses
-
-    def get_trick_wins(self):
-        return self.trick_wins
-
     def draw_cards(self, amount: int, deck: list) -> list:
         """
         :param amount: How many cards should be drawn
@@ -68,7 +58,8 @@ class Player:
         :param requested_color: The requested color that has to be played if possible
                                 (blue, yellow, red, green, None yet, None this round)
         :param played_cards: Cards played so far
-        :param game: instance of game to use for simulating moves with playing agent
+        :param player_order: order in which players play the current trick
+        :param game_instance: instance of game to use for simulating moves with playing agent
         :param state_space: Observation state used for playing agent
         :return: the played card
         """
@@ -92,8 +83,6 @@ class Player:
         if self.player_type == "learning":
             if self.verbose:
                 print("Round: ", state_space[67])
-            # if the node is seen before and stored
-            if self.verbose:
                 print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
             if self.play_agent.state_to_key(state_space) in self.play_agent.nodes.keys():
                 if self.verbose == 2:
@@ -271,3 +260,12 @@ class Player:
             )
             self.guess_agent.avg_reward += reward / self.guess_agent.guess_max
             self.guess_agent.train()
+
+    def get_hand(self):
+        return self.hand[:]
+
+    def get_guesses(self):
+        return self.player_guesses
+
+    def get_trick_wins(self):
+        return self.trick_wins

@@ -80,7 +80,7 @@ class GuessingAgent:
         current_states = np.array([transition[0] for transition in minibatch])
         current_qs_list = self.model.predict(current_states)
 
-        X = []
+        x = []
         y = []
 
         # Now we need to enumerate our batches
@@ -93,12 +93,12 @@ class GuessingAgent:
             current_qs[action] = new_q
 
             # And append to our training data
-            X.append(current_state)
+            x.append(current_state)
             y.append(current_qs)
 
         # Fit on all samples as one batch, log only on terminal state
         self.model.fit(
-            np.array(X),
+            np.array(x),
             np.array(y),
             batch_size=MINIBATCH_SIZE,
             verbose=0,

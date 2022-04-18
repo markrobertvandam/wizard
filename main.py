@@ -66,7 +66,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def plot_accuracy(accuracy_history, game_instance, save_folder, iters_done):
+def plot_accuracy(accuracy_history: list, game_instance: int, save_folder: str, iters_done: int) -> None:
     plt.plot(list(range(iters_done + 10, game_instance + 1, 10)), accuracy_history)
     plt.xlabel("Games", fontsize=15)
     plt.ylabel("Accuracy", fontsize=15)
@@ -74,7 +74,8 @@ def plot_accuracy(accuracy_history, game_instance, save_folder, iters_done):
     plt.close()
 
 
-def save_models(guess_agent, playing_agent, save_folder, input_size, accuracy, game_instance):
+def save_models(guess_agent: GuessingAgent, playing_agent: PlayingAgent,
+                save_folder: str, input_size: int, accuracy: float, game_instance: int) -> None:
     time_label = str(int(time.time() / 3600))[-3:]
     guess_agent.model.save(
         f"models/{save_folder}/guessing{input_size}_"
@@ -91,17 +92,17 @@ def save_models(guess_agent, playing_agent, save_folder, input_size, accuracy, g
 
 
 def avg_n_games(
-    n,
-    run_type,
-    save_bool,
-    save_folder,
-    model_path,
-    player_model,
-    verbose,
-    use_agent,
-    epsilon,
-    iters_done,
-):
+    n: int,
+    run_type: str,
+    save_bool: str,
+    save_folder: str,
+    model_path: str,
+    player_model: str,
+    verbose: bool,
+    use_agent: bool,
+    epsilon: float,
+    iters_done: int,
+) -> None:
     input_size = 68
     guess_agent = GuessingAgent(input_size=input_size, guess_max=21)
     playing_agent = PlayingAgent(verbose=verbose)
