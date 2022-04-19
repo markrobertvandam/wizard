@@ -133,10 +133,6 @@ class Game:
                 )
             self.played_round.append(self.played_cards)
 
-            f = open(f"{self.output_path}.txt", "a")
-            f.write(f"\nActual trick played: {self.played_cards}")
-            f.write(f"By players: {[p.player_name for p in player_order]}, won by: {player_order[winner].player_name}")
-
             if self.verbose:
                 print("Played in actual trick: ", self.played_cards)
                 print(
@@ -249,6 +245,7 @@ class Game:
         return strongest_card
 
     def guessing_state_space(self, player: Player):
+        # TODO: maybe add player order?
         cards_in_hand = player.get_hand()
         one_hot_hand = np.zeros(60, dtype=int)
         for card in cards_in_hand:
@@ -267,6 +264,7 @@ class Game:
         return state_space.astype(int)
 
     def playing_state_space(self, player: Player, played_trick, temp=False):
+        # TODO: maybe remove guesses from state and add player order?
         if self.verbose == 2:
             if temp:
                 print("This is a temp game call!\n")
@@ -365,11 +363,15 @@ class Game:
     def get_output_path(self):
         return self.output_path
 
-    def play_till_player(self, player_order: list, player_limit):
-        limit = player_order[player_limit]
+    def wrap_up_round(self, player_order):
         winner = self.trick_winner(self.played_cards, self.trump)
         self.played_round.append(self.played_cards)
         player_order[winner].trick_wins += 1
-        player_order = player_order[winner:] + player_order[:winner]
         self.played_cards = []
+        return winner
+
+    def play_till_player(self, player_order: list, player_limit):
+        limit = player_order[player_limit]
+        winner = self.wrap_up_round(player_order)
+        player_order = player_order[winner:] + player_order[:winner]
         self.play_trick(player_order, 4, 0, player_limit=limit)

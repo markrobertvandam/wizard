@@ -130,6 +130,7 @@ class PlayingAgent:
             print("Adding unseen node..")
         key_state = self.state_to_key(play_state)
         root_node = Node(key_state, root=1, expanded=True)
+        write_state(play_state, "state_err1", True)
         self.nodes[key_state] = root_node
 
     def expand(
@@ -239,6 +240,8 @@ class PlayingAgent:
 
         if not terminal_node:
             temp_game.play_till_player(new_player_order, player_limit=player)
+        else:
+            temp_game.wrap_up_round(new_player_order)
         play_state = temp_game.playing_state_space(
             new_player_order[player], temp_game.played_cards, temp=True
         )

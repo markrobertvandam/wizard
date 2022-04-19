@@ -188,8 +188,8 @@ class Player:
                                     break
 
         if card is None:
-            return legal_cards[0]
-            card = random.choice(legal_cards)
+            card = legal_cards[0]
+            # card = random.choice(legal_cards)
 
         if self.verbose == 2:
             print("Card at end of play_card: ", self.hand, card)
