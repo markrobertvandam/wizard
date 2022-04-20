@@ -207,7 +207,7 @@ def avg_n_games(
             print("Forgetting ", len(wizard.player1.play_agent.nodes.keys()), " nodes..")
             wizard.player1.play_agent.nodes = dict()
 
-        if output_path == wizard.get_output_path():
+        if output_path == wizard.get_output_path() and verbose:
             # clear game that went as expected
             open(f"{output_path}.txt", 'w').close()
         else:

@@ -81,11 +81,11 @@ class Player:
         card = None
 
         if self.player_type == "learning":
-            if self.verbose:
+            if self.verbose == 2:
                 print("Round: ", state_space[67])
                 print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
             if self.play_agent.state_to_key(state_space) in self.play_agent.nodes.keys():
-                if self.verbose == 2:
+                if self.verbose == 3:
                     print("Node is known and stored")
                 node = self.play_agent.get_node(state_space)
 
@@ -93,7 +93,7 @@ class Player:
                 if node.expanded:
                     # Selection
                     card = self.play_agent.predict(state_space)
-                    if self.verbose == 2:
+                    if self.verbose == 3:
                         print("Card from expanded node: ", card, legal_cards)
                 else:
                     # leaf node, add children and get rollout
@@ -107,10 +107,10 @@ class Player:
                         self.hand,
                     )
                     card = self.play_agent.rollout_policy(state_space)
-                    if self.verbose == 2:
+                    if self.verbose == 3:
                         print("Card from rollout after expanding: ", card, legal_cards)
             else:
-                if self.verbose == 2:
+                if self.verbose == 3:
                     print("Creating a root node...")
 
                 if len(self.hand) < state_space[67]:
@@ -118,7 +118,8 @@ class Player:
                     # TODO: Can happen even when deterministic:
                     # TODO: player is in same state because opponents hands are unknown so child is never expanded
                     print("unknown child: ", self.hand, played_cards)
-                    Playing_Agent.write_state(state_space, game_instance.output_path, True)
+                    if self.verbose:
+                        Playing_Agent.write_state(state_space, game_instance.output_path, True)
                     game_instance.output_path = game_instance.output_path[:-1] + str(int(game_instance.output_path[-1]) + 1)
 
                 # Create the root node and add all legal moves as children, then rollout
@@ -133,7 +134,7 @@ class Player:
                     self.hand,
                 )
                 card = self.play_agent.rollout_policy(state_space)
-                if self.verbose == 2:
+                if self.verbose == 3:
                     print("card from rollout after unseen node: ", card, legal_cards)
                     print("Card3 game instance hand: ", game_instance.player1.hand)
 
@@ -191,7 +192,7 @@ class Player:
             card = legal_cards[0]
             # card = random.choice(legal_cards)
 
-        if self.verbose == 2:
+        if self.verbose == 3:
             print("Card at end of play_card: ", self.hand, card)
         self.hand.remove(card)
         return card
@@ -246,7 +247,7 @@ class Player:
                         self.win_cards.append(card)
 
                 self.player_guesses = guesses
-            if self.verbose:
+            if self.verbose == 2:
                 print("\nGuessed: ", self.player_guesses)
                 print("Hand: ", self.get_hand(), "Trump: ", trump)
 

@@ -74,7 +74,7 @@ class PlayingAgent:
     # function for randomly selecting a child node
     def rollout_policy(self, node_space):
         node = self.nodes[self.state_to_key(node_space)]
-        if self.verbose:
+        if self.verbose == 2:
             print("Rollout policy used...")
         return random.choice(node.children).card
 
@@ -86,7 +86,7 @@ class PlayingAgent:
         if node.root:
             return
         node.wins += result / 100
-        if self.verbose == 2:
+        if self.verbose == 3:
             print("Node card: ", node.card)
         self.network_policy.update_replay_memory([node.state, result])
         self.network_policy.train()
@@ -126,11 +126,12 @@ class PlayingAgent:
         :param play_state:
         :return:
         """
-        if self.verbose:
+        if self.verbose == 2:
             print("Adding unseen node..")
         key_state = self.state_to_key(play_state)
         root_node = Node(key_state, root=1, expanded=True)
-        write_state(play_state, "state_err1", True)
+        if self.verbose:
+            write_state(play_state, "state_err1", True)
         self.nodes[key_state] = root_node
 
     def expand(
@@ -143,7 +144,7 @@ class PlayingAgent:
         played_cards,
         player_hand,
     ):
-        if self.verbose:
+        if self.verbose == 2:
             print("Expanding the following moves: ", legal_moves)
         if len(player_hand) > 1:
             for move in legal_moves:
@@ -177,7 +178,7 @@ class PlayingAgent:
         played_cards,
         terminal_node=False,
     ):
-        if self.verbose:
+        if self.verbose == 2:
             print("Creating a child node...", move, played_cards)
         parent = self.nodes[self.state_to_key(parent_space)]
 
@@ -233,7 +234,7 @@ class PlayingAgent:
                     shuffle_seed.append(p)
         temp_game.players = shuffle_seed
 
-        if self.verbose:
+        if self.verbose == 3:
             print("Temporary player order: ", [p.player_name for p in new_player_order])
             print("Player that is learning: ", player, played_cards)
         temp_game.play_trick(new_player_order, requested_color, player, card=move)
@@ -245,7 +246,9 @@ class PlayingAgent:
         play_state = temp_game.playing_state_space(
             new_player_order[player], temp_game.played_cards, temp=True
         )
-        write_state(play_state, game_instance.output_path)
+
+        if self.verbose:
+            write_state(play_state, game_instance.output_path)
 
         key_state = self.state_to_key(play_state)
         node = Node(key_state, card=move, parent=parent, terminal=terminal_node)
