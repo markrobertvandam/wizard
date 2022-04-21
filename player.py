@@ -21,6 +21,7 @@ class Player:
         self.verbose = verbose
         self.player_name = player_name
         self.hand = []
+        self.idx_dict = dict()
         self.win_cards = []
         self.player_guesses = 0
         self.trick_wins = 0
@@ -65,8 +66,11 @@ class Player:
         """
         requested_cards = []
         white_cards = []
-        if requested_color < 4:
-            for card in self.hand:
+
+        for idx in range(len(self.hand)):
+            card = self.hand[idx]
+            self.idx_dict[card] = idx
+            if requested_color < 4:
                 if card[1] == 0 or card[1] == 14:
                     white_cards.append(card)
                 elif card[0] == requested_color:
@@ -117,7 +121,6 @@ class Player:
                     # not first trick of the round yet child state is not known?
                     # TODO: Can happen even when deterministic:
                     # TODO: player is in same state because opponents hands are unknown so child is never expanded
-                    print("unknown child: ", self.hand, played_cards)
                     if self.verbose:
                         Playing_Agent.write_state(state_space, game_instance.output_path, True)
                     game_instance.output_path = game_instance.output_path[:-1] + str(int(game_instance.output_path[-1]) + 1)
@@ -194,7 +197,8 @@ class Player:
 
         if self.verbose == 3:
             print("Card at end of play_card: ", self.hand, card)
-        self.hand.remove(card)
+
+        del self.hand[self.idx_dict[card]]
         return card
 
     def guess_wins(self, max_guesses: int, trump: int, state_space=None) -> int:
