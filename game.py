@@ -1,3 +1,4 @@
+from math import floor
 from player import Player
 
 import copy
@@ -246,6 +247,7 @@ class Game:
 
     def guessing_state_space(self, player: Player):
         # TODO: maybe add player order?
+        # TODO: Maybe make playing trick ordered too?
         cards_in_hand = player.get_hand()
         one_hot_hand = np.zeros(60, dtype=int)
         for card in cards_in_hand:
@@ -255,6 +257,7 @@ class Game:
         previous_guesses = self.guesses[:]
         if len(previous_guesses) >= 2:
             previous_guesses = previous_guesses[:2]
+        avg_guess = floor(self.game_round/3)
         previous_guesses += [21] * (2 - len(previous_guesses))
         round_number = [self.game_round]
         state_space = np.concatenate(
@@ -265,6 +268,7 @@ class Game:
 
     def playing_state_space(self, player: Player, played_trick, temp=False):
         # TODO: maybe remove guesses from state and add player order?
+        # TODO: Maybe make playing trick ordered too?
         if self.verbose == 3:
             if temp:
                 print("This is a temp game call!\n")

@@ -237,10 +237,15 @@ class PlayingAgent:
         if self.verbose == 3:
             print("Temporary player order: ", [p.player_name for p in new_player_order])
             print("Player that is learning: ", player, played_cards)
+
+        # simulate finishing the trick with selected move
         temp_game.play_trick(new_player_order, requested_color, player, card=move)
 
+        # if theres more tricks to follow, children states are at players next turn
         if not terminal_node:
             temp_game.play_till_player(new_player_order, player_limit=player)
+
+        # else, terminal node, wrap up the round
         else:
             temp_game.wrap_up_round(new_player_order)
         play_state = temp_game.playing_state_space(

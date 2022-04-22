@@ -198,7 +198,11 @@ class Player:
         if self.verbose == 3:
             print("Card at end of play_card: ", self.hand, card)
 
-        del self.hand[self.idx_dict[card]]
+        if card != self.hand[self.idx_dict[card]]:
+            print("Oh no! it went wrong!")
+            self.hand.remove(card)
+        else:
+            del self.hand[self.idx_dict[card]]
         return card
 
     def guess_wins(self, max_guesses: int, trump: int, state_space=None) -> int:
