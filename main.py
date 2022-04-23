@@ -29,7 +29,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--save_folder",
         help="folder name for plots and models for this run",
-        default="1",
+        default="",
     )
     parser.add_argument(
         "--verbose",
@@ -185,8 +185,9 @@ def avg_n_games(
         if run_type == "learning":
 
             if game_instance % 1000 == 0:
-                plot_accuracy(accuracy_history, game_instance, save_folder, iters_done)
-                save_models(guess_agent, playing_agent, save_folder, input_size, accuracy, game_instance)
+                if save_bool.startswith("y"):
+		    plot_accuracy(accuracy_history, game_instance, save_folder, iters_done)
+                    save_models(guess_agent, playing_agent, save_folder, input_size, accuracy, game_instance)
 
 
             if game_instance - last_max > 10000:

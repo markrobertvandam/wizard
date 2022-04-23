@@ -103,7 +103,7 @@ class PlayingAgent:
             elif value == max_value and random.getrandbits(1):
                 best_child = child
                 max_value = value
-
+        
         return best_child.card
 
     def evaluate_state(self, node):
@@ -118,6 +118,7 @@ class PlayingAgent:
         """
         node = self.nodes[self.state_to_key(play_state)]
         node.expanded = True
+
         return self.best_child(node)
 
     def unseen_state(self, play_state):
