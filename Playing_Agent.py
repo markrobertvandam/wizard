@@ -49,9 +49,10 @@ class PlayingAgent:
         self.game = None
         self.nodes = dict()
         self.network_policy = PlayingNetwork(3731)
-        self.last_terminal_node = None
         self.verbose = verbose
         self.counter = 0
+        self.parent_node = None
+        self.last_terminal_node = None
 
     def get_node(self, state_space):
         key_state = self.state_to_key(state_space)
@@ -72,11 +73,12 @@ class PlayingAgent:
         return sparse_state
 
     # function for randomly selecting a child node
-    def rollout_policy(self, node_space):
-        node = self.nodes[self.state_to_key(node_space)]
+    def rollout_policy(self):
+        node = self.parent_node
         if self.verbose == 2:
             print("Rollout policy used...")
-        return random.choice(node.children).card
+        self.parent_node = random.choice(node.children)
+        return self.parent_node.card
 
     # function for backpropagation
     def backpropagate(self, node: Node, result):
@@ -104,40 +106,40 @@ class PlayingAgent:
                 best_child = child
                 max_value = value
 
+        self.parent_node = best_child
         return best_child.card
 
     def evaluate_state(self, node):
         sparse_state = self.key_to_state(node.state)
         return self.network_policy.predict(sparse_state)
 
-    def predict(self, play_state):
+    def predict(self):
         """
         Use network to get best move
         :param play_state: feature vector of current state
         :return:
         """
-        node = self.nodes[self.state_to_key(play_state)]
-        node.expanded = True
+        node = self.parent_node
         return self.best_child(node)
 
     def unseen_state(self, play_state):
         """
-        Create node with children for unseen state
+        Create root node for unseen state
         :param play_state:
         :return:
         """
         if self.verbose == 2:
-            print("Adding unseen node..")
+            print("Adding unseen root node..")
         key_state = self.state_to_key(play_state)
         root_node = Node(key_state, root=1, expanded=True)
         if self.verbose:
             write_state(play_state, "state_err1", True)
         self.nodes[key_state] = root_node
+        self.parent_node = root_node
 
     def expand(
         self,
         legal_moves,
-        parent_space,
         player_order,
         game_instance,
         requested_color,
@@ -149,7 +151,6 @@ class PlayingAgent:
         if len(player_hand) > 1:
             for move in legal_moves:
                 self.create_child(
-                    parent_space,
                     move,
                     player_order,
                     game_instance,
@@ -159,7 +160,6 @@ class PlayingAgent:
         else:
             # terminal node
             self.create_child(
-                parent_space,
                 legal_moves[0],
                 player_order,
                 game_instance,
@@ -170,7 +170,6 @@ class PlayingAgent:
 
     def create_child(
         self,
-        parent_space,
         move,
         player_order,
         game_instance,
@@ -180,8 +179,64 @@ class PlayingAgent:
     ):
         if self.verbose == 2:
             print("Creating a child node...", move, played_cards)
-        parent = self.nodes[self.state_to_key(parent_space)]
+        parent = self.parent_node
 
+        temp_game = self.temp_game(game_instance, played_cards)
+
+        player = len(played_cards)
+        player_order_names = [p.player_name for p in player_order]
+        new_player_dict = {
+            "player1": temp_game.player1,
+            "player2": temp_game.player2,
+            "player3": temp_game.player3,
+        }
+        new_player_order = [new_player_dict[p] for p in player_order_names]
+        game_class_players_order = [p.player_name for p in game_instance.players]
+        shuffle_seed = []
+
+        # game players are in some random order, temp_game players is still ordered
+        for i in game_class_players_order:
+            for p in temp_game.players:
+                if p.player_name == i:
+                    shuffle_seed.append(p)
+        temp_game.players = shuffle_seed
+
+        if self.verbose == 3:
+            print("Temporary player order: ", [p.player_name for p in new_player_order])
+            print("Player that is learning: ", player, played_cards)
+
+        # if theres more tricks to follow, children state is after move
+        if not terminal_node:
+            # simulate the play with selected move
+            temp_game.play_trick(new_player_order, requested_color, player,
+                                 card=move, player_limit=player + 1)
+            if player == 2:
+                temp_game.wrap_up_trick(new_player_order)
+
+        # else, terminal node, wrap up the round
+        else:
+            temp_game.play_trick(new_player_order, requested_color, player,
+                                 card=move)
+            temp_game.wrap_up_trick(new_player_order)
+        play_state = temp_game.playing_state_space(
+            new_player_order[player], temp_game.played_cards, temp=True
+        )
+
+        if self.verbose:
+            write_state(play_state, game_instance.output_path)
+
+        key_state = self.state_to_key(play_state)
+
+        if key_state not in self.nodes.keys():
+            node = Node(key_state, card=move, parent=parent, terminal=terminal_node)
+            parent.children.append(node)
+            self.nodes[key_state] = node
+
+        if terminal_node:
+            self.last_terminal_node = self.nodes[key_state]
+
+    @staticmethod
+    def temp_game(game_instance, played_cards):
         temp_game = game.Game(
             full_deck=copy.deepcopy(game_instance.full_deck),
             deck_dict=copy.deepcopy(game_instance.deck_dict),
@@ -218,47 +273,4 @@ class PlayingAgent:
         temp_game.player2.trick_wins = copy.deepcopy(game_instance.player2.trick_wins)
         temp_game.player3.trick_wins = copy.deepcopy(game_instance.player3.trick_wins)
 
-        player = len(played_cards)
-        player_order_names = [p.player_name for p in player_order]
-        new_player_dict = {
-            "player1": temp_game.player1,
-            "player2": temp_game.player2,
-            "player3": temp_game.player3,
-        }
-        new_player_order = [new_player_dict[p] for p in player_order_names]
-        game_class_players_order = [p.player_name for p in game_instance.players]
-        shuffle_seed = []
-        for i in game_class_players_order:
-            for p in temp_game.players:
-                if p.player_name == i:
-                    shuffle_seed.append(p)
-        temp_game.players = shuffle_seed
-
-        if self.verbose == 3:
-            print("Temporary player order: ", [p.player_name for p in new_player_order])
-            print("Player that is learning: ", player, played_cards)
-
-        # simulate finishing the trick with selected move
-        temp_game.play_trick(new_player_order, requested_color, player, card=move)
-
-        # if theres more tricks to follow, children states are at players next turn
-        if not terminal_node:
-            temp_game.play_till_player(new_player_order, player_limit=player)
-
-        # else, terminal node, wrap up the round
-        else:
-            temp_game.wrap_up_round(new_player_order)
-        play_state = temp_game.playing_state_space(
-            new_player_order[player], temp_game.played_cards, temp=True
-        )
-
-        if self.verbose:
-            write_state(play_state, game_instance.output_path)
-
-        key_state = self.state_to_key(play_state)
-        node = Node(key_state, card=move, parent=parent, terminal=terminal_node)
-        parent.children.append(node)
-        self.nodes[key_state] = node
-
-        if terminal_node:
-            self.last_terminal_node = node
+        return temp_game

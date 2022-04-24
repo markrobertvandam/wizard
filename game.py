@@ -65,7 +65,7 @@ class Game:
         self.guesses = []
 
     def play_game(self) -> tuple:
-        for game_round in range(20):
+        for game_round in range(5):
             self.played_round = []
             self.deck = self.full_deck[:]
             random.shuffle(self.deck)
@@ -166,7 +166,7 @@ class Game:
             if self.verbose == 3:
                 print("Trick iteration with player", player, "Name: ", player_order[player].player_name)
                 print("The player order at this moment is: ", [p.player_name for p in player_order])
-            if player_order[player] == player_limit:
+            if player_limit and (3 > player_limit == player):
                 break
             playing_state = self.playing_state_space(
                 player_order[player], self.played_cards
@@ -280,10 +280,7 @@ class Game:
             one_hot_hand[self.deck_dict[card]] = 1
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
-        previous_guesses = self.guesses[:]
-        if len(previous_guesses) >= 2:
-            previous_guesses = previous_guesses[:2]
-        previous_guesses += [21] * (2 - len(previous_guesses))
+        previous_guesses = []
         round_number = [self.game_round]
 
         tricks_needed = [player.get_guesses() - player.get_trick_wins()]
@@ -293,9 +290,13 @@ class Game:
             print("Creating gamespace, players are in the following order: ")
             print([p.player_name for p in self.players], player.player_name)
         for other_player in self.players:
+            print(f"Player {other_player.player_name}, "
+                  f"guessed {other_player.get_guesses()} "
+                  f"and won {other_player.get_trick_wins()}")
             if player != other_player:
                 tricks = other_player.get_guesses() - other_player.get_trick_wins()
                 tricks_needed_others.append(tricks)
+                previous_guesses.append(other_player.get_guesses())
 
         played_this_trick = np.zeros(60, dtype=int)
         for card in played_trick:
@@ -367,15 +368,14 @@ class Game:
     def get_output_path(self):
         return self.output_path
 
-    def wrap_up_round(self, player_order):
+    def wrap_up_trick(self, player_order):
         winner = self.trick_winner(self.played_cards, self.trump)
         self.played_round.append(self.played_cards)
         player_order[winner].trick_wins += 1
         self.played_cards = []
         return winner
 
-    def play_till_player(self, player_order: list, player_limit):
-        limit = player_order[player_limit]
-        winner = self.wrap_up_round(player_order)
+    def play_till_player(self, player_order: list, player_limit: int):
+        winner = self.wrap_up_trick(player_order)
         player_order = player_order[winner:] + player_order[:winner]
-        self.play_trick(player_order, 4, 0, player_limit=limit)
+        self.play_trick(player_order, 4, 0, player_limit=player_limit)

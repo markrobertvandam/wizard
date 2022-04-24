@@ -88,58 +88,35 @@ class Player:
             if self.verbose == 2:
                 print("Round: ", state_space[67])
                 print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
-            if self.play_agent.state_to_key(state_space) in self.play_agent.nodes.keys():
-                if self.verbose == 3:
-                    print("Node is known and stored")
-                node = self.play_agent.get_node(state_space)
 
-                # TODO: current expanded check is not correct
-                if node.expanded:
-                    # Selection
-                    card = self.play_agent.predict(state_space)
-                    if self.verbose == 3:
-                        print("Card from expanded node: ", card, legal_cards)
-                else:
-                    # leaf node, add children and get rollout
-                    self.play_agent.expand(
-                        legal_cards,
-                        state_space,
-                        player_order,
-                        game_instance,
-                        requested_color,
-                        played_cards,
-                        self.hand,
-                    )
-                    card = self.play_agent.rollout_policy(state_space)
-                    if self.verbose == 3:
-                        print("Card from rollout after expanding: ", card, legal_cards)
+            # NODE IS HERE BEFORE PLAY
+
+            # ROOT NODE (cards in hand == round) -> add root and children
+            if len(self.hand) == game_instance.game_round:
+                if self.play_agent.state_to_key(state_space) not in self.play_agent.nodes.keys():
+                    self.play_agent.unseen_state(state_space)
+
+                # expand either way in case of unseen children
+                self.play_agent.expand(legal_cards, player_order, game_instance,
+                                       requested_color, played_cards, self.hand)
+
+                # rollout till end of game
+                card = self.play_agent.rollout_policy()
+
+            # its a child, either terminal or not
             else:
-                if self.verbose == 3:
-                    print("Creating a root node...")
-
-                if len(self.hand) < state_space[67]:
-                    # not first trick of the round yet child state is not known?
-                    # TODO: Can happen even when deterministic:
-                    # TODO: player is in same state because opponents hands are unknown so child is never expanded
-                    if self.verbose:
-                        Playing_Agent.write_state(state_space, game_instance.output_path, True)
-                    game_instance.output_path = game_instance.output_path[:-1] + str(int(game_instance.output_path[-1]) + 1)
-
-                # Create the root node and add all legal moves as children, then rollout
-                self.play_agent.unseen_state(state_space)
-                self.play_agent.expand(
-                    legal_cards,
-                    state_space,
-                    player_order,
-                    game_instance,
-                    requested_color,
-                    played_cards,
-                    self.hand,
-                )
-                card = self.play_agent.rollout_policy(state_space)
-                if self.verbose == 3:
-                    print("card from rollout after unseen node: ", card, legal_cards)
-                    print("Card3 game instance hand: ", game_instance.player1.hand)
+                # selection of expanded node
+                if self.play_agent.parent_node.expanded:
+                    # expand in case of unseen children, then predict best move
+                    self.play_agent.expand(legal_cards, player_order, game_instance,
+                                       requested_color, played_cards, self.hand)
+                    card = self.play_agent.predict()
+                else:
+                    # leaf node, expand and rollout
+                    self.play_agent.expand(legal_cards, player_order, game_instance,
+                                           requested_color, played_cards, self.hand)
+                    self.play_agent.parent_node.expanded = True
+                    card = self.play_agent.rollout_policy()
 
         elif self.player_type == "learned":
             # get action from network
