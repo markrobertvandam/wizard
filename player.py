@@ -110,6 +110,7 @@ class Player:
                         played_cards,
                         self.hand,
                     )
+                    node.expanded = True
                     card = self.play_agent.rollout_policy(state_space)
                     if self.verbose == 3:
                         print("Card from rollout after expanding: ", card, legal_cards)
