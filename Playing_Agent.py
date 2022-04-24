@@ -35,9 +35,7 @@ def write_state(play_state, output_path, actual=False):
     f.write("Round: " + str(play_state[67]) + "\n")
     f.write("Tricks needed: " + str(play_state[68]) + "\n")
     f.write("Tricks needed others: " + str(play_state[69:71]) + "\n")
-    f.write(
-        "played trick: " + str(np.nonzero(play_state[71:131])[0].tolist()) + "\n"
-    )
+    f.write("played trick: " + str(np.nonzero(play_state[71:131])[0].tolist()) + "\n")
     f.write("played round: " + str(np.nonzero(play_state[131:])[0].tolist()) + "\n")
     f.close()
 
@@ -60,15 +58,27 @@ class PlayingAgent:
     @staticmethod
     def state_to_key(state_space):
         compressed_state = coo_matrix(state_space)
-        key_state = tuple(np.concatenate((compressed_state.data, compressed_state.row, compressed_state.col)))
+        key_state = tuple(
+            np.concatenate(
+                (compressed_state.data, compressed_state.row, compressed_state.col)
+            )
+        )
         return key_state
 
     @staticmethod
     def key_to_state(node_state):
-        split = int(len(node_state)/3)
-        sparse_state = coo_matrix((node_state[:split],
-                                   (node_state[split:split*2], node_state[split*2:]))).toarray()[0].astype('float32')
-        sparse_state = np.pad(sparse_state, (0, 3731 - len(sparse_state)), 'constant')
+        split = int(len(node_state) / 3)
+        sparse_state = (
+            coo_matrix(
+                (
+                    node_state[:split],
+                    (node_state[split : split * 2], node_state[split * 2 :]),
+                )
+            )
+            .toarray()[0]
+            .astype("float32")
+        )
+        sparse_state = np.pad(sparse_state, (0, 3731 - len(sparse_state)), "constant")
         return sparse_state
 
     # function for randomly selecting a child node

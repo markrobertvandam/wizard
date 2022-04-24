@@ -70,7 +70,12 @@ class PlayingNetwork:
         minibatch = random.sample(self.replay_memory, MINIBATCH_SIZE)
 
         # Get states (x) and rewards (y) from minibatch
-        states = np.array([Playing_Agent.PlayingAgent.key_to_state(transition[0]) for transition in minibatch])
+        states = np.array(
+            [
+                Playing_Agent.PlayingAgent.key_to_state(transition[0])
+                for transition in minibatch
+            ]
+        )
         rewards = np.array([transition[1] for transition in minibatch])
 
         # Fit on all samples as one batch, log only on terminal state

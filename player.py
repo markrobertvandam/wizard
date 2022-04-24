@@ -88,7 +88,10 @@ class Player:
             if self.verbose == 2:
                 print("Round: ", state_space[67])
                 print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
-            if self.play_agent.state_to_key(state_space) in self.play_agent.nodes.keys():
+            if (
+                self.play_agent.state_to_key(state_space)
+                in self.play_agent.nodes.keys()
+            ):
                 if self.verbose == 3:
                     print("Node is known and stored")
                 node = self.play_agent.get_node(state_space)
@@ -128,8 +131,12 @@ class Player:
                     # TODO: Can happen even when deterministic:
                     # TODO: player is in same state because opponents hands are unknown so child is never expanded
                     if self.verbose:
-                        Playing_Agent.write_state(state_space, game_instance.output_path, True)
-                    game_instance.output_path = game_instance.output_path[:-1] + str(int(game_instance.output_path[-1]) + 1)
+                        Playing_Agent.write_state(
+                            state_space, game_instance.output_path, True
+                        )
+                    game_instance.output_path = game_instance.output_path[:-1] + str(
+                        int(game_instance.output_path[-1]) + 1
+                    )
 
                 # Create the root node and add all legal moves as children, then rollout
                 self.play_agent.unseen_state(state_space)
@@ -220,7 +227,7 @@ class Player:
         :return: None
         """
         if self.player_type == "random":
-            self.player_guesses = random.randrange(max_guesses+1)
+            self.player_guesses = random.randrange(max_guesses + 1)
         else:
             # print("im the smart one")
             if self.player_type == "learning":
@@ -232,7 +239,7 @@ class Player:
                     )
                 else:
                     # Get random action
-                    self.player_guesses = random.randrange(max_guesses+1)
+                    self.player_guesses = random.randrange(max_guesses + 1)
             elif self.player_type == "learned":
                 self.current_state = state_space
                 self.player_guesses = np.argmax(self.guess_agent.get_qs(state_space))
