@@ -125,6 +125,11 @@ class Player:
                         played_cards,
                         self.hand,
                     )
+                    print("predict being called")
+                    if self.play_agent.parent_node.root == 1:
+                        print("root node")
+                    else:
+                        print("not a root node")
                     card = self.play_agent.predict()
                 else:
                     # leaf node, expand and rollout

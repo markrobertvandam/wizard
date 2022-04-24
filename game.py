@@ -65,7 +65,7 @@ class Game:
         self.guesses = []
 
     def play_game(self) -> tuple:
-        for game_round in range(5):
+        for game_round in range(20):
             self.played_round = []
             self.deck = self.full_deck[:]
             random.shuffle(self.deck)
@@ -298,11 +298,11 @@ class Game:
             print("Creating gamespace, players are in the following order: ")
             print([p.player_name for p in self.players], player.player_name)
         for other_player in self.players:
-            print(
-                f"Player {other_player.player_name}, "
-                f"guessed {other_player.get_guesses()} "
-                f"and won {other_player.get_trick_wins()}"
-            )
+            # print(
+            #     f"Player {other_player.player_name}, "
+            #     f"guessed {other_player.get_guesses()} "
+            #     f"and won {other_player.get_trick_wins()}"
+            # )
             if player != other_player:
                 tricks = other_player.get_guesses() - other_player.get_trick_wins()
                 tricks_needed_others.append(tricks)
