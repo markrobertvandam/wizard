@@ -96,6 +96,11 @@ class Player:
                 # TODO: current expanded check is not correct
                 if node.expanded:
                     # Selection
+                    print("predicting an expanded node")
+                    if node.root:
+                        print("The parent node is a root-node")
+                    else:
+                        print("The parent node is not a root node")
                     card = self.play_agent.predict(state_space)
                     if self.verbose == 3:
                         print("Card from expanded node: ", card, legal_cards)
