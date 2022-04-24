@@ -105,8 +105,8 @@ class PlayingAgent:
             elif value == max_value and random.getrandbits(1):
                 best_child = child
                 max_value = value
-
         self.parent_node = best_child
+
         return best_child.card
 
     def evaluate_state(self, node):
