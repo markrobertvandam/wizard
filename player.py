@@ -93,12 +93,21 @@ class Player:
 
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
-                if self.play_agent.state_to_key(state_space) not in self.play_agent.nodes.keys():
+                if (
+                    self.play_agent.state_to_key(state_space)
+                    not in self.play_agent.nodes.keys()
+                ):
                     self.play_agent.unseen_state(state_space)
 
                 # expand either way in case of unseen children
-                self.play_agent.expand(legal_cards, player_order, game_instance,
-                                       requested_color, played_cards, self.hand)
+                self.play_agent.expand(
+                    legal_cards,
+                    player_order,
+                    game_instance,
+                    requested_color,
+                    played_cards,
+                    self.hand,
+                )
 
                 # rollout till end of game
                 card = self.play_agent.rollout_policy()
@@ -108,13 +117,25 @@ class Player:
                 # selection of expanded node
                 if self.play_agent.parent_node.expanded:
                     # expand in case of unseen children, then predict best move
-                    self.play_agent.expand(legal_cards, player_order, game_instance,
-                                       requested_color, played_cards, self.hand)
+                    self.play_agent.expand(
+                        legal_cards,
+                        player_order,
+                        game_instance,
+                        requested_color,
+                        played_cards,
+                        self.hand,
+                    )
                     card = self.play_agent.predict()
                 else:
                     # leaf node, expand and rollout
-                    self.play_agent.expand(legal_cards, player_order, game_instance,
-                                           requested_color, played_cards, self.hand)
+                    self.play_agent.expand(
+                        legal_cards,
+                        player_order,
+                        game_instance,
+                        requested_color,
+                        played_cards,
+                        self.hand,
+                    )
                     self.play_agent.parent_node.expanded = True
                     card = self.play_agent.rollout_policy()
 
@@ -191,7 +212,7 @@ class Player:
         :return: None
         """
         if self.player_type == "random":
-            self.player_guesses = random.randrange(max_guesses+1)
+            self.player_guesses = random.randrange(max_guesses + 1)
         else:
             # print("im the smart one")
             if self.player_type == "learning":
@@ -203,7 +224,7 @@ class Player:
                     )
                 else:
                     # Get random action
-                    self.player_guesses = random.randrange(max_guesses+1)
+                    self.player_guesses = random.randrange(max_guesses + 1)
             elif self.player_type == "learned":
                 self.current_state = state_space
                 self.player_guesses = np.argmax(self.guess_agent.get_qs(state_space))

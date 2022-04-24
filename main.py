@@ -66,7 +66,9 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def plot_accuracy(accuracy_history: list, game_instance: int, save_folder: str, iters_done: int) -> None:
+def plot_accuracy(
+    accuracy_history: list, game_instance: int, save_folder: str, iters_done: int
+) -> None:
     plt.plot(list(range(iters_done + 10, game_instance + 1, 10)), accuracy_history)
     plt.xlabel("Games", fontsize=15)
     plt.ylabel("Accuracy", fontsize=15)
@@ -74,8 +76,14 @@ def plot_accuracy(accuracy_history: list, game_instance: int, save_folder: str, 
     plt.close()
 
 
-def save_models(guess_agent: GuessingAgent, playing_agent: PlayingAgent,
-                save_folder: str, input_size: int, accuracy: float, game_instance: int) -> None:
+def save_models(
+    guess_agent: GuessingAgent,
+    playing_agent: PlayingAgent,
+    save_folder: str,
+    input_size: int,
+    accuracy: float,
+    game_instance: int,
+) -> None:
     time_label = str(int(time.time() / 3600))[-3:]
     guess_agent.model.save(
         f"models/{save_folder}/guessing{input_size}_"
@@ -186,9 +194,17 @@ def avg_n_games(
 
             if game_instance % 1000 == 0:
                 if save_bool.startswith("y"):
-		    plot_accuracy(accuracy_history, game_instance, save_folder, iters_done)
-                    save_models(guess_agent, playing_agent, save_folder, input_size, accuracy, game_instance)
-
+                    plot_accuracy(
+                        accuracy_history, game_instance, save_folder, iters_done
+                    )
+                    save_models(
+                        guess_agent,
+                        playing_agent,
+                        save_folder,
+                        input_size,
+                        accuracy,
+                        game_instance,
+                    )
 
             if game_instance - last_max > 10000:
                 if save_bool.startswith("y"):
@@ -196,7 +212,14 @@ def avg_n_games(
                     plot_accuracy(
                         accuracy_history, game_instance, save_folder, iters_done
                     )
-                    save_models(guess_agent, playing_agent, save_folder, input_size, accuracy, game_instance)
+                    save_models(
+                        guess_agent,
+                        playing_agent,
+                        save_folder,
+                        input_size,
+                        accuracy,
+                        game_instance,
+                    )
                 break
 
         # Decay epsilon
@@ -205,7 +228,9 @@ def avg_n_games(
             epsilon = max(min_epsilon, epsilon)
 
         if game_instance % 1000 == 0:
-            print("Forgetting ", len(wizard.player1.play_agent.nodes.keys()), " nodes..")
+            print(
+                "Forgetting ", len(wizard.player1.play_agent.nodes.keys()), " nodes.."
+            )
             wizard.player1.play_agent.nodes = dict()
 
         # if output_path == wizard.get_output_path() and verbose:

@@ -164,8 +164,16 @@ class Game:
             print("\nPlaytrick called with card: ", card)
         while player != 3:
             if self.verbose == 3:
-                print("Trick iteration with player", player, "Name: ", player_order[player].player_name)
-                print("The player order at this moment is: ", [p.player_name for p in player_order])
+                print(
+                    "Trick iteration with player",
+                    player,
+                    "Name: ",
+                    player_order[player].player_name,
+                )
+                print(
+                    "The player order at this moment is: ",
+                    [p.player_name for p in player_order],
+                )
             if player_limit and (3 > player_limit == player):
                 break
             playing_state = self.playing_state_space(
@@ -257,7 +265,7 @@ class Game:
         previous_guesses = self.guesses[:]
         if len(previous_guesses) >= 2:
             previous_guesses = previous_guesses[:2]
-        avg_guess = floor(self.game_round/3)
+        avg_guess = floor(self.game_round / 3)
         previous_guesses += [21] * (2 - len(previous_guesses))
         round_number = [self.game_round]
         state_space = np.concatenate(
@@ -290,9 +298,11 @@ class Game:
             print("Creating gamespace, players are in the following order: ")
             print([p.player_name for p in self.players], player.player_name)
         for other_player in self.players:
-            print(f"Player {other_player.player_name}, "
-                  f"guessed {other_player.get_guesses()} "
-                  f"and won {other_player.get_trick_wins()}")
+            print(
+                f"Player {other_player.player_name}, "
+                f"guessed {other_player.get_guesses()} "
+                f"and won {other_player.get_trick_wins()}"
+            )
             if player != other_player:
                 tricks = other_player.get_guesses() - other_player.get_trick_wins()
                 tricks_needed_others.append(tricks)
@@ -332,7 +342,9 @@ class Game:
             off_mark = abs(player.get_trick_wins() - player.get_guesses())
             if player.player_name == "player1":
                 if off_mark > 19 or player.get_guesses() > 19:
-                    print(player.get_guesses(), player.get_trick_wins(), self.game_round)
+                    print(
+                        player.get_guesses(), player.get_trick_wins(), self.game_round
+                    )
                 self.off_game[off_mark] += 1
             if off_mark == 0:
                 self.scores[player] += 20 + 10 * player.get_guesses()
