@@ -16,6 +16,7 @@ class Player:
         guess_agent=None,
         play_agent=None,
         epsilon=None,
+        player_epsilon=None,
         verbose=False,
     ) -> None:
         self.verbose = verbose
@@ -32,6 +33,7 @@ class Player:
             self.play_agent = play_agent
             self.current_state = None
             self.epsilon = epsilon
+            self.player_epsilon = player_epsilon
 
     def draw_cards(self, amount: int, deck: list) -> list:
         """
@@ -68,13 +70,13 @@ class Player:
         white_cards = []
 
         for idx in range(len(self.hand)):
-            card = self.hand[idx]
-            self.idx_dict[card] = idx
+            card_in_hand = self.hand[idx]
+            self.idx_dict[card_in_hand] = idx
             if requested_color < 4:
-                if card[1] == 0 or card[1] == 14:
-                    white_cards.append(card)
-                elif card[0] == requested_color:
-                    requested_cards.append(card)
+                if card_in_hand[1] == 0 or card_in_hand[1] == 14:
+                    white_cards.append(card_in_hand)
+                elif card_in_hand[0] == requested_color:
+                    requested_cards.append(card_in_hand)
 
         if not requested_cards:
             legal_cards = self.hand[:]
@@ -110,39 +112,30 @@ class Player:
                     self.hand,
                 )
 
-                # rollout till end of game
-                card = self.play_agent.rollout_policy()
+                if np.random.random() > self.player_epsilon:
+                    # evaluate the best state
+                    card = self.play_agent.predict()
+                else:
+                    # rollout till end of game
+                    card = self.play_agent.rollout_policy()
 
             # its a child, either terminal or not
             else:
-                # selection of expanded node
-                if self.play_agent.parent_node.expanded:
-                    # expand in case of unseen children, then predict best move
-                    self.play_agent.expand(
-                        legal_cards,
-                        player_order,
-                        game_instance,
-                        requested_color,
-                        played_cards,
-                        self.hand,
-                    )
-                    print("predict being called")
-                    if self.play_agent.parent_node.root == 1:
-                        print("root node")
-                    else:
-                        print("not a root node")
+                # expand in case of unseen children, then predict best move
+                self.play_agent.expand(
+                    legal_cards,
+                    player_order,
+                    game_instance,
+                    requested_color,
+                    played_cards,
+                    self.hand,
+                )
+                self.play_agent.parent_node.expanded = True
+                if np.random.random() > self.player_epsilon:
+                    # evaluate the best state
                     card = self.play_agent.predict()
                 else:
-                    # leaf node, expand and rollout
-                    self.play_agent.expand(
-                        legal_cards,
-                        player_order,
-                        game_instance,
-                        requested_color,
-                        played_cards,
-                        self.hand,
-                    )
-                    self.play_agent.parent_node.expanded = True
+                    # rollout till end of game
                     card = self.play_agent.rollout_policy()
 
         elif self.player_type == "learned":

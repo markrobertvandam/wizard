@@ -258,6 +258,7 @@ class PlayingAgent:
             guess_agent=copy.copy(game_instance.player1.guess_agent),
             playing_agent=copy.copy(game_instance.player1.play_agent),
             epsilon=copy.deepcopy(game_instance.player1.epsilon),
+            player_epsilon=copy.deepcopy(game_instance.player1.player_epsilon),
             verbose=copy.deepcopy(game_instance.player1.verbose),
             use_agent=copy.deepcopy(game_instance.use_agent),
         )

@@ -57,6 +57,12 @@ def parse_args() -> argparse.Namespace:
         type=float,
     )
     parser.add_argument(
+        "--player_epsilon",
+        help="optional argument to set starting player_epsilon",
+        default=1,
+        type=float,
+    )
+    parser.add_argument(
         "--iters_done",
         help="optional argument to set iters done in previous run",
         default=0,
@@ -109,6 +115,7 @@ def avg_n_games(
     verbose: bool,
     use_agent: bool,
     epsilon: float,
+    player_epsilon: float,
     iters_done: int,
 ) -> None:
     input_size = 68
@@ -125,6 +132,7 @@ def avg_n_games(
 
     # Exploration settings
     epsilon_decay = 0.997
+    player_decay = 0.999
     min_epsilon = 0.02
 
     # For keeping track of performance
@@ -161,6 +169,7 @@ def avg_n_games(
             guess_agent,
             playing_agent,
             epsilon,
+            player_epsilon,
             verbose=verbose,
             use_agent=use_agent,
         )
@@ -227,6 +236,10 @@ def avg_n_games(
             epsilon *= epsilon_decay
             epsilon = max(min_epsilon, epsilon)
 
+        if player_epsilon > min_epsilon:
+            player_epsilon *= player_decay
+            player_epsilon = max(min_epsilon, player_epsilon)
+
         if game_instance % 1000 == 0:
             print(
                 "Forgetting ", len(wizard.player1.play_agent.nodes.keys()), " nodes.."
@@ -257,5 +270,6 @@ if __name__ == "__main__":
         args.verbose,
         args.use_agent,
         args.epsilon,
+        args.player_epsilon,
         args.iters_done,
     )

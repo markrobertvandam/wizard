@@ -16,6 +16,7 @@ class Game:
         guess_agent=None,
         playing_agent=None,
         epsilon=None,
+        player_epsilon=None,
         verbose=False,
         use_agent=False,
     ) -> None:
@@ -27,7 +28,7 @@ class Game:
         self.trump = 4  # placeholder trump, only 0-3 exist
         self.game_round = 1
         self.player1 = Player(
-            "player1", run_type, guess_agent, playing_agent, epsilon, verbose
+            "player1", run_type, guess_agent, playing_agent, epsilon, player_epsilon, verbose
         )
         self.use_agent = use_agent
         if use_agent:
