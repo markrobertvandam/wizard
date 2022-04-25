@@ -267,7 +267,7 @@ class Game:
         if len(previous_guesses) >= 2:
             previous_guesses = previous_guesses[:2]
         avg_guess = floor(self.game_round / 3)
-        previous_guesses += [21] * (2 - len(previous_guesses))
+        previous_guesses += [avg_guess] * (2 - len(previous_guesses))
         round_number = [self.game_round]
         state_space = np.concatenate(
             (one_hot_hand, trump, previous_guesses, round_number)
