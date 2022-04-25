@@ -190,6 +190,7 @@ def avg_n_games(
             accuracy_history.append(accuracy)
             print(
                 f"Game {game_instance}, accuracy: {accuracy}, Epsilon: {round(epsilon,2)}, "
+                f"Epsilon P: {round(player_epsilon,2)}, "
                 f"Last10: {last_ten_performance}"
             )
             last_ten_performance *= 0
