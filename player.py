@@ -98,7 +98,8 @@ class Player:
                     not in self.play_agent.nodes.keys()
                 ):
                     self.play_agent.unseen_state(state_space)
-
+                else:
+                    self.play_agent.parent_node = self.play_agent.get_node(state_space)
                 # expand either way in case of unseen children
                 self.play_agent.expand(
                     legal_cards,
