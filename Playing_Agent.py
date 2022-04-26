@@ -155,6 +155,7 @@ class PlayingAgent:
         requested_color,
         played_cards,
         player_hand,
+        run_type="learning",
     ):
         if self.verbose == 2:
             print("Expanding the following moves: ", legal_moves)
@@ -166,6 +167,7 @@ class PlayingAgent:
                     game_instance,
                     requested_color,
                     played_cards,
+                    run_type
                 )
         else:
             # terminal node
@@ -175,6 +177,7 @@ class PlayingAgent:
                 game_instance,
                 requested_color,
                 played_cards,
+                run_type,
                 terminal_node=True,
             )
 
@@ -185,6 +188,7 @@ class PlayingAgent:
         game_instance,
         requested_color,
         played_cards,
+        run_type,
         terminal_node=False,
     ):
         if self.verbose == 2:
@@ -244,7 +248,8 @@ class PlayingAgent:
         if key_state not in self.nodes.keys():
             node = Node(key_state, card=move, parent=parent, terminal=terminal_node)
             parent.children.append(node)
-            self.nodes[key_state] = node
+            if run_type == "learning":
+                self.nodes[key_state] = node
 
         if terminal_node:
             self.last_terminal_node = self.nodes[key_state]

@@ -1,7 +1,7 @@
 import numpy as np
 import random
 
-import Playing_Agent
+from Playing_Agent import Node
 import game
 
 #
@@ -139,6 +139,20 @@ class Player:
                     card = self.play_agent.rollout_policy()
 
         elif self.player_type == "learned":
+            key_state = self.play_agent.state_to_key(state_space)
+            # ROOT NODE (cards in hand == round) -> add root and children
+            if len(self.hand) == game_instance.game_round:
+                self.play_agent.parent_node = Node(key_state, root=1, expanded=True)
+
+            self.play_agent.expand(
+                legal_cards,
+                player_order,
+                game_instance,
+                requested_color,
+                played_cards,
+                self.hand,
+                run_type="learned",
+            )
             # get action from network
             card = self.play_agent.predict(state_space)
 

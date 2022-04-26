@@ -38,7 +38,7 @@ def parse_args() -> argparse.Namespace:
         type=int,
     )
     parser.add_argument(
-        "--model", help="optional argument to load in the weights of a saved model"
+        "--model", help="optional argument to load in the weights of a saved guessing model"
     )
     parser.add_argument(
         "--play_model",
