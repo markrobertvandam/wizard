@@ -251,7 +251,7 @@ class PlayingAgent:
             if run_type == "learning":
                 self.nodes[key_state] = node
 
-        if terminal_node:
+        if terminal_node and run_type == "learning":
             self.last_terminal_node = self.nodes[key_state]
 
     @staticmethod
