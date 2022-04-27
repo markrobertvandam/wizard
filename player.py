@@ -154,7 +154,7 @@ class Player:
                 run_type="learned",
             )
             # get action from network
-            card = self.play_agent.predict(state_space)
+            card = self.play_agent.predict()
 
         # Play the only legal card if theres only one
         elif len(legal_cards) == 1:
