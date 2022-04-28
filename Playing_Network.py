@@ -35,8 +35,8 @@ class PlayingNetwork:
         # input2 = Input(1)  # scalar input for action taken
         #
         # combined = concatenate([input1, input2])
-        x = self.dense_layer(2048)(input1)
-        #x = self.dense_layer(1024)(input1)
+        #x = self.dense_layer(2048)(input1)
+        x = self.dense_layer(1024)(input1)
         x = self.dense_layer(512)(x)
         x = self.dense_layer(256)(x)
         x = self.dense_layer(128)(x)

@@ -88,7 +88,7 @@ class Player:
 
         if self.player_type == "learning":
             if self.verbose == 2:
-                print("Round: ", state_space[67])
+                print("Round: ", game_instance.game_round)
                 print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
 
             # NODE IS HERE BEFORE PLAY

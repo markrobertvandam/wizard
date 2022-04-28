@@ -289,7 +289,7 @@ class Game:
             one_hot_hand[self.deck_dict[card]] = 1
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
-        previous_guesses = []
+        previous_guesses = [player.get_guesses()]
         round_number = [self.game_round]
 
         tricks_needed = [player.get_guesses() - player.get_trick_wins()]
@@ -309,9 +309,12 @@ class Game:
                 tricks_needed_others.append(tricks)
                 previous_guesses.append(other_player.get_guesses())
 
-        played_this_trick = np.zeros(60, dtype=int)
+        print("Converting play_trick: ", played_trick)
+        played_this_trick = np.zeros(120, dtype=int)
         for card in played_trick:
-            played_this_trick[self.deck_dict[card]] = 1
+            one_hot = self.deck_dict[card]
+            offset = played_trick.index(card) * 60
+            played_this_trick[one_hot + offset] = 1
 
         # 20 rounds of 3 cards that are one-hot encoded
         played_this_round = np.zeros(3600, dtype=int)
