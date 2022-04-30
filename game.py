@@ -310,10 +310,8 @@ class Game:
                 tricks_needed_others.append(tricks)
                 previous_guesses.append(other_player.get_guesses())
 
-        print("Converting play_trick: ", played_trick, "The call is temp?: ", temp)
         played_this_trick = np.zeros(120, dtype=int)
         order_names = [int(p.player_name[-1]) for p in player_order]
-        print("ORDER: ", order_names)
         for card in played_trick:
             one_hot = self.deck_dict[card]
             offset = played_trick.index(card) * 60
