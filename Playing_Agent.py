@@ -236,8 +236,10 @@ class PlayingAgent:
         else:
             temp_game.play_trick(new_player_order, requested_color, player, card=move)
             temp_game.wrap_up_trick(new_player_order)
+
+        print("just checking... ", temp_game.played_cards)
         play_state = temp_game.playing_state_space(
-            new_player_order[player], temp_game.played_cards, temp=True
+            new_player_order, new_player_order[player], temp_game.played_cards, temp=True
         )
 
         if self.verbose:
