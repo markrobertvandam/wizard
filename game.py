@@ -334,6 +334,7 @@ class Game:
                 round_number,
                 tricks_needed,
                 tricks_needed_others,
+                order_names,
                 played_this_trick,
                 played_this_round,
             )

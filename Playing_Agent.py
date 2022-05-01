@@ -35,8 +35,9 @@ def write_state(play_state, output_path, actual=False):
     f.write("Round: " + str(play_state[68]) + "\n")
     f.write("Tricks needed: " + str(play_state[69]) + "\n")
     f.write("Tricks needed others: " + str(play_state[70:72]) + "\n")
-    f.write("played trick: " + str(np.nonzero(play_state[72:192])[0].tolist()) + "\n")
-    f.write("played round: " + str(np.nonzero(play_state[192:])[0].tolist()) + "\n")
+    f.write("Order: " + str(play_state[72:75]) + "\n")
+    f.write("played trick: " + str(np.nonzero(play_state[75:195])[0].tolist()) + "\n")
+    f.write("played round: " + str(np.nonzero(play_state[195:])[0].tolist()) + "\n")
     f.close()
 
 
@@ -46,7 +47,7 @@ class PlayingAgent:
 
         self.game = None
         self.nodes = dict()
-        self.network_policy = PlayingNetwork(3792)
+        self.network_policy = PlayingNetwork(3795)
         self.verbose = verbose
         self.counter = 0
         self.parent_node = None
@@ -79,7 +80,7 @@ class PlayingAgent:
             .toarray()[0]
             .astype("float32")
         )
-        sparse_state = np.pad(sparse_state, (0, 3792 - len(sparse_state)), "constant")
+        sparse_state = np.pad(sparse_state, (0, 3795 - len(sparse_state)), "constant")
         return sparse_state
 
     # function for randomly selecting a child node
