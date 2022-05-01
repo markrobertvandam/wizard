@@ -78,7 +78,7 @@ class PlayingAgent:
             .toarray()[0]
             .astype("float32")
         )
-        sparse_state = np.pad(sparse_state, (0, 3792 - len(sparse_state)), "constant")
+        sparse_state = np.pad(sparse_state, (0, 3731 - len(sparse_state)), "constant")
         return sparse_state
 
     # function for randomly selecting a child node
