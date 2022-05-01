@@ -87,7 +87,11 @@ class PlayingAgent:
         node = self.parent_node
         if self.verbose == 2:
             print("Rollout policy used...")
-        self.parent_node = random.choice(node.children)
+        if len(node.children) > 0:
+            self.parent_node = random.choice(node.children)
+        else:
+            print("Parent has no children!!! oh no!")
+            return tuple((0, 0))
         return self.parent_node.card
 
     # function for backpropagation
@@ -237,7 +241,6 @@ class PlayingAgent:
             temp_game.play_trick(new_player_order, requested_color, player, card=move)
             temp_game.wrap_up_trick(new_player_order)
 
-        print("just checking... ", temp_game.played_cards)
         play_state = temp_game.playing_state_space(
             new_player_order, new_player_order[player], temp_game.played_cards, temp=True
         )
@@ -252,6 +255,10 @@ class PlayingAgent:
             parent.children.append(node)
             if run_type == "learning":
                 self.nodes[key_state] = node
+
+        else:
+            node = self.nodes[key_state]
+            parent.children.append(node)
 
         if terminal_node and run_type == "learning":
             self.last_terminal_node = self.nodes[key_state]
