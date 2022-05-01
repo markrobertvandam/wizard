@@ -182,7 +182,7 @@ class Game:
                 playing_state = None
                 if player_order[player].player_type.startswith("learn"):
                     playing_state = self.playing_state_space(
-                        player_order, player_order[player], self.played_cards
+                        player_order[player], self.played_cards
                     )
                 self.played_cards.append(
                     player_order[player].play_card(
@@ -278,8 +278,9 @@ class Game:
 
         return state_space.astype(int)
 
-    def playing_state_space(self, player_order, player: Player, played_trick, temp=False):
+    def playing_state_space(self, player: Player, played_trick, temp=False):
         # TODO: maybe remove guesses from state and add player order?
+        # TODO: Maybe make playing trick ordered too?
         if self.verbose == 3:
             if temp:
                 print("This is a temp game call!\n")
@@ -291,8 +292,9 @@ class Game:
             one_hot_hand[self.deck_dict[card]] = 1
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
-        previous_guesses = [player.get_guesses()]
+        previous_guesses = []
         round_number = [self.game_round]
+
         tricks_needed = [player.get_guesses() - player.get_trick_wins()]
         tricks_needed_others = []
 
@@ -310,12 +312,9 @@ class Game:
                 tricks_needed_others.append(tricks)
                 previous_guesses.append(other_player.get_guesses())
 
-        played_this_trick = np.zeros(120, dtype=int)
-        order_names = [int(p.player_name[-1]) for p in player_order]
+        played_this_trick = np.zeros(60, dtype=int)
         for card in played_trick:
-            one_hot = self.deck_dict[card]
-            offset = played_trick.index(card) * 60
-            played_this_trick[one_hot + offset] = 1
+            played_this_trick[self.deck_dict[card]] = 1
 
         # 20 rounds of 3 cards that are one-hot encoded
         played_this_round = np.zeros(3600, dtype=int)

@@ -31,14 +31,13 @@ def write_state(play_state, output_path, actual=False):
         f.write("Simulated node\n")
     f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
     f.write("Trump: " + str(play_state[60:65]) + "\n")
-    f.write("Guesses: " + str(play_state[65:68]) + "\n")
-    f.write("Round: " + str(play_state[68]) + "\n")
-    f.write("Tricks needed: " + str(play_state[69]) + "\n")
-    f.write("Tricks needed others: " + str(play_state[70:72]) + "\n")
-    f.write("played trick: " + str(np.nonzero(play_state[72:192])[0].tolist()) + "\n")
-    f.write("played round: " + str(np.nonzero(play_state[192:])[0].tolist()) + "\n")
+    f.write("Guesses: " + str(play_state[65:67]) + "\n")
+    f.write("Round: " + str(play_state[67]) + "\n")
+    f.write("Tricks needed: " + str(play_state[68]) + "\n")
+    f.write("Tricks needed others: " + str(play_state[69:71]) + "\n")
+    f.write("played trick: " + str(np.nonzero(play_state[71:131])[0].tolist()) + "\n")
+    f.write("played round: " + str(np.nonzero(play_state[131:])[0].tolist()) + "\n")
     f.close()
-
 
 # Agent class
 class PlayingAgent:
@@ -46,7 +45,7 @@ class PlayingAgent:
 
         self.game = None
         self.nodes = dict()
-        self.network_policy = PlayingNetwork(3792)
+        self.network_policy = PlayingNetwork(3731)
         self.verbose = verbose
         self.counter = 0
         self.parent_node = None
@@ -242,7 +241,7 @@ class PlayingAgent:
             temp_game.wrap_up_trick(new_player_order)
 
         play_state = temp_game.playing_state_space(
-            new_player_order, new_player_order[player], temp_game.played_cards, temp=True
+            new_player_order[player], temp_game.played_cards, temp=True
         )
 
         if self.verbose:
