@@ -105,7 +105,7 @@ class Game:
             if player.player_type.startswith("learn"):
                 self.guesses.append(
                     player.guess_wins(
-                        self.game_round, self.trump, self.guessing_state_space(player)
+                        self.game_round, self.trump, self.guessing_state_space(player, self.players)
                     )
                 )
             else:
@@ -257,13 +257,28 @@ class Game:
 
         return strongest_card
 
-    def guessing_state_space(self, player: Player):
+    def guessing_state_space(self, player: Player, players):
         # TODO: maybe add player order?
         # TODO: Maybe make playing trick ordered too?
-        cards_in_hand = player.get_hand()
         one_hot_hand = np.zeros(60, dtype=int)
+        one_hot_hand2 = np.zeros(60, dtype=int)
+        one_hot_hand3 = np.zeros(60, dtype=int)
+
+        other_players = [p for p in players if p != player]
+
+        cards_in_hand = player.get_hand()
+        cards_in_hand2 = other_players[0].get_hand()
+        cards_in_hand3 = other_players[1].get_hand()
+
         for card in cards_in_hand:
             one_hot_hand[self.deck_dict[card]] = 1
+
+        for card in cards_in_hand2:
+            one_hot_hand2[self.deck_dict[card]] = 1
+
+        for card in cards_in_hand3:
+            one_hot_hand3[self.deck_dict[card]] = 1
+
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
         previous_guesses = self.guesses[:]
@@ -273,9 +288,8 @@ class Game:
         previous_guesses += [avg_guess] * (2 - len(previous_guesses))
         round_number = [self.game_round]
         state_space = np.concatenate(
-            (one_hot_hand, trump, previous_guesses, round_number)
+            (one_hot_hand, one_hot_hand2, one_hot_hand3, trump, previous_guesses, round_number)
         )
-
         return state_space.astype(int)
 
     def playing_state_space(self, player_order, player: Player, played_trick, temp=False):
@@ -285,10 +299,25 @@ class Game:
                 print("This is a temp game call!\n")
             else:
                 print("This is a real game call!\n")
-        cards_in_hand = player.get_hand()
         one_hot_hand = np.zeros(60, dtype=int)
+        one_hot_hand2 = np.zeros(60, dtype=int)
+        one_hot_hand3 = np.zeros(60, dtype=int)
+
+        other_players = [p for p in player_order if p != player]
+
+        cards_in_hand = player.get_hand()
+        cards_in_hand2 = other_players[0].get_hand()
+        cards_in_hand3 = other_players[1].get_hand()
+
         for card in cards_in_hand:
             one_hot_hand[self.deck_dict[card]] = 1
+
+        for card in cards_in_hand2:
+            one_hot_hand2[self.deck_dict[card]] = 1
+
+        for card in cards_in_hand3:
+            one_hot_hand3[self.deck_dict[card]] = 1
+
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
         previous_guesses = [player.get_guesses()]
@@ -329,6 +358,8 @@ class Game:
         state_space = np.concatenate(
             (
                 one_hot_hand,
+                one_hot_hand2,
+                one_hot_hand3,
                 trump,
                 previous_guesses,
                 round_number,

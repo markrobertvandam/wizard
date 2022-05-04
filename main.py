@@ -118,7 +118,7 @@ def avg_n_games(
     player_epsilon: float,
     iters_done: int,
 ) -> None:
-    input_size = 68
+    input_size = 188
     guess_agent = GuessingAgent(input_size=input_size, guess_max=21)
     playing_agent = PlayingAgent(verbose=verbose)
     if model_path is not None:
