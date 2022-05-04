@@ -209,9 +209,14 @@ class Player:
         if self.verbose == 3:
             print("Card at end of play_card: ", self.hand, card)
 
-        if card != self.hand[self.idx_dict[card]]:
-            print("Oh no! it went wrong!")
+        if card not in self.idx_dict.keys():
+            print("Card not in hand? error..")
+            print(legal_cards, card, self.idx_dict)
+
+        elif card != self.hand[self.idx_dict[card]]:
+            print("Oh no! it went wrong!, card is not at that index?")
             self.hand.remove(card)
+
         else:
             del self.hand[self.idx_dict[card]]
         return card

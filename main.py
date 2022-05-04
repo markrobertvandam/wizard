@@ -241,7 +241,7 @@ def avg_n_games(
             player_epsilon *= player_decay
             player_epsilon = max(0.25, player_epsilon)
 
-        if game_instance % 1000 == 0:
+        if game_instance % 900 == 0:
             print(
                 "Forgetting ", len(wizard.player1.play_agent.nodes.keys()), " nodes.."
             )
