@@ -38,7 +38,8 @@ def parse_args() -> argparse.Namespace:
         type=int,
     )
     parser.add_argument(
-        "--model", help="optional argument to load in the weights of a saved guessing model"
+        "--model",
+        help="optional argument to load in the weights of a saved guessing model",
     )
     parser.add_argument(
         "--play_model",
@@ -86,19 +87,20 @@ def save_models(
     guess_agent: GuessingAgent,
     playing_agent: PlayingAgent,
     save_folder: str,
-    input_size: int,
+    input_size_guess: int,
+    input_size_play: int,
     accuracy: float,
     game_instance: int,
 ) -> None:
     time_label = str(int(time.time() / 3600))[-3:]
     guess_agent.model.save(
-        f"models/{save_folder}/guessing{input_size}_"
+        f"models/{save_folder}/guessing{input_size_guess}_"
         f"{time_label}_"
         f"{accuracy}_"
         f"{game_instance}.model"
     )
     playing_agent.network_policy.model.save(
-        f"models/{save_folder}/playing_"
+        f"models/{save_folder}/playing{input_size_play}_"
         f"{time_label}_"
         f"{accuracy}_"
         f"{game_instance}.model"
@@ -112,23 +114,26 @@ def avg_n_games(
     save_folder: str,
     model_path: str,
     player_model: str,
-    verbose: bool,
+    verbose: int,
     use_agent: bool,
     epsilon: float,
     player_epsilon: float,
     iters_done: int,
 ) -> None:
-    input_size = 68
-    guess_agent = GuessingAgent(input_size=input_size, guess_max=21)
-    playing_agent = PlayingAgent(verbose=verbose)
+    input_size_guess = 68
+    input_size_play = 3795
+    guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
+    playing_agent = PlayingAgent(input_size=input_size_play, verbose=verbose)
     if model_path is not None:
         guess_agent.model = tf.keras.models.load_model(
             os.path.join("models", model_path)
         )
+        guess_agent.trained = True
     if player_model is not None:
         playing_agent.network_policy.model = tf.keras.models.load_model(
             os.path.join("models", player_model)
         )
+        playing_agent.trained = True
 
     # Exploration settings
     epsilon_decay = 0.997
@@ -211,7 +216,8 @@ def avg_n_games(
                         guess_agent,
                         playing_agent,
                         save_folder,
-                        input_size,
+                        input_size_guess,
+                        input_size_play,
                         accuracy,
                         game_instance,
                     )
@@ -226,7 +232,8 @@ def avg_n_games(
                         guess_agent,
                         playing_agent,
                         save_folder,
-                        input_size,
+                        input_size_guess,
+                        input_size_play,
                         accuracy,
                         game_instance,
                     )
@@ -246,13 +253,6 @@ def avg_n_games(
                 "Forgetting ", len(wizard.player1.play_agent.nodes.keys()), " nodes.."
             )
             wizard.player1.play_agent.nodes = dict()
-
-        # if output_path == wizard.get_output_path() and verbose:
-        #     # clear game that went as expected
-        #     open(f"{output_path}.txt", 'w').close()
-        else:
-            # game went wrong, keep error data and change outp path
-            output_path = wizard.get_output_path()
 
     print("Scores: ", score_counter)
     print("Wins: ", win_counter)

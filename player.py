@@ -138,7 +138,7 @@ class Player:
                     # rollout till end of game
                     card = self.play_agent.rollout_policy()
 
-        elif self.player_type == "learned":
+        elif self.player_type == "learned" and self.play_agent.trained:
             key_state = self.play_agent.state_to_key(state_space)
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
@@ -160,7 +160,7 @@ class Player:
         elif len(legal_cards) == 1:
             card = legal_cards[0]
 
-        elif self.player_type == "random":
+        elif self.player_type == "random" or not self.play_agent.trained:
             card = random.choice(legal_cards)
 
         elif self.player_type == "heuristic":
@@ -229,7 +229,9 @@ class Player:
         :param state_space: observation state used for guessing agent
         :return: None
         """
-        if self.player_type == "random":
+        if self.player_type == "random" or (
+            not self.guess_agent.trained and self.player_type != "learning"
+        ):
             self.player_guesses = random.randrange(max_guesses + 1)
         else:
             # print("im the smart one")

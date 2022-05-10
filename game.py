@@ -12,6 +12,7 @@ class Game:
         full_deck: list,
         deck_dict: dict,
         run_type: str,
+        shuffled_deck=None,
         output_path=None,
         guess_agent=None,
         playing_agent=None,
@@ -23,12 +24,18 @@ class Game:
         self.verbose = verbose
         self.full_deck = full_deck
         self.deck_dict = deck_dict
-        self.deck = []
+        self.deck = shuffled_deck
         self.output_path = output_path
         self.trump = 4  # placeholder trump, only 0-3 exist
         self.game_round = 1
         self.player1 = Player(
-            "player1", run_type, guess_agent, playing_agent, epsilon, player_epsilon, verbose
+            "player1",
+            run_type,
+            guess_agent,
+            playing_agent,
+            epsilon,
+            player_epsilon,
+            verbose,
         )
         self.use_agent = use_agent
         if use_agent:
@@ -53,7 +60,7 @@ class Game:
         # at the start of the game
         self.scores = {self.player1: 0, self.player2: 0, self.player3: 0}
 
-        # for keeping track of what goes wrong for the learning agent
+        # for keeping track of what goes wrong for the learning agent (too high guess, too low guess)
         self.offs = [
             0,
             0,
@@ -68,8 +75,9 @@ class Game:
     def play_game(self) -> tuple:
         for game_round in range(20):
             self.played_round = []
-            self.deck = self.full_deck[:]
-            random.shuffle(self.deck)
+            if self.deck is None:
+                self.deck = self.full_deck[:]
+                random.shuffle(self.deck)
             self.play_round()
             self.game_round += 1
             self.players = self.players[1:] + self.players[:1]  # Rotate player order
@@ -278,7 +286,9 @@ class Game:
 
         return state_space.astype(int)
 
-    def playing_state_space(self, player_order, player: Player, played_trick, temp=False):
+    def playing_state_space(
+        self, player_order, player: Player, played_trick, temp=False
+    ):
         # TODO: maybe remove guesses from state and add player order?
         if self.verbose == 3:
             if temp:

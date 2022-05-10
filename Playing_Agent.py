@@ -43,15 +43,17 @@ def write_state(play_state, output_path, actual=False):
 
 # Agent class
 class PlayingAgent:
-    def __init__(self, verbose=0):
+    def __init__(self, input_size, verbose=0):
 
         self.game = None
+        self.input_size = input_size
         self.nodes = dict()
-        self.network_policy = PlayingNetwork(3795)
+        self.network_policy = PlayingNetwork(input_size)
         self.verbose = verbose
         self.counter = 0
         self.parent_node = None
         self.last_terminal_node = None
+        self.trained = False
 
     def get_node(self, state_space):
         key_state = self.state_to_key(state_space)
@@ -68,7 +70,7 @@ class PlayingAgent:
         return key_state
 
     @staticmethod
-    def key_to_state(node_state):
+    def key_to_state(input_size, node_state):
         split = int(len(node_state) / 3)
         sparse_state = (
             coo_matrix(
@@ -80,7 +82,9 @@ class PlayingAgent:
             .toarray()[0]
             .astype("float32")
         )
-        sparse_state = np.pad(sparse_state, (0, 3795 - len(sparse_state)), "constant")
+        sparse_state = np.pad(
+            sparse_state, (0, input_size - len(sparse_state)), "constant"
+        )
         return sparse_state
 
     # function for randomly selecting a child node
@@ -125,7 +129,7 @@ class PlayingAgent:
         return best_child.card
 
     def evaluate_state(self, node):
-        sparse_state = self.key_to_state(node.state)
+        sparse_state = self.key_to_state(self.input_size, node.state)
         return self.network_policy.predict(sparse_state)
 
     def predict(self):
@@ -172,7 +176,7 @@ class PlayingAgent:
                     game_instance,
                     requested_color,
                     played_cards,
-                    run_type
+                    run_type,
                 )
         else:
             # terminal node
@@ -243,7 +247,10 @@ class PlayingAgent:
             temp_game.wrap_up_trick(new_player_order)
 
         play_state = temp_game.playing_state_space(
-            new_player_order, new_player_order[player], temp_game.played_cards, temp=True
+            new_player_order,
+            new_player_order[player],
+            temp_game.played_cards,
+            temp=True,
         )
 
         if self.verbose:

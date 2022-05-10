@@ -36,7 +36,7 @@ class PlayingNetwork:
         #
         # combined = concatenate([input1, input2])
         x = self.dense_layer(2048)(input1)
-        #x = self.dense_layer(1024)(input1)
+        # x = self.dense_layer(1024)(input1)
         x = self.dense_layer(512)(x)
         x = self.dense_layer(256)(x)
         x = self.dense_layer(128)(x)
@@ -72,7 +72,7 @@ class PlayingNetwork:
         # Get states (x) and rewards (y) from minibatch
         states = np.array(
             [
-                Playing_Agent.PlayingAgent.key_to_state(transition[0])
+                Playing_Agent.PlayingAgent.key_to_state(self.input_size, transition[0])
                 for transition in minibatch
             ]
         )
