@@ -160,7 +160,7 @@ class Player:
         elif len(legal_cards) == 1:
             card = legal_cards[0]
 
-        elif self.player_type == "random" or not self.play_agent.trained:
+        elif self.player_type == "random" or (self.player_type == "learned" and not self.play_agent.trained):
             card = random.choice(legal_cards)
 
         elif self.player_type == "heuristic":
@@ -230,7 +230,7 @@ class Player:
         :return: None
         """
         if self.player_type == "random" or (
-            not self.guess_agent.trained and self.player_type != "learning"
+            self.player_type == "learned" and not self.guess_agent.trained
         ):
             self.player_guesses = random.randrange(max_guesses + 1)
         else:

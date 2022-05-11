@@ -12,7 +12,8 @@ class Game:
         full_deck: list,
         deck_dict: dict,
         run_type: str,
-        shuffled_deck=None,
+        shuffled_decks=None,
+        shuffled_players=None,
         output_path=None,
         guess_agent=None,
         playing_agent=None,
@@ -24,7 +25,8 @@ class Game:
         self.verbose = verbose
         self.full_deck = full_deck
         self.deck_dict = deck_dict
-        self.deck = shuffled_deck
+        self.shuffled_decks = shuffled_decks
+        self.deck = None
         self.output_path = output_path
         self.trump = 4  # placeholder trump, only 0-3 exist
         self.game_round = 1
@@ -50,12 +52,21 @@ class Game:
         else:
             self.player2 = Player("player2", "heuristic")
             self.player3 = Player("player3", "heuristic")
+
         self.players = [
             self.player1,
             self.player2,
             self.player3,
         ]
-        random.shuffle(self.players)
+        new_players = []
+        if shuffled_players:
+            for player_name in shuffled_players:
+                for player in self.players:
+                    if player_name == player.player_name:
+                        new_players.append(player)
+            self.players = new_players
+        else:
+            random.shuffle(self.players)
 
         # at the start of the game
         self.scores = {self.player1: 0, self.player2: 0, self.player3: 0}
@@ -75,9 +86,11 @@ class Game:
     def play_game(self) -> tuple:
         for game_round in range(20):
             self.played_round = []
-            if self.deck is None:
+            if self.shuffled_decks is None:
                 self.deck = self.full_deck[:]
                 random.shuffle(self.deck)
+            else:
+                self.deck = self.shuffled_decks[game_round][:]
             self.play_round()
             self.game_round += 1
             self.players = self.players[1:] + self.players[:1]  # Rotate player order

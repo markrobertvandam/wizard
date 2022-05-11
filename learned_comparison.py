@@ -19,17 +19,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run n-games")
     parser.add_argument("games", help="How many games to run", type=int)
     parser.add_argument(
-        "--save_folder",
+        "save_folder",
         help="folder name for plots",
         default="",
-    )
-    parser.add_argument(
-        "guess_models",
-        help="argument to load in the weights of saved guessing model(s)",
-    )
-    parser.add_argument(
-        "play_models",
-        help="argument to load in the weights of saved player model(s)",
     )
     parser.add_argument(
         "--verbose",
@@ -73,7 +65,7 @@ def learned_n_games(
     use_agent: bool,
 ) -> None:
 
-    input_sizes = {"cheater": (68, 3915), "porder": (68, 3795), "old": (68, 3731)}
+    input_sizes = {"cheater": (68, 3915), "1500.model": (68, 3795), "old": (68, 3731), "random": (68, 3795)}
 
     # Make the deck
     full_deck = []
@@ -88,13 +80,15 @@ def learned_n_games(
 
     agent_pairs = []
     for guessing_model in guessing_models:
+        input_size_guess, input_size_play = input_sizes[
+            guessing_model.split("_")[-1]
+        ]
+        guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
         for playing_model in player_models:
-            input_size_guess, input_size_play = input_sizes[
-                guessing_model.split("_")[-1]
-            ]
-            guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
+            print("Pair: ", guessing_model, playing_model)
             playing_agent = PlayingAgent(input_size=input_size_play, verbose=verbose)
 
+            print(guessing_model)
             if guessing_model != "random":
                 guess_agent.model = tf.keras.models.load_model(
                     os.path.join("models", guessing_model)
@@ -112,54 +106,60 @@ def learned_n_games(
     performance_dict = dict()
     for pair in agent_pairs:
         # win_counter, score_counter, total_offs(too high guess, too low guess), last_ten, accuracy_hist
-        performance_dict[pair] = ([0, 0, 0], [0, 0, 0], [0, 0], 21 * [0], [])
+        performance_dict[pair] = [[0, 0, 0], [0, 0, 0], [0, 0], 21 * [0], []]
 
     for game_instance in range(1, n + 1):
-        shuffled_deck = full_deck[:]
-        random.shuffle(shuffled_deck)
+        print("Game instance: ", game_instance)
+        shuffled_decks = []
+        shuffled_players = ["player1", "player2", "player3"]
+        random.shuffle(shuffled_players)
+        for i in range(20):
+            shuffled_decks.append(random.sample(full_deck, 60))
         for pair in agent_pairs:
             (guess_agent, playing_agent) = pair
             off_game, scores, offs = play_game(
                 full_deck,
                 deck_dict,
-                shuffled_deck,
+                shuffled_decks,
+                shuffled_players,
                 guess_agent,
                 playing_agent,
                 verbose,
                 use_agent,
             )
-
+            # win_counter, score_counter, total_offs(too high guess, too low guess), last_ten, accuracy_hist
             # For command-line output
-            (
-                win_counter,
-                score_counter,
-                total_offs,
-                last_ten_performance,
-                accuracy_hist,
-            ) = performance_dict[pair]
-            last_ten_performance += off_game
+            performance = performance_dict[pair]
+            performance[3] += off_game
             for player in range(3):
-                score_counter[player] += scores[player] / n
+                performance[1][player] += scores[player] / n
                 if scores[player] == max(scores):
-                    win_counter[player] += 1
-            total_offs[0] += offs[0]
-            total_offs[1] += offs[1]
+                    performance[0][player] += 1
+            performance[2][0] += offs[0]
+            performance[2][1] += offs[1]
 
             if game_instance % 10 == 0:
-                accuracy = last_ten_performance[0] / 200
-                accuracy_hist.append(accuracy)
+                accuracy = performance[3][0] / 200
+                performance[4].append(accuracy)
                 print(
                     f"Agents: {(guess_agent, playing_agent)}, "
-                    f"Game {game_instance}, accuracy: {accuracy}"
-                    f"Last10: {last_ten_performance}"
+                    f"Game {game_instance}, accuracy: {accuracy}, "
+                    f"Last10: {performance[3]}"
                 )
-                last_ten_performance *= 0
+                performance[3] *= 0
+
+    for pair in agent_pairs:
+        performance = performance_dict[pair]
+        print("Scores: ", performance[1])
+        print("Wins: ", performance[0])
+        print("Mistakes (high guess, low guess): ", performance[2])
 
 
 def play_game(
     full_deck,
     deck_dict,
-    shuffled_deck,
+    shuffled_decks,
+    shuffled_players,
     guess_agent,
     play_agent,
     verbose,
@@ -170,7 +170,8 @@ def play_game(
         full_deck,
         deck_dict,
         "learned",
-        shuffled_deck=shuffled_deck,
+        shuffled_decks=shuffled_decks,
+        shuffled_players=shuffled_players,
         output_path="state_err1",
         guess_agent=guess_agent,
         playing_agent=play_agent,
@@ -185,10 +186,10 @@ def play_game(
 if __name__ == "__main__":
     args = parse_args()
     learned_n_games(
-        600,
+        args.games,
         args.save_folder,
-        args.guess_models,
-        args.play_models,
+        ["random", "guessing68_25.0_475_1500.model"],
+        ["random"],
         args.verbose,
         args.use_agent,
     )
