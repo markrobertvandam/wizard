@@ -64,8 +64,8 @@ def learned_n_games(
     use_agent: bool,
 ) -> None:
 
-    input_sizes = {"cheater": (68, 3915), "porder": (68, 3795), "old": (68, 3731),
-                   "random": (68, 3795), "small": (68, 195)}
+    input_sizes = {"cheater": (68, 3915), "porder": (68, 3795), "old": (68, 3731), "small": (68, 195),
+                   "random": (68, 195), "random_player": (68, 195), "random_guesser": (68, 195)}
 
     # Make the deck
     full_deck = []
