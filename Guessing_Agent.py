@@ -51,7 +51,7 @@ class GuessingAgent:
             optimizer=adam_v2.Adam(learning_rate=0.0001),
             metrics=["accuracy"],
         )
-        print(model.summary())
+        #print(model.summary())
         return model
 
     # Adds data to a memory replay array
