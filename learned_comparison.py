@@ -92,13 +92,14 @@ def learned_n_games(
         elif model_folder == "random":
             guessing_models.append("random")
             player_models.append("random")
-        path = os.path.join("models", model_folder)
-        models = os.listdir(path)
-        for model in models:
-            if model.startswith("guessing"):
-                guessing_models.append(os.path.join(path, model))
-            else:
-                player_models.append(os.path.join(path, model))
+        else:
+            path = os.path.join("models", model_folder)
+            models = os.listdir(path)
+            for model in models:
+                if model.startswith("guessing"):
+                    guessing_models.append(os.path.join(path, model))
+                else:
+                    player_models.append(os.path.join(path, model))
     for i in range(len(guessing_models)):
         guessing_model = guessing_models[i]
         playing_model = player_models[i]
@@ -108,7 +109,7 @@ def learned_n_games(
         guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
         print("Pair: ", guessing_model, playing_model)
         playing_agent = PlayingAgent(input_size=input_size_play, verbose=verbose)
-        if guessing_model != "random":
+        if not guessing_model != "random":
             guess_agent.model = tf.keras.models.load_model(
                 os.path.join("models", guessing_model)
             )
