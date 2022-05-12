@@ -111,15 +111,11 @@ def learned_n_games(
         print("Pair: ", guessing_model, playing_model)
         playing_agent = PlayingAgent(input_size=input_size_play, verbose=verbose)
         if not guessing_model != "random":
-            guess_agent.model = tf.keras.models.load_model(
-                os.path.join("models", guessing_model)
-            )
+            guess_agent.model = tf.keras.models.load_model(guessing_model)
             guess_agent.trained = True
 
         if playing_model != "random":
-            playing_agent.network_policy.model = tf.keras.models.load_model(
-                os.path.join("models", playing_model)
-            )
+            playing_agent.network_policy.model = tf.keras.models.load_model(playing_model)
             playing_agent.trained = True
 
         agent_pairs.append((guess_agent, playing_agent))
