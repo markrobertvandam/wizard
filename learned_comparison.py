@@ -65,7 +65,7 @@ def learned_n_games(
 ) -> None:
 
     input_sizes = {"cheater": (68, 3915), "porder": (68, 3795), "old": (68, 3731), "small": (68, 195),
-                   "random": (68, 195), "random_player": (68, 195), "random_guesser": (68, 195)}
+                   "random": (68, 195), "random_player": (68, 195), "random_guesser": (68, 3795)}
 
     # Make the deck
     full_deck = []
@@ -82,38 +82,43 @@ def learned_n_games(
 
     guessing_models = []
     player_models = []
-    inputs = []
+    guessing_inputs = []
+    playing_inputs = []
 
     for model_folder in model_folders:
         if model_folder == "random_player":
-            inputs.append(input_sizes["random_player"])
+            guessing_inputs.append(input_sizes["random_player"][0])
+            playing_inputs.append(input_sizes["random_player"][1])
             guessing_models.append(guessing_models[-1])
             player_models.append("random")
         elif model_folder == "random_guesser":
-            inputs.append(input_sizes["random_guesser"])
+            guessing_inputs.append(input_sizes["random_guesser"][0])
+            playing_inputs.append(input_sizes["random_guesser"][1])
             guessing_models.append("random")
             player_models.append(player_models[-1])
         elif model_folder == "random":
-            inputs.append(input_sizes["random"])
+            guessing_inputs.append(input_sizes["random"][0])
+            playing_inputs.append(input_sizes["random"][1])
             guessing_models.append("random")
             player_models.append("random")
         else:
             path = os.path.join("models", model_folder)
             models = sorted(os.listdir(path))
             for model in models:
-                inputs.append(input_sizes[model_folder.split("_")[-1]])
                 if model.startswith("guessing"):
+                    guessing_inputs.append(input_sizes[model_folder.split("_")[-1]][0])
                     guessing_models.append(os.path.join(path, model))
-                else:
+                elif model.startswith("playing"):
+                    playing_inputs.append(input_sizes[model_folder.split("_")[-1]][1])
                     player_models.append(os.path.join(path, model))
     for i in range(len(guessing_models)):
-        input_size_guess, input_size_play = inputs[i]
+        input_size_guess, input_size_play = guessing_inputs[i], playing_inputs[i]
         guessing_model = guessing_models[i]
         playing_model = player_models[i]
         guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
         print("Pair: ", guessing_model, playing_model)
         playing_agent = PlayingAgent(input_size=input_size_play, verbose=verbose)
-        if not guessing_model != "random":
+        if guessing_model != "random":
             guess_agent.model = tf.keras.models.load_model(guessing_model)
             guess_agent.trained = True
 

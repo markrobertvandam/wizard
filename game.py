@@ -383,8 +383,6 @@ class Game:
                 played_this_trick[one_hot + offset] = 1
             state += order_names + played_this_trick
 
-
-
         if inp_size > 3600:
             # 20 rounds of 3 cards that are one-hot encoded
             played_this_round = 3600 * [0]
