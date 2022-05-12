@@ -397,7 +397,6 @@ class Game:
             state += played_this_round
 
         state_space = np.array(state, dtype=int)
-        print(state_space.shape)
         return state_space
 
     def update_scores(self):
