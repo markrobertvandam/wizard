@@ -79,6 +79,7 @@ def learned_n_games(
             deck_dict[(suit, card_value)] = card_value + suit * 15
 
     agent_pairs = []
+    pair_names = []
 
     guessing_models = []
     player_models = []
@@ -127,6 +128,7 @@ def learned_n_games(
             playing_agent.trained = True
 
         agent_pairs.append((guess_agent, playing_agent))
+        pair_names.append((guessing_model, playing_model))
 
     performance_dict = dict()
     for pair in agent_pairs:
@@ -173,8 +175,9 @@ def learned_n_games(
                 )
                 performance[3] *= 0
 
-    for pair in agent_pairs:
-        performance = performance_dict[pair]
+    for pair in range(len(agent_pairs)):
+        performance = performance_dict[agent_pairs[pair]]
+        print("Pair: ", pair_names[pair])
         print("Scores: ", performance[1])
         print("Wins: ", performance[0])
         print("Mistakes (high guess, low guess): ", performance[2])
