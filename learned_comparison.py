@@ -82,6 +82,7 @@ def learned_n_games(
 
     guessing_models = []
     player_models = []
+
     for model_folder in model_folders:
         if model_folder == "random_player":
             guessing_models.append(guessing_models[-1])
@@ -101,11 +102,11 @@ def learned_n_games(
                 else:
                     player_models.append(os.path.join(path, model))
     for i in range(len(guessing_models)):
+        input_size_guess, input_size_play = input_sizes[
+            model_folders[i].split("_")[-1]
+        ]
         guessing_model = guessing_models[i]
         playing_model = player_models[i]
-        input_size_guess, input_size_play = input_sizes[
-            guessing_model.split("_")[-1]
-        ]
         guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
         print("Pair: ", guessing_model, playing_model)
         playing_agent = PlayingAgent(input_size=input_size_play, verbose=verbose)
