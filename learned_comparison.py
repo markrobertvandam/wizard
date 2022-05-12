@@ -99,7 +99,7 @@ def learned_n_games(
             player_models.append("random")
         else:
             path = os.path.join("models", model_folder)
-            models = os.listdir(path)
+            models = sorted(os.listdir(path))
             for model in models:
                 inputs.append(input_sizes[model_folder.split("_")[-1]])
                 if model.startswith("guessing"):
