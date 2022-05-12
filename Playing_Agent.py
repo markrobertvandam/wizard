@@ -21,23 +21,51 @@ class Node:
         self.card = card
 
 
-def write_state(play_state, output_path, actual=False):
+def write_state(play_state, output_path, input_size, actual=False):
     f = open(f"{output_path}.txt", "a")
     f.write("\n\n\n")
     np.set_printoptions(threshold=np.inf)
+    current_pos = 0
     if actual:
         f.write("Actual node\n")
     else:
         f.write("Simulated node\n")
     f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
-    f.write("Trump: " + str(play_state[60:65]) + "\n")
-    f.write("Guesses: " + str(play_state[65:68]) + "\n")
-    f.write("Round: " + str(play_state[68]) + "\n")
-    f.write("Tricks needed: " + str(play_state[69]) + "\n")
-    f.write("Tricks needed others: " + str(play_state[70:72]) + "\n")
-    f.write("Order: " + str(play_state[72:75]) + "\n")
-    f.write("played trick: " + str(np.nonzero(play_state[75:195])[0].tolist()) + "\n")
-    f.write("played round: " + str(np.nonzero(play_state[195:])[0].tolist()) + "\n")
+    current_pos = 60
+    # if cheater
+    if input_size == 3915:
+        f.write("Hand2: " + str(np.nonzero(play_state[60:120])[0].tolist()) + "\n")
+        f.write("Hand3: " + str(np.nonzero(play_state[120:180])[0].tolist()) + "\n")
+        current_pos = 180
+    f.write("Trump: " + str(play_state[current_pos:current_pos + 5]) + "\n")
+    current_pos += 5
+
+    # if old
+    if input_size == 3731:
+        f.write("Guesses: " + str(play_state[current_pos:current_pos + 2]) + "\n")
+        current_pos += 2
+    else:
+        f.write("Guesses: " + str(play_state[current_pos:current_pos + 3]) + "\n")
+        current_pos += 3
+    f.write("Round: " + str(play_state[current_pos]) + "\n")
+    f.write("Tricks needed: " + str(play_state[current_pos+1]) + "\n")
+    current_pos += 2
+
+    f.write("Tricks needed others: " + str(play_state[current_pos:current_pos+2]) + "\n")
+    current_pos += 2
+
+    # if not old
+    if input_size != 3731:
+        f.write("Order: " + str(play_state[current_pos:current_pos+3]) + "\n")
+        f.write("played trick: " + str(np.nonzero(play_state[current_pos+3:current_pos+123])[0].tolist()) + "\n")
+        current_pos += 123
+    else:
+        f.write("played trick: " + str(np.nonzero(play_state[current_pos:current_pos + 60])[0].tolist()) + "\n")
+        current_pos += 60
+
+    # if not small
+    if input_size > 3600:
+        f.write("played round: " + str(np.nonzero(play_state[current_pos:])[0].tolist()) + "\n")
     f.close()
 
 
@@ -90,7 +118,7 @@ class PlayingAgent:
     # function for randomly selecting a child node
     def rollout_policy(self):
         node = self.parent_node
-        if self.verbose == 2:
+        if self.verbose >= 2:
             print("Rollout policy used...")
         if len(node.children) > 0:
             self.parent_node = random.choice(node.children)
@@ -107,7 +135,7 @@ class PlayingAgent:
         if node.root:
             return
         node.wins += result / 100
-        if self.verbose == 3:
+        if self.verbose >= 3:
             print("Node card: ", node.card)
         self.network_policy.update_replay_memory([node.state, result])
         self.network_policy.train()
@@ -147,12 +175,12 @@ class PlayingAgent:
         :param play_state:
         :return:
         """
-        if self.verbose == 2:
+        if self.verbose >= 2:
             print("Adding unseen root node..")
         key_state = self.state_to_key(play_state)
         root_node = Node(key_state, root=1, expanded=True)
         if self.verbose:
-            write_state(play_state, "state_err1", True)
+            write_state(play_state, "state_err1", self.input_size, True)
         self.nodes[key_state] = root_node
         self.parent_node = root_node
 
@@ -166,7 +194,7 @@ class PlayingAgent:
         player_hand,
         run_type="learning",
     ):
-        if self.verbose == 2:
+        if self.verbose >= 2:
             print("Expanding the following moves: ", legal_moves)
         if len(player_hand) > 1:
             for move in legal_moves:
@@ -200,7 +228,7 @@ class PlayingAgent:
         run_type,
         terminal_node=False,
     ):
-        if self.verbose == 2:
+        if self.verbose >= 2:
             print("Creating a child node...", move, played_cards)
         parent = self.parent_node
 
@@ -224,7 +252,7 @@ class PlayingAgent:
                     shuffle_seed.append(p)
         temp_game.players = shuffle_seed
 
-        if self.verbose == 3:
+        if self.verbose >= 3:
             print("Temporary player order: ", [p.player_name for p in new_player_order])
             print("Player that is learning: ", player, played_cards)
 
@@ -254,7 +282,7 @@ class PlayingAgent:
         )
 
         if self.verbose:
-            write_state(play_state, game_instance.output_path)
+            write_state(play_state, game_instance.output_path, self.input_size)
 
         key_state = self.state_to_key(play_state)
 

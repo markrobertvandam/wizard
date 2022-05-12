@@ -59,13 +59,13 @@ def print_performance(agent_pair, score_counter, win_counter, total_offs):
 def learned_n_games(
     n: int,
     save_folder: str,
-    guessing_models: list,
-    player_models: list,
+    model_folders: list,
     verbose: int,
     use_agent: bool,
 ) -> None:
 
-    input_sizes = {"cheater": (68, 3915), "1500.model": (68, 3795), "old": (68, 3731), "random": (68, 3795)}
+    input_sizes = {"cheater": (68, 3915), "porder": (68, 3795), "old": (68, 3731),
+                   "random": (68, 3795), "small": (68, 195)}
 
     # Make the deck
     full_deck = []
@@ -79,29 +79,48 @@ def learned_n_games(
             deck_dict[(suit, card_value)] = card_value + suit * 15
 
     agent_pairs = []
-    for guessing_model in guessing_models:
+
+    guessing_models = []
+    player_models = []
+    for model_folder in model_folders:
+        if model_folder == "random_player":
+            guessing_models.append(guessing_models[-1])
+            player_models.append("random")
+        elif model_folder == "random_guesser":
+            guessing_models.append("random")
+            player_models.append(player_models[-1])
+        elif model_folder == "random":
+            guessing_models.append("random")
+            player_models.append("random")
+        path = os.path.join("models", model_folder)
+        models = os.listdir(path)
+        for model in models:
+            if model.startswith("guessing"):
+                guessing_models.append(os.path.join(path, model))
+            else:
+                player_models.append(os.path.join(path, model))
+    for i in range(len(guessing_models)):
+        guessing_model = guessing_models[i]
+        playing_model = player_models[i]
         input_size_guess, input_size_play = input_sizes[
             guessing_model.split("_")[-1]
         ]
         guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
-        for playing_model in player_models:
-            print("Pair: ", guessing_model, playing_model)
-            playing_agent = PlayingAgent(input_size=input_size_play, verbose=verbose)
+        print("Pair: ", guessing_model, playing_model)
+        playing_agent = PlayingAgent(input_size=input_size_play, verbose=verbose)
+        if guessing_model != "random":
+            guess_agent.model = tf.keras.models.load_model(
+                os.path.join("models", guessing_model)
+            )
+            guess_agent.trained = True
 
-            print(guessing_model)
-            if guessing_model != "random":
-                guess_agent.model = tf.keras.models.load_model(
-                    os.path.join("models", guessing_model)
-                )
-                guess_agent.trained = True
+        if playing_model != "random":
+            playing_agent.network_policy.model = tf.keras.models.load_model(
+                os.path.join("models", playing_model)
+            )
+            playing_agent.trained = True
 
-            if playing_model != "random":
-                playing_agent.network_policy.model = tf.keras.models.load_model(
-                    os.path.join("models", playing_model)
-                )
-                playing_agent.trained = True
-
-            agent_pairs.append((guess_agent, playing_agent))
+        agent_pairs.append((guess_agent, playing_agent))
 
     performance_dict = dict()
     for pair in agent_pairs:
@@ -188,8 +207,7 @@ if __name__ == "__main__":
     learned_n_games(
         args.games,
         args.save_folder,
-        ["random", "guessing68_25.0_475_1500.model"],
-        ["random"],
+        ["mcts_025_old", "mcts_small_porder", "mcts_medium_porder", "random_player"],
         args.verbose,
         args.use_agent,
     )

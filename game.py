@@ -84,7 +84,7 @@ class Game:
         self.guesses = []
 
     def play_game(self) -> tuple:
-        for game_round in range(20):
+        for game_round in range(10):
             self.played_round = []
             if self.shuffled_decks is None:
                 self.deck = self.full_deck[:]
@@ -137,7 +137,7 @@ class Game:
         # Playing phase
         player_order = self.players[:]  # order will change after every trick
         for trick in range(self.game_round):
-            if self.verbose == 3:
+            if self.verbose >= 3:
                 print(
                     "Player order in regular round: ",
                     [p.player_name for p in player_order],
@@ -147,16 +147,16 @@ class Game:
             # print(
             #     f"Order: {[player.player_name for player in player_order]}, Played: {self.played_cards}\n{self.trump}"
             # )
-            if self.verbose == 3:
+            if self.verbose >= 3:
                 print("We made it HERE! Trick was played!")
             winner = self.trick_winner(self.played_cards, self.trump)
-            if self.verbose == 3:
+            if self.verbose >= 3:
                 print(
                     "The winner is: ", winner, self.played_cards, "trump: ", self.trump
                 )
             self.played_round.append(self.played_cards)
 
-            if self.verbose == 2:
+            if self.verbose >= 2:
                 print("Played in actual trick: ", self.played_cards)
                 print(
                     "Winner index: ", winner, "name: ", player_order[winner].player_name
@@ -182,10 +182,10 @@ class Game:
         :param player: how manieth player it is in this particular trick
         :return: None
         """
-        if self.verbose == 3:
+        if self.verbose >= 3:
             print("\nPlaytrick called with card: ", card)
         while player != 3:
-            if self.verbose == 3:
+            if self.verbose >= 3:
                 print(
                     "Trick iteration with player",
                     player,
@@ -216,7 +216,7 @@ class Game:
                     )
                 )
             else:
-                if self.verbose == 3:
+                if self.verbose >= 3:
                     print(
                         "Players and card: ",
                         [p.player_name for p in player_order],
@@ -243,12 +243,12 @@ class Game:
 
             player += 1
             card = None
-            if self.verbose == 2:
+            if self.verbose >= 2:
                 print(
                     "finished one iteration of playtrick, chosen card: ",
                     self.played_cards[-1],
                 )
-        if self.verbose == 3:
+        if self.verbose >= 3:
             print("Done with while loop ", player)
 
     @staticmethod
@@ -280,7 +280,6 @@ class Game:
 
     def guessing_state_space(self, player: Player):
         # TODO: maybe add player order?
-        # TODO: Maybe make playing trick ordered too?
         cards_in_hand = player.get_hand()
         one_hot_hand = np.zeros(60, dtype=int)
         for card in cards_in_hand:
@@ -302,24 +301,59 @@ class Game:
     def playing_state_space(
         self, player_order, player: Player, played_trick, temp=False
     ):
-        # TODO: maybe remove guesses from state and add player order?
-        if self.verbose == 3:
+        state = []
+        inp_size = player.play_agent.input_size
+        if self.verbose >= 3:
             if temp:
                 print("This is a temp game call!\n")
             else:
                 print("This is a real game call!\n")
-        cards_in_hand = player.get_hand()
-        one_hot_hand = np.zeros(60, dtype=int)
-        for card in cards_in_hand:
-            one_hot_hand[self.deck_dict[card]] = 1
+
+        # cheater
+        if inp_size == 3915:
+            one_hot_hand = 60 * [0]
+            one_hot_hand2 = 60 * [0]
+            one_hot_hand3 = 60 * [0]
+
+            other_players = [p for p in player_order if p != player]
+
+            cards_in_hand = player.get_hand()
+            cards_in_hand2 = other_players[0].get_hand()
+            cards_in_hand3 = other_players[1].get_hand()
+
+            for card in cards_in_hand:
+                one_hot_hand[self.deck_dict[card]] = 1
+
+            for card in cards_in_hand2:
+                one_hot_hand2[self.deck_dict[card]] = 1
+
+            for card in cards_in_hand3:
+                one_hot_hand3[self.deck_dict[card]] = 1
+
+            state += one_hot_hand + one_hot_hand2 + one_hot_hand3
+        else:
+            cards_in_hand = player.get_hand()
+            one_hot_hand = 60 * [0]
+            for card in cards_in_hand:
+                one_hot_hand[self.deck_dict[card]] = 1
+
+            state += one_hot_hand
+
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
-        previous_guesses = [player.get_guesses()]
+        state += trump
+
+        # old system
+        if inp_size == 3731:
+            previous_guesses = []
+        else:
+            previous_guesses = [player.get_guesses()]
+
         round_number = [self.game_round]
         tricks_needed = [player.get_guesses() - player.get_trick_wins()]
         tricks_needed_others = []
 
-        if self.verbose > 2:
+        if self.verbose >= 2:
             print("Creating gamespace, players are in the following order: ")
             print([p.player_name for p in self.players], player.player_name)
         for other_player in self.players:
@@ -333,36 +367,37 @@ class Game:
                 tricks_needed_others.append(tricks)
                 previous_guesses.append(other_player.get_guesses())
 
-        played_this_trick = np.zeros(120, dtype=int)
-        order_names = [int(p.player_name[-1]) for p in player_order]
-        for card in played_trick:
-            one_hot = self.deck_dict[card]
-            offset = played_trick.index(card) * 60
-            played_this_trick[one_hot + offset] = 1
-
-        # 20 rounds of 3 cards that are one-hot encoded
-        played_this_round = np.zeros(3600, dtype=int)
-        for trick in range(len(self.played_round)):
-            trick_plays = self.played_round[trick]
-            for turn in range(3):
-                card = trick_plays[turn]
+        state += previous_guesses + round_number + tricks_needed + tricks_needed_others
+        # old system
+        if inp_size == 3731:
+            played_this_trick = 60 * [0]
+            for card in played_trick:
+                played_this_trick[self.deck_dict[card]] = 1
+            state += played_this_trick
+        else:
+            played_this_trick = 120 * [0]
+            order_names = [int(p.player_name[-1]) for p in player_order]
+            for card in played_trick:
                 one_hot = self.deck_dict[card]
-                played_this_round[one_hot + turn * 60 + trick * 180] = 1
+                offset = played_trick.index(card) * 60
+                played_this_trick[one_hot + offset] = 1
+            state += order_names + played_this_trick
 
-        state_space = np.concatenate(
-            (
-                one_hot_hand,
-                trump,
-                previous_guesses,
-                round_number,
-                tricks_needed,
-                tricks_needed_others,
-                order_names,
-                played_this_trick,
-                played_this_round,
-            )
-        ).astype(int)
 
+
+        if inp_size > 3600:
+            # 20 rounds of 3 cards that are one-hot encoded
+            played_this_round = 3600 * [0]
+            for trick in range(len(self.played_round)):
+                trick_plays = self.played_round[trick]
+                for turn in range(3):
+                    card = trick_plays[turn]
+                    one_hot = self.deck_dict[card]
+                    played_this_round[one_hot + turn * 60 + trick * 180] = 1
+            state += played_this_round
+
+        state_space = np.array(state, dtype=int)
+        print(state_space.shape)
         return state_space
 
     def update_scores(self):
@@ -390,7 +425,7 @@ class Game:
                     )
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":
-                    if self.verbose == 2:
+                    if self.verbose >= 2:
                         print(
                             "player_won: ",
                             player.get_trick_wins(),

@@ -87,7 +87,7 @@ class Player:
         card = None
 
         if self.player_type == "learning":
-            if self.verbose == 2:
+            if self.verbose >= 3:
                 print("Round: ", game_instance.game_round)
                 print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
 
@@ -206,7 +206,7 @@ class Player:
             card = legal_cards[0]
             # card = random.choice(legal_cards)
 
-        if self.verbose == 3:
+        if self.verbose >= 3:
             print("Card at end of play_card: ", self.hand, card)
 
         if card not in self.idx_dict.keys():
@@ -273,7 +273,7 @@ class Player:
                         self.win_cards.append(card)
 
                 self.player_guesses = guesses
-            if self.verbose == 2:
+            if self.verbose >= 2:
                 print("\nGuessed: ", self.player_guesses)
                 print("Hand: ", self.get_hand(), "Trump: ", trump)
 
