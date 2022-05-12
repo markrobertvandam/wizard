@@ -65,7 +65,7 @@ def learned_n_games(
 ) -> None:
 
     input_sizes = {"cheater": (68, 3915), "porder": (68, 3795), "old": (68, 3731), "small": (68, 195),
-                   "random": (68, 195), "player": (68, 195), "guesser": (68, 195)}
+                   "random": (68, 195), "random_player": (68, 195), "random_guesser": (68, 195)}
 
     # Make the deck
     full_deck = []
@@ -82,29 +82,32 @@ def learned_n_games(
 
     guessing_models = []
     player_models = []
+    inputs = []
 
     for model_folder in model_folders:
         if model_folder == "random_player":
+            inputs.append(input_sizes["random_player"])
             guessing_models.append(guessing_models[-1])
             player_models.append("random")
         elif model_folder == "random_guesser":
+            inputs.append(input_sizes["random_guesser"])
             guessing_models.append("random")
             player_models.append(player_models[-1])
         elif model_folder == "random":
+            inputs.append(input_sizes["random"])
             guessing_models.append("random")
             player_models.append("random")
         else:
             path = os.path.join("models", model_folder)
             models = os.listdir(path)
             for model in models:
+                inputs.append(input_sizes[model_folder.split("_")[-1]])
                 if model.startswith("guessing"):
                     guessing_models.append(os.path.join(path, model))
                 else:
                     player_models.append(os.path.join(path, model))
     for i in range(len(guessing_models)):
-        input_size_guess, input_size_play = input_sizes[
-            model_folders[i].split("_")[-1]
-        ]
+        input_size_guess, input_size_play = inputs[i]
         guessing_model = guessing_models[i]
         playing_model = player_models[i]
         guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
