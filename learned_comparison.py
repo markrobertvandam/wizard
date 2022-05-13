@@ -23,7 +23,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("player", help="Which playing model", type=str)
     parser.add_argument("games_folder", help="Where to find generated games", type=str)
     parser.add_argument(
-        "--save_folder",
+        "save_folder",
         help="folder name for plots",
         default="",
     )
