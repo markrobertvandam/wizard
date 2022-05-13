@@ -84,7 +84,7 @@ class Game:
         self.guesses = []
 
     def play_game(self) -> tuple:
-        for game_round in range(10):
+        for game_round in range(20):
             self.played_round = []
             if self.shuffled_decks is None:
                 self.deck = self.full_deck[:]
