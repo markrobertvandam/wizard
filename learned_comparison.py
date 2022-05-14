@@ -125,7 +125,7 @@ def learned_n_games(
     for game_instance in range(1, n + 1):
         print("Game instance: ", game_instance)
         shuffled_decks = all_decks[(game_instance-1)*20:(game_instance-1)*20+20]
-        shuffled_players = all_players[game_instance]
+        shuffled_players = all_players[game_instance-1]
         off_game, scores, offs = play_game(
             full_deck,
             deck_dict,
