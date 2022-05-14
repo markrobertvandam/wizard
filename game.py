@@ -77,6 +77,7 @@ class Game:
             0,
         ]
         self.off_game = np.zeros(21, dtype=int)
+        self.guess_distribution = np.zeros(21, dtype=int)
 
         # for info per round/trick
         self.played_round = []
@@ -129,6 +130,8 @@ class Game:
                         self.game_round, self.trump, self.guessing_state_space(player)
                     )
                 )
+                if player.player_name == "player1":
+                    self.guess_distribution[player.get_guesses()] += 1
             else:
                 self.guesses.append(player.guess_wins(self.game_round, self.trump))
             # print("Hand: ", player.hand)
@@ -437,6 +440,9 @@ class Game:
 
     def get_game_performance(self):
         return self.off_game
+
+    def get_distribution(self):
+        return self.guess_distribution
 
     def get_output_path(self):
         return self.output_path
