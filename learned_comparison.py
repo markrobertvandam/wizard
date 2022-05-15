@@ -44,16 +44,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def plot_accuracy(
-    accuracy_history: list, game_instance: int, save_folder: str, iters_done: int
-) -> None:
-    plt.plot(list(range(iters_done + 10, game_instance + 1, 10)), accuracy_history)
-    plt.xlabel("Games", fontsize=15)
-    plt.ylabel("Accuracy", fontsize=15)
-    plt.savefig(f"plots/{save_folder}/accuracy_plot")
-    plt.close()
-
-
 def print_performance(agent_pair, score_counter, win_counter, total_offs):
     print("Agents: ", agent_pair)
     print("Scores: ", score_counter)
