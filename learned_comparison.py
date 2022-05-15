@@ -118,6 +118,9 @@ def learned_n_games(
         playing_agent.network_policy.model = tf.keras.models.load_model(playing_model)
         playing_agent.trained = True
 
+    print(guess_agent.model.summary())
+    print(playing_agent.network_policy.model.summary())
+
     pair_name = (guessing_model, playing_model)
 
     # win_counter, score_counter, total_offs(too high guess, too low guess), last_ten, accuracy_hist
