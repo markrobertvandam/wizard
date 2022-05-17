@@ -121,7 +121,7 @@ def avg_n_games(
     iters_done: int,
 ) -> None:
     input_size_guess = 68
-    input_size_play = 3795
+    input_size_play = 195
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
     playing_agent = PlayingAgent(input_size=input_size_play, verbose=verbose)
     if model_path is not None:
@@ -135,6 +135,8 @@ def avg_n_games(
         )
         playing_agent.trained = True
 
+    print(guess_agent.model.summary())
+    print(playing_agent.network_policy.model.summary())
     # Exploration settings
     epsilon_decay = 0.997
     player_decay = 0.999

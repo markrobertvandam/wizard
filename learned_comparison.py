@@ -118,7 +118,6 @@ def learned_n_games(
     total_distribution = np.zeros(21, dtype=int)
 
     for game_instance in range(1, n + 1):
-        print("Game instance: ", game_instance)
         shuffled_decks = all_decks[(game_instance-1)*20:(game_instance-1)*20+20]
         shuffled_players = all_players[game_instance-1]
         off_game, scores, offs, distribution = play_game(
