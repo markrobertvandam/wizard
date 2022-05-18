@@ -51,36 +51,37 @@ if __name__ == "__main__":
         score = []
         rel_score = []
         my_score = []
-        names.append(directory)
-        folder_path = os.path.join(args.dir, directory)
-        for filename in sorted(os.listdir(folder_path)):
-            total_corr = 0
-            if filename.endswith(".log"):
-                f = open(os.path.join(folder_path, filename), "r")
-                lines = f.readlines()
+        if not directory.startswith("."):
+            names.append(directory)
+            folder_path = os.path.join(args.dir, directory)
+            for filename in sorted(os.listdir(folder_path)):
+                total_corr = 0
+                if filename.endswith(".log"):
+                    f = open(os.path.join(folder_path, filename), "r")
+                    lines = f.readlines()
 
-                for line in lines:
-                    if line.startswith("Agents"):
-                        corr = line.split("[")[1].split()[0]
-                        total_corr += int(corr)
-                    if line.startswith("Wins: "):
-                        win_dir.append(int(line[8:].split(",")[0]))
-                    if line.startswith("Scores: "):
-                        score.append([round(float(x), 2) for x in line[10:-2].split(",")])
-                        rel_score.append(round(score[-1][0] - max(score[-1]), 2))
-                        my_score.append(score[-1][0])
-                iters = lines[2][7:]
-                accuracy = total_corr/20000
+                    for line in lines:
+                        if line.startswith("Agents"):
+                            corr = line.split("[")[1].split()[0]
+                            total_corr += int(corr)
+                        if line.startswith("Wins: "):
+                            win_dir.append(int(line[8:].split(",")[0]))
+                        if line.startswith("Scores: "):
+                            score.append([round(float(x), 2) for x in line[10:-2].split(",")])
+                            rel_score.append(round(score[-1][0] - max(score[-1]), 2))
+                            my_score.append(score[-1][0])
+                    iters = lines[2][7:]
+                    accuracy = total_corr/20000
 
-                x.append(iters)
-                y.append(accuracy)
+                    x.append(iters)
+                    y.append(accuracy)
 
-        x_values.append(x)
-        y_values.append(y)
-        win_totals.append(win_dir)
-        score_avg.append(score)
-        relative_scores.append(rel_score)
-        my_scores.append(my_score)
+            x_values.append(x)
+            y_values.append(y)
+            win_totals.append(win_dir)
+            score_avg.append(score)
+            relative_scores.append(rel_score)
+            my_scores.append(my_score)
 
     print(score_avg)
     print(relative_scores)
