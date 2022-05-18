@@ -31,7 +31,7 @@ def plot_accuracy(
     elif name == "relative_scores":
         plt.ylabel("Avg. score diff to winning heuristic", fontsize=13)
     fig.legend()
-    fig.savefig(f"plots/{save_folder}/{name}_plot")
+    fig.savefig(f"wizard/plots/{save_folder}/{name}_plot")
     plt.close()
 
 
