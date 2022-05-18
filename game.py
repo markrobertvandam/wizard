@@ -281,39 +281,8 @@ class Game:
 
         return strongest_card
 
-    def guessing_state_space(self, player: Player):
-        # TODO: maybe add player order?
-        cards_in_hand = player.get_hand()
-        one_hot_hand = np.zeros(60, dtype=int)
-        for card in cards_in_hand:
-            one_hot_hand[self.deck_dict[card]] = 1
-        trump = [0, 0, 0, 0, 0]
-        trump[self.trump] = 1
-        previous_guesses = self.guesses[:]
-        if len(previous_guesses) >= 2:
-            previous_guesses = previous_guesses[:2]
-        avg_guess = floor(self.game_round / 3)
-        previous_guesses += [avg_guess] * (2 - len(previous_guesses))
-        round_number = [self.game_round]
-        state_space = np.concatenate(
-            (one_hot_hand, trump, previous_guesses, round_number)
-        )
-
-        return state_space.astype(int)
-
-    def playing_state_space(
-        self, player_order, player: Player, played_trick, temp=False
-    ):
-        state = []
-        inp_size = player.play_agent.input_size
-        if self.verbose >= 3:
-            if temp:
-                print("This is a temp game call!\n")
-            else:
-                print("This is a real game call!\n")
-
-        # cheater
-        if inp_size == 3915:
+    def hand_state_space(self, player_order, player):
+        if self.player1.guess_agent.input_size == 188 and self.player1.play_agent.input_size == 3915:
             one_hot_hand = 60 * [0]
             one_hot_hand2 = 60 * [0]
             one_hot_hand3 = 60 * [0]
@@ -333,14 +302,44 @@ class Game:
             for card in cards_in_hand3:
                 one_hot_hand3[self.deck_dict[card]] = 1
 
-            state += one_hot_hand + one_hot_hand2 + one_hot_hand3
+            return one_hot_hand + one_hot_hand2 + one_hot_hand3
         else:
             cards_in_hand = player.get_hand()
             one_hot_hand = 60 * [0]
             for card in cards_in_hand:
                 one_hot_hand[self.deck_dict[card]] = 1
 
-            state += one_hot_hand
+            return one_hot_hand
+
+    def guessing_state_space(self, player: Player):
+        # TODO: maybe add player order?
+        state = []
+        state += self.hand_state_space(self.players, player)
+        trump = [0, 0, 0, 0, 0]
+        trump[self.trump] = 1
+        previous_guesses = self.guesses[:]
+        if len(previous_guesses) >= 2:
+            previous_guesses = previous_guesses[:2]
+        avg_guess = floor(self.game_round / 3)
+        previous_guesses += [avg_guess] * (2 - len(previous_guesses))
+        round_number = [self.game_round]
+        state += trump + previous_guesses + round_number
+
+        state_space = np.array(state, dtype=int)
+        return state_space
+
+    def playing_state_space(
+        self, player_order, player: Player, played_trick, temp=False
+    ):
+        state = []
+        inp_size = player.play_agent.input_size
+        if self.verbose >= 3:
+            if temp:
+                print("This is a temp game call!\n")
+            else:
+                print("This is a real game call!\n")
+
+        state += self.hand_state_space(player_order, player)
 
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
