@@ -44,7 +44,7 @@ if __name__ == "__main__":
     relative_scores = []
     my_scores = []
     names = []
-    for directory in os.listdir(args.dir):
+    for directory in sorted(next(os.walk('.'))[1]):
         x = []
         y = []
         win_dir = []
