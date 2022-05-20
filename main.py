@@ -7,7 +7,6 @@ import time
 import tensorflow as tf
 from Guessing_Agent import GuessingAgent
 from Playing_Agent import PlayingAgent
-from tensorflow.python.client import device_lib
 
 
 def parse_args() -> argparse.Namespace:
@@ -227,7 +226,6 @@ def avg_n_games(
 
             if game_instance - last_max > 10000:
                 if save_bool.startswith("y"):
-                    time_label = str(int(time.time() / 3600))[-3:]
                     plot_accuracy(
                         accuracy_history, game_instance, save_folder, iters_done
                     )

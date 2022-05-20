@@ -295,7 +295,7 @@ class Game:
 
         return strongest_card
 
-    def hand_state_space(self, player_order: list, player: Player):
+    def hand_state_space(self, player_order: list, player: Player) -> list:
         """
         returns state space representing the hand(s) of players
         :param player_order: list with the players in turn order
@@ -336,7 +336,7 @@ class Game:
 
             return one_hot_hand
 
-    def guessing_state_space(self, player: Player):
+    def guessing_state_space(self, player: Player) -> np.ndarray:
         # TODO: maybe add player order?
         """
         Obtain the state space used to predict during the guessing phase
@@ -360,7 +360,7 @@ class Game:
 
     def playing_state_space(
         self, player_order: list, player: Player, played_trick: list, temp=False
-    ):
+    ) -> np.ndarray:
         """
         Obtain the state space used by the playing agent to make a move
         :param player_order: list of players in turn order
@@ -480,13 +480,13 @@ class Game:
                         self.offs[1] += 1
         #  print("\n\n")
 
-    def get_game_performance(self):
+    def get_game_performance(self) -> np.ndarray:
         return self.off_game
 
-    def get_distribution(self):
+    def get_distribution(self) -> np.ndarray:
         return self.guess_distribution
 
-    def get_output_path(self):
+    def get_output_path(self) -> str:
         return self.output_path
 
     def wrap_up_trick(self, player_order: list) -> int:

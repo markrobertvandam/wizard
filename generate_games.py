@@ -20,7 +20,12 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def write_decks(n):
+def write_decks(n) -> list:
+    """
+    generate 20 * n shuffled decks and save them in a pickle file
+    :param n: n amount of wizard games
+    :return: list of 20*n shuffled decks
+    """
     full_deck = []
     for suit in range(4):  # (blue, yellow, red, green)
         for card_value in range(15):  # (joker, 1-13, wizard)
@@ -34,6 +39,11 @@ def write_decks(n):
 
 
 def write_orders(n):
+    """
+    generate n shuffled player orders and save them in a pickle file
+    :param n: n amount of wizard games
+    :return: list of n shuffled player orders
+    """
     player_names = ["player1", "player2", "player3"]
     shuffled_players = []
     for i in range(n):

@@ -1,10 +1,7 @@
 import argparse
 import game
-import matplotlib.pyplot as plt
-import os
 import numpy as np
 import pickle
-import random
 import tensorflow as tf
 from Guessing_Agent import GuessingAgent
 from Playing_Agent import PlayingAgent
@@ -23,11 +20,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("guesser", help="Which guessing model", type=str)
     parser.add_argument("player", help="Which playing model", type=str)
     parser.add_argument("games_folder", help="Where to find generated games", type=str)
-    parser.add_argument(
-        "save_folder",
-        help="folder name for plots",
-        default="",
-    )
+
     parser.add_argument(
         "--verbose",
         help="optional argument to set how verbose the run is",
@@ -57,7 +50,6 @@ def learned_n_games(
     games_folder: str,
     guessing_model: str,
     playing_model: str,
-    save_folder: str,
     verbose: int,
     use_agent: bool,
 ) -> None:
@@ -126,7 +118,7 @@ def learned_n_games(
 
     for game_instance in range(1, n + 1):
         shuffled_decks = all_decks[
-            (game_instance - 1) * 20 : (game_instance - 1) * 20 + 20
+            (game_instance - 1) * 20: (game_instance - 1) * 20 + 20
         ]
         shuffled_players = all_players[game_instance - 1]
         off_game, scores, offs, distribution = play_game(
@@ -204,7 +196,6 @@ if __name__ == "__main__":
         args.games_folder,
         args.guesser,
         args.player,
-        args.save_folder,
         args.verbose,
         args.use_agent,
     )

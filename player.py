@@ -130,7 +130,6 @@ class Player:
                     played_cards,
                     self.hand,
                 )
-                self.play_agent.parent_node.expanded = True
                 if np.random.random() > self.player_epsilon:
                     # evaluate the best state
                     card = self.play_agent.predict()

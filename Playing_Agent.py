@@ -8,24 +8,35 @@ from scipy.sparse import coo_matrix
 
 
 class Node:
+    """
+    class for nodes of the node-tree when doing
+    Monte-Carlo Treesearch
+    """
     def __init__(
-        self, state, root=0, card=None, parent=None, expanded=False, terminal=False
+        self, state, root=0, card=None, parent=None
     ):
         self.state = state
         self.parent = parent
         self.wins = 0
         self.children = []
         self.root = root
-        self.expanded = expanded
-        self.terminal = terminal
+
+        # card that was played to get to the state
         self.card = card
 
 
-def write_state(play_state, output_path, input_size, actual=False):
+def write_state(play_state: np.ndarray, output_path: str, input_size: int, actual=False) -> None:
+    """
+    Write playing state to text file for debugging
+    :param play_state: actual playing state
+    :param output_path: path to textfile
+    :param input_size: input size of the playing model
+    :param actual: simulated node or actual node reached in play
+    :return:
+    """
     f = open(f"{output_path}.txt", "a")
     f.write("\n\n\n")
     np.set_printoptions(threshold=np.inf)
-    current_pos = 0
     if actual:
         f.write("Actual node\n")
     else:
@@ -37,32 +48,32 @@ def write_state(play_state, output_path, input_size, actual=False):
         f.write("Hand2: " + str(np.nonzero(play_state[60:120])[0].tolist()) + "\n")
         f.write("Hand3: " + str(np.nonzero(play_state[120:180])[0].tolist()) + "\n")
         current_pos = 180
-    f.write("Trump: " + str(play_state[current_pos : current_pos + 5]) + "\n")
+    f.write("Trump: " + str(play_state[current_pos: current_pos + 5]) + "\n")
     current_pos += 5
 
     # if old
     if input_size == 3731:
-        f.write("Guesses: " + str(play_state[current_pos : current_pos + 2]) + "\n")
+        f.write("Guesses: " + str(play_state[current_pos: current_pos + 2]) + "\n")
         current_pos += 2
     else:
-        f.write("Guesses: " + str(play_state[current_pos : current_pos + 3]) + "\n")
+        f.write("Guesses: " + str(play_state[current_pos: current_pos + 3]) + "\n")
         current_pos += 3
     f.write("Round: " + str(play_state[current_pos]) + "\n")
     f.write("Tricks needed: " + str(play_state[current_pos + 1]) + "\n")
     current_pos += 2
 
     f.write(
-        "Tricks needed others: " + str(play_state[current_pos : current_pos + 2]) + "\n"
+        "Tricks needed others: " + str(play_state[current_pos: current_pos + 2]) + "\n"
     )
     current_pos += 2
 
     # if not old
     if input_size != 3731:
-        f.write("Order: " + str(play_state[current_pos : current_pos + 3]) + "\n")
+        f.write("Order: " + str(play_state[current_pos: current_pos + 3]) + "\n")
         f.write(
             "played trick: "
             + str(
-                np.nonzero(play_state[current_pos + 3 : current_pos + 123])[0].tolist()
+                np.nonzero(play_state[current_pos + 3: current_pos + 123])[0].tolist()
             )
             + "\n"
         )
@@ -70,7 +81,7 @@ def write_state(play_state, output_path, input_size, actual=False):
     else:
         f.write(
             "played trick: "
-            + str(np.nonzero(play_state[current_pos : current_pos + 60])[0].tolist())
+            + str(np.nonzero(play_state[current_pos: current_pos + 60])[0].tolist())
             + "\n"
         )
         current_pos += 60
@@ -87,7 +98,7 @@ def write_state(play_state, output_path, input_size, actual=False):
 
 # Agent class
 class PlayingAgent:
-    def __init__(self, input_size, verbose=0):
+    def __init__(self, input_size: int, verbose=0):
 
         self.game = None
         self.input_size = input_size
@@ -99,12 +110,15 @@ class PlayingAgent:
         self.last_terminal_node = None
         self.trained = False
 
-    def get_node(self, state_space):
+    def get_node(self, state_space: np.ndarray) -> Node:
+        """"
+        get node from node dictionary using key_state
+        """
         key_state = self.state_to_key(state_space)
         return self.nodes[key_state]
 
     @staticmethod
-    def state_to_key(state_space):
+    def state_to_key(state_space: np.ndarray) -> tuple:
         compressed_state = coo_matrix(state_space)
         key_state = tuple(
             np.concatenate(
@@ -114,13 +128,13 @@ class PlayingAgent:
         return key_state
 
     @staticmethod
-    def key_to_state(input_size, node_state):
+    def key_to_state(input_size: int, node_state: tuple) -> np.ndarray:
         split = int(len(node_state) / 3)
         sparse_state = (
             coo_matrix(
                 (
                     node_state[:split],
-                    (node_state[split : split * 2], node_state[split * 2 :]),
+                    (node_state[split: split * 2], node_state[split * 2:]),
                 )
             )
             .toarray()[0]
@@ -132,7 +146,7 @@ class PlayingAgent:
         return sparse_state
 
     # function for randomly selecting a child node
-    def rollout_policy(self):
+    def rollout_policy(self) -> tuple:
         node = self.parent_node
         if self.verbose >= 2:
             print("Rollout policy used...")
@@ -144,7 +158,7 @@ class PlayingAgent:
         return self.parent_node.card
 
     # function for backpropagation
-    def backpropagate(self, node: Node, result):
+    def backpropagate(self, node: Node, result: int) -> None:
         self.counter += 1
         if self.counter % 2000 == 0:
             print(self.counter)
@@ -157,7 +171,7 @@ class PlayingAgent:
         self.network_policy.train()
         self.backpropagate(node.parent, result)
 
-    def best_child(self, node):
+    def best_child(self, node: Node) -> tuple:
         best_child = node.children[0]
         max_value = self.evaluate_state(best_child)
         for child in node.children[1:]:
@@ -172,29 +186,28 @@ class PlayingAgent:
 
         return best_child.card
 
-    def evaluate_state(self, node):
+    def evaluate_state(self, node: Node) -> float:
         sparse_state = self.key_to_state(self.input_size, node.state)
         return self.network_policy.predict(sparse_state)
 
-    def predict(self):
+    def predict(self) -> tuple:
         """
         Use network to get best move
-        :param play_state: feature vector of current state
         :return:
         """
         node = self.parent_node
         return self.best_child(node)
 
-    def unseen_state(self, play_state):
+    def unseen_state(self, play_state: np.ndarray) -> None:
         """
         Create root node for unseen state
-        :param play_state:
+        :param play_state: playing state to create a node for
         :return:
         """
         if self.verbose >= 2:
             print("Adding unseen root node..")
         key_state = self.state_to_key(play_state)
-        root_node = Node(key_state, root=1, expanded=True)
+        root_node = Node(key_state, root=1)
         if self.verbose:
             write_state(play_state, "state_err1", self.input_size, True)
         self.nodes[key_state] = root_node
@@ -202,14 +215,25 @@ class PlayingAgent:
 
     def expand(
         self,
-        legal_moves,
-        player_order,
-        game_instance,
-        requested_color,
-        played_cards,
-        player_hand,
+        legal_moves: list,
+        player_order: list,
+        game_instance: game.Game,
+        requested_color: int,
+        played_cards: list,
+        player_hand: list,
         run_type="learning",
-    ):
+    ) -> None:
+        """
+        Creates child nodes for all legal moves
+        :param legal_moves: the legal moves for player in current state
+        :param player_order: list of players in turn order
+        :param game_instance: instance of Game in current state
+        :param requested_color: requested color
+        :param played_cards: cards played in trick so far
+        :param player_hand: cards in the players' hand
+        :param run_type: type of agent {"learning", "learned", "heuristic", "random"}
+        :return:
+        """
         if self.verbose >= 2:
             print("Expanding the following moves: ", legal_moves)
         if len(player_hand) > 1:
@@ -236,18 +260,31 @@ class PlayingAgent:
 
     def create_child(
         self,
-        move,
-        player_order,
-        game_instance,
-        requested_color,
-        played_cards,
-        run_type,
+        move: tuple,
+        player_order: list,
+        game_instance: game.Game,
+        requested_color: int,
+        played_cards: list,
+        run_type: str,
         terminal_node=False,
-    ):
+    ) -> None:
+        """
+        simulates and saves a child node where the given move
+        is played in the given playing state
+        :param move: the move to play and simulate
+        :param player_order: list of players in turn order
+        :param game_instance: instance of Game in current play state before move
+        :param requested_color: requested color
+        :param played_cards: cards played in trick so far
+        :param run_type: type of agent {"learning", "learned", "heuristic", "random"}
+        :param terminal_node: boolean whether the child node is a terminal node
+        :return:
+        """
         if self.verbose >= 2:
             print("Creating a child node...", move, played_cards)
         parent = self.parent_node
 
+        # make temporary copy of the game
         temp_game = self.temp_game(game_instance, played_cards)
 
         player = len(played_cards)
@@ -302,7 +339,7 @@ class PlayingAgent:
 
         key_state = self.state_to_key(play_state)
 
-        node = Node(key_state, card=move, parent=parent, terminal=terminal_node)
+        node = Node(key_state, card=move, parent=parent)
         parent.children.append(node)
         if run_type == "learning":
             self.nodes[key_state] = node
@@ -311,7 +348,13 @@ class PlayingAgent:
             self.last_terminal_node = self.nodes[key_state]
 
     @staticmethod
-    def temp_game(game_instance, played_cards):
+    def temp_game(game_instance, played_cards) -> game.Game:
+        """
+        returns a temporary copy of game_instance to simulate different plays
+        :param game_instance: the game to copy
+        :param played_cards: cards played in trick so far
+        :return:
+        """
         temp_game = game.Game(
             full_deck=copy.deepcopy(game_instance.full_deck),
             deck_dict=copy.deepcopy(game_instance.deck_dict),
