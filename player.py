@@ -160,7 +160,9 @@ class Player:
         elif len(legal_cards) == 1:
             card = legal_cards[0]
 
-        elif self.player_type == "random" or (self.player_type == "learned" and not self.play_agent.trained):
+        elif self.player_type == "random" or (
+            self.player_type == "learned" and not self.play_agent.trained
+        ):
             card = random.choice(legal_cards)
 
         elif self.player_type == "heuristic":

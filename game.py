@@ -58,13 +58,13 @@ class Game:
             self.player2,
             self.player3,
         ]
-        new_players = []
+        temp_players = []
         if shuffled_players:
             for player_name in shuffled_players:
                 for player in self.players:
                     if player_name == player.player_name:
-                        new_players.append(player)
-            self.players = new_players
+                        temp_players.append(player)
+            self.players = temp_players
         else:
             random.shuffle(self.players)
 
@@ -85,6 +85,10 @@ class Game:
         self.guesses = []
 
     def play_game(self) -> tuple:
+        """
+        Plays a single game of wizard
+        :return: tuple with all scores and player1 mistakes
+        """
         for game_round in range(20):
             self.played_round = []
             if self.shuffled_decks is None:
@@ -109,7 +113,10 @@ class Game:
         )
 
     def play_round(self) -> None:
-
+        """
+        Play a single round of wizard
+        :return: None
+        """
         # Players get dealt their hands
         for player in self.players:
             self.deck = player.draw_cards(self.game_round, self.deck)
@@ -183,6 +190,8 @@ class Game:
         :param requested_color: the requested color that has to be played if possible
                                 (blue, yellow, red, green, None yet, None this round)
         :param player: how manieth player it is in this particular trick
+        :param card: used to force the player to play that specific card, used in simulation
+        :param player_limit: also used for simulation to play on until the players next turn
         :return: None
         """
         if self.verbose >= 3:
@@ -219,6 +228,7 @@ class Game:
                     )
                 )
             else:
+                # play the passed card to simulate that child-node
                 if self.verbose >= 3:
                     print(
                         "Players and card: ",
@@ -233,16 +243,14 @@ class Game:
                 self.played_cards.append(card)
 
             if requested_color == 4:
-                # Joker and Wizard do not change requested color
-                if (
-                    self.played_cards[player][1] != 0
-                    and self.played_cards[player][1] != 14
-                ):
-                    requested_color = self.played_cards[player][0]
 
                 # Wizard means no requested color this round
-                elif self.played_cards[player][1] == 14:
+                if self.played_cards[player][1] == 14:
                     requested_color = 5
+
+                # Joker does not change requested color
+                elif self.played_cards[player][1] != 0:
+                    requested_color = self.played_cards[player][0]
 
             player += 1
             card = None
@@ -256,6 +264,12 @@ class Game:
 
     @staticmethod
     def trick_winner(played_cards: list, trump: int) -> int:
+        """
+        Determine the winner of a trick
+        :param played_cards: cards played in the trick
+        :param trump: trump-suit, used to determine the winner
+        :return: index of the winning card
+        """
         strongest_card = 0
         if played_cards[0][1] == 14:  # If first player played a wizard
             return 0
@@ -281,8 +295,18 @@ class Game:
 
         return strongest_card
 
-    def hand_state_space(self, player_order, player):
-        if self.player1.guess_agent.input_size == 188 and self.player1.play_agent.input_size == 3915:
+    def hand_state_space(self, player_order: list, player: Player):
+        """
+        returns state space representing the hand(s) of players
+        :param player_order: list with the players in turn order
+        :param player: the player for which state is retrieved
+        :return:
+        """
+        if (
+            player.guess_agent.input_size == 188
+            and player.play_agent.input_size == 3915
+        ):
+            # Cheating player sees all three hands
             one_hot_hand = 60 * [0]
             one_hot_hand2 = 60 * [0]
             one_hot_hand3 = 60 * [0]
@@ -304,6 +328,7 @@ class Game:
 
             return one_hot_hand + one_hot_hand2 + one_hot_hand3
         else:
+            # normal player only sees their own hand
             cards_in_hand = player.get_hand()
             one_hot_hand = 60 * [0]
             for card in cards_in_hand:
@@ -313,6 +338,11 @@ class Game:
 
     def guessing_state_space(self, player: Player):
         # TODO: maybe add player order?
+        """
+        Obtain the state space used to predict during the guessing phase
+        :param player: Player that needs the state space to make a guess
+        :return: guessing state space
+        """
         state = []
         state += self.hand_state_space(self.players, player)
         trump = [0, 0, 0, 0, 0]
@@ -329,8 +359,16 @@ class Game:
         return state_space
 
     def playing_state_space(
-        self, player_order, player: Player, played_trick, temp=False
+        self, player_order: list, player: Player, played_trick: list, temp=False
     ):
+        """
+        Obtain the state space used by the playing agent to make a move
+        :param player_order: list of players in turn order
+        :param player: player that needs to make a move using the state space
+        :param played_trick: Cards played in the current trick thus far
+        :param temp: boolean whether this is for the actual game or simulated
+        :return: playing state space
+        """
         state = []
         inp_size = player.play_agent.input_size
         if self.verbose >= 3:
@@ -345,8 +383,8 @@ class Game:
         trump[self.trump] = 1
         state += trump
 
-        # old system
         if inp_size == 3731:
+            # old system, only uses other players' guesses
             previous_guesses = []
         else:
             previous_guesses = [player.get_guesses()]
@@ -370,13 +408,14 @@ class Game:
                 previous_guesses.append(other_player.get_guesses())
 
         state += previous_guesses + round_number + tricks_needed + tricks_needed_others
-        # old system
         if inp_size == 3731:
+            # old system, played_trick is unordered
             played_this_trick = 60 * [0]
             for card in played_trick:
                 played_this_trick[self.deck_dict[card]] = 1
             state += played_this_trick
         else:
+            # played trick is ordered in order of play
             played_this_trick = 120 * [0]
             order_names = [int(p.player_name[-1]) for p in player_order]
             for card in played_trick:
@@ -399,7 +438,11 @@ class Game:
         state_space = np.array(state, dtype=int)
         return state_space
 
-    def update_scores(self):
+    def update_scores(self) -> None:
+        """
+        update scores and backpropagate for learning
+        :return: None
+        """
         for player in self.players:
             #  print(player.player_name, player.trick_wins, player.guesses)
             off_mark = abs(player.get_trick_wins() - player.get_guesses())
@@ -446,14 +489,19 @@ class Game:
     def get_output_path(self):
         return self.output_path
 
-    def wrap_up_trick(self, player_order):
+    def wrap_up_trick(self, player_order: list) -> int:
+        """
+        helper function for when a trick finished
+        :param player_order: list of players in turn order
+        :return: winner of wrapped up trick
+        """
         winner = self.trick_winner(self.played_cards, self.trump)
         self.played_round.append(self.played_cards)
         player_order[winner].trick_wins += 1
         self.played_cards = []
         return winner
 
-    def play_till_player(self, player_order: list, player_limit: int):
-        winner = self.wrap_up_trick(player_order)
-        player_order = player_order[winner:] + player_order[:winner]
-        self.play_trick(player_order, 4, 0, player_limit=player_limit)
+    # def play_till_player(self, player_order: list, player_limit: int):
+    #     winner = self.wrap_up_trick(player_order)
+    #     player_order = player_order[winner:] + player_order[:winner]
+    #     self.play_trick(player_order, 4, 0, player_limit=player_limit)

@@ -17,7 +17,11 @@ def parse_args() -> argparse.Namespace:
 
 
 def plot_accuracy(
-    x_values: list, y_values:list, names: list, save_folder:str, name: str,
+    x_values: list,
+    y_values: list,
+    names: list,
+    save_folder: str,
+    name: str,
 ) -> None:
     print(x_values, y_values, names)
     fig = plt.figure()
@@ -67,11 +71,13 @@ if __name__ == "__main__":
                         if line.startswith("Wins: "):
                             win_dir.append(int(line[8:].split(",")[0]))
                         if line.startswith("Scores: "):
-                            score.append([round(float(x), 2) for x in line[10:-2].split(",")])
+                            score.append(
+                                [round(float(x), 2) for x in line[10:-2].split(",")]
+                            )
                             rel_score.append(round(score[-1][0] - max(score[-1]), 2))
                             my_score.append(score[-1][0])
                     iters = lines[2][7:]
-                    accuracy = total_corr/20000
+                    accuracy = total_corr / 20000
 
                     x.append(iters)
                     y.append(accuracy)

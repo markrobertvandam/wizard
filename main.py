@@ -120,8 +120,9 @@ def avg_n_games(
     player_epsilon: float,
     iters_done: int,
 ) -> None:
+    print("Verb: ", verbose)
     input_size_guess = 68
-    input_size_play = 195
+    input_size_play = 3795
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
     playing_agent = PlayingAgent(input_size=input_size_play, verbose=verbose)
     if model_path is not None:
@@ -263,6 +264,7 @@ def avg_n_games(
 
 if __name__ == "__main__":
     args = parse_args()
+    print("Verbose: ", args.verbose)
     avg_n_games(
         args.games,
         args.runtype,

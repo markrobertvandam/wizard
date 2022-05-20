@@ -37,35 +37,51 @@ def write_state(play_state, output_path, input_size, actual=False):
         f.write("Hand2: " + str(np.nonzero(play_state[60:120])[0].tolist()) + "\n")
         f.write("Hand3: " + str(np.nonzero(play_state[120:180])[0].tolist()) + "\n")
         current_pos = 180
-    f.write("Trump: " + str(play_state[current_pos:current_pos + 5]) + "\n")
+    f.write("Trump: " + str(play_state[current_pos : current_pos + 5]) + "\n")
     current_pos += 5
 
     # if old
     if input_size == 3731:
-        f.write("Guesses: " + str(play_state[current_pos:current_pos + 2]) + "\n")
+        f.write("Guesses: " + str(play_state[current_pos : current_pos + 2]) + "\n")
         current_pos += 2
     else:
-        f.write("Guesses: " + str(play_state[current_pos:current_pos + 3]) + "\n")
+        f.write("Guesses: " + str(play_state[current_pos : current_pos + 3]) + "\n")
         current_pos += 3
     f.write("Round: " + str(play_state[current_pos]) + "\n")
-    f.write("Tricks needed: " + str(play_state[current_pos+1]) + "\n")
+    f.write("Tricks needed: " + str(play_state[current_pos + 1]) + "\n")
     current_pos += 2
 
-    f.write("Tricks needed others: " + str(play_state[current_pos:current_pos+2]) + "\n")
+    f.write(
+        "Tricks needed others: " + str(play_state[current_pos : current_pos + 2]) + "\n"
+    )
     current_pos += 2
 
     # if not old
     if input_size != 3731:
-        f.write("Order: " + str(play_state[current_pos:current_pos+3]) + "\n")
-        f.write("played trick: " + str(np.nonzero(play_state[current_pos+3:current_pos+123])[0].tolist()) + "\n")
+        f.write("Order: " + str(play_state[current_pos : current_pos + 3]) + "\n")
+        f.write(
+            "played trick: "
+            + str(
+                np.nonzero(play_state[current_pos + 3 : current_pos + 123])[0].tolist()
+            )
+            + "\n"
+        )
         current_pos += 123
     else:
-        f.write("played trick: " + str(np.nonzero(play_state[current_pos:current_pos + 60])[0].tolist()) + "\n")
+        f.write(
+            "played trick: "
+            + str(np.nonzero(play_state[current_pos : current_pos + 60])[0].tolist())
+            + "\n"
+        )
         current_pos += 60
 
     # if not small
     if input_size > 3600:
-        f.write("played round: " + str(np.nonzero(play_state[current_pos:])[0].tolist()) + "\n")
+        f.write(
+            "played round: "
+            + str(np.nonzero(play_state[current_pos:])[0].tolist())
+            + "\n"
+        )
     f.close()
 
 

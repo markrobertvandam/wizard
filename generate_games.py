@@ -13,7 +13,9 @@ def parse_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description="Generate n-games")
     parser.add_argument("games", help="How many games to generate", type=int)
-    parser.add_argument("folder", help="Where to save decks and player orders", type=str)
+    parser.add_argument(
+        "folder", help="Where to save decks and player orders", type=str
+    )
 
     return parser.parse_args()
 
@@ -25,7 +27,7 @@ def write_decks(n):
             full_deck.append((suit, card_value))
 
     shuffled_decks = []
-    for i in range(20*n):
+    for i in range(20 * n):
         shuffled_decks.append(random.sample(full_deck, 60))
 
     return shuffled_decks
@@ -46,9 +48,9 @@ def main():
     players = write_orders(args.games)
     if not os.path.exists(args.folder):
         os.mkdir(args.folder)
-    with open(os.path.join(args.folder, "decks.pkl"), 'wb+') as f:
+    with open(os.path.join(args.folder, "decks.pkl"), "wb+") as f:
         pickle.dump(decks, f)
-    with open(os.path.join(args.folder, "players.pkl"), 'wb+') as f:
+    with open(os.path.join(args.folder, "players.pkl"), "wb+") as f:
         pickle.dump(players, f)
     # decks = pickle.load(open("test/decks.pkl", "rb"))
     # players = pickle.load(open("test/players.pkl", "rb"))

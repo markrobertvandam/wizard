@@ -62,8 +62,15 @@ def learned_n_games(
     use_agent: bool,
 ) -> None:
 
-    input_sizes = {"cheater": (188, 3915), "porder": (68, 3795), "old": (68, 3731), "small": (68, 195),
-                   "random": (68, 195), "random_player": (68, 195), "random_guesser": (68, 3795)}
+    input_sizes = {
+        "cheater": (188, 3915),
+        "porder": (68, 3795),
+        "old": (68, 3731),
+        "small": (68, 195),
+        "random": (68, 195),
+        "random_player": (68, 195),
+        "random_guesser": (68, 3795),
+    }
 
     # Make the deck
     full_deck = []
@@ -118,8 +125,10 @@ def learned_n_games(
     total_distribution = np.zeros(21, dtype=int)
 
     for game_instance in range(1, n + 1):
-        shuffled_decks = all_decks[(game_instance-1)*20:(game_instance-1)*20+20]
-        shuffled_players = all_players[game_instance-1]
+        shuffled_decks = all_decks[
+            (game_instance - 1) * 20 : (game_instance - 1) * 20 + 20
+        ]
+        shuffled_players = all_players[game_instance - 1]
         off_game, scores, offs, distribution = play_game(
             full_deck,
             deck_dict,
