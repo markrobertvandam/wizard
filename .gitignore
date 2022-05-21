@@ -3,3 +3,6 @@ venv/
 __pycache__/
 models/
 plots/
+comp/
+test/
+state_err1.txt
