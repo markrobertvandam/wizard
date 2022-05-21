@@ -1,0 +1,197 @@
+/home/s3135152/generated_games /home/s3135152/test
+Dir: mcts_medium_porder
+Iters: 4000
+
+The following have been reloaded with a version change:
+  1) FFTW/3.3.8-gompic-2020b => FFTW/3.3.8-gompi-2020a
+  2) GCC/10.2.0 => GCC/9.3.0
+  3) GCCcore/10.2.0 => GCCcore/9.3.0
+  4) GMP/6.2.0-GCCcore-10.2.0 => GMP/6.2.0-GCCcore-9.3.0
+  5) OpenBLAS/0.3.12-GCC-10.2.0 => OpenBLAS/0.3.9-GCC-9.3.0
+  6) OpenMPI/4.0.5-gcccuda-2020b => OpenMPI/4.0.3-GCC-9.3.0
+  7) Python/3.8.6-GCCcore-10.2.0 => Python/3.8.2-GCCcore-9.3.0
+  8) SQLite/3.33.0-GCCcore-10.2.0 => SQLite/3.31.1-GCCcore-9.3.0
+  9) ScaLAPACK/2.1.0-gompic-2020b => ScaLAPACK/2.1.0-gompi-2020a
+ 10) SciPy-bundle/2020.11-fosscuda-2020b => SciPy-bundle/2020.03-foss-2020a-Python-3.8.2
+ 11) Tcl/8.6.10-GCCcore-10.2.0 => Tcl/8.6.10-GCCcore-9.3.0
+ 12) UCX/1.9.0-GCCcore-10.2.0-CUDA-11.1.1 => UCX/1.8.0-GCCcore-9.3.0
+ 13) XZ/5.2.5-GCCcore-10.2.0 => XZ/5.2.5-GCCcore-9.3.0
+ 14) binutils/2.35-GCCcore-10.2.0 => binutils/2.34-GCCcore-9.3.0
+ 15) bzip2/1.0.8-GCCcore-10.2.0 => bzip2/1.0.8-GCCcore-9.3.0
+ 16) hwloc/2.2.0-GCCcore-10.2.0 => hwloc/2.2.0-GCCcore-9.3.0
+ 17) libffi/3.3-GCCcore-10.2.0 => libffi/3.3-GCCcore-9.3.0
+ 18) libpciaccess/0.16-GCCcore-10.2.0 => libpciaccess/0.16-GCCcore-9.3.0
+ 19) libpng/1.6.37-GCCcore-10.2.0 => libpng/1.6.37-GCCcore-9.3.0
+ 20) libreadline/8.0-GCCcore-10.2.0 => libreadline/8.0-GCCcore-9.3.0
+ 21) libxml2/2.9.10-GCCcore-10.2.0 => libxml2/2.9.10-GCCcore-9.3.0
+ 22) ncurses/6.2-GCCcore-10.2.0 => ncurses/6.2-GCCcore-9.3.0
+ 23) numactl/2.0.13-GCCcore-10.2.0 => numactl/2.0.13-GCCcore-9.3.0
+ 24) pybind11/2.6.0-GCCcore-10.2.0 => pybind11/2.4.3-GCCcore-9.3.0-Python-3.8.2
+ 25) zlib/1.2.11-GCCcore-10.2.0 => zlib/1.2.11-GCCcore-9.3.0
+
+mcts_medium_porder models/mcts_medium_porder/guessing68_839_0.34_4000.model/ models/mcts_medium_porder/playing_839_0.34_4000.model/
+2022-05-13 20:57:26.473366: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcudart.so.11.0
+2022-05-13 21:10:40.223835: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcuda.so.1'; dlerror: libcuda.so.1: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /software/software/matplotlib/3.2.1-foss-2020a-Python-3.8.2/lib:/software/software/Tkinter/3.8.2-GCCcore-9.3.0/lib:/software/software/Tk/8.6.10-GCCcore-9.3.0/lib:/software/software/X11/20200222-GCCcore-9.3.0/lib:/software/software/fontconfig/2.13.92-GCCcore-9.3.0/lib:/software/software/util-linux/2.35-GCCcore-9.3.0/lib:/software/software/expat/2.2.9-GCCcore-9.3.0/lib:/software/software/freetype/2.10.1-GCCcore-9.3.0/lib:/software/software/libpng/1.6.37-GCCcore-9.3.0/lib:/software/software/zlib/1.2.11-GCCcore-9.3.0/lib:/software/software/GCCcore/9.3.0/lib/gcc/x86_64-pc-linux-gnu/9.3.0:/software/software/GCCcore/9.3.0/lib64:/software/software/GCCcore/9.3.0/lib:/software/software/SciPy-bundle/2020.03-foss-2020a-Python-3.8.2/lib/python3.8/site-packages/numpy/core/lib:/software/software/SciPy-bundle/2020.03-foss-2020a-Python-3.8.2/lib:/software/software/Python/3.8.2-GCCcore-9.3.0/lib:/software/software/libffi/3.3-GCCcore-9.3.0/lib64:/software/software/libffi/3.3-GCCcore-9.3.0/lib:/software/software/GMP/6.2.0-GCCcore-9.3.0/lib:/software/software/XZ/5.2.5-GCCcore-9.3.0/lib:/software/software/SQLite/3.31.1-GCCcore-9.3.0/lib:/software/software/Tcl/8.6.10-GCCcore-9.3.0/lib:/software/software/libreadline/8.0-GCCcore-9.3.0/lib:/software/software/ncurses/6.2-GCCcore-9.3.0/lib:/software/software/bzip2/1.0.8-GCCcore-9.3.0/lib:/software/software/binutils/2.34-GCCcore-9.3.0/lib:/software/software/ScaLAPACK/2.1.0-gompi-2020a/lib:/software/software/OpenBLAS/0.3.9-GCC-9.3.0/lib:/software/software/FFTW/3.3.8-gompi-2020a/lib:/software/software/OpenMPI/4.0.3-GCC-9.3.0/lib:/software/software/UCX/1.8.0-GCCcore-9.3.0/lib:/software/software/numactl/2.0.13-GCCcore-9.3.0/lib:/software/software/hwloc/2.2.0-GCCcore-9.3.0/lib:/software/software/libpciaccess/0.16-GCCcore-9.3.0/lib:/software/software/libxml2/2.9.10-GCCcore-9.3.0/lib:/software/software/TensorFlow/2.5.0-fosscuda-2020b/lib:/software/software/snappy/1.1.8-GCCcore-10.2.0/lib:/software/software/protobuf/3.14.0-GCCcore-10.2.0/lib:/software/software/PCRE/8.44-GCCcore-10.2.0/lib:/software/software/nsync/1.24.0-GCCcore-10.2.0/lib:/software/software/LMDB/0.9.24-GCCcore-10.2.0/lib:/software/software/libjpeg-turbo/2.0.5-GCCcore-10.2.0/lib:/software/software/JsonCpp/1.9.4-GCCcore-10.2.0/lib:/software/software/ICU/67.1-GCCcore-10.2.0/lib:/software/software/giflib/5.2.1-GCCcore-10.2.0/lib:/software/software/flatbuffers/1.12.0-GCCcore-10.2.0/lib:/software/software/double-conversion/3.1.5-GCCcore-10.2.0/lib:/software/software/cURL/7.72.0-GCCcore-10.2.0/lib:/software/software/HDF5/1.10.7-gompic-2020b/lib:/software/software/Szip/2.1.1-GCCcore-10.2.0/lib:/software/software/NCCL/2.8.3-GCCcore-10.2.0-CUDA-11.1.1/lib:/software/software/cuDNN/8.0.4.30-CUDA-11.1.1/lib:/software/software/libfabric/1.11.0-GCCcore-10.2.0/lib:/software/software/GDRCopy/2.1-GCCcore-10.2.0-CUDA-11.1.1/lib:/software/software/Check/0.15.2-GCCcore-10.2.0/lib:/software/software/libevent/2.1.12-GCCcore-10.2.0/lib:/software/software/CUDAcore/11.1.1/nvvm/lib64:/software/software/CUDAcore/11.1.1/extras/CUPTI/lib64:/software/software/CUDAcore/11.1.1/lib
+2022-05-13 21:10:40.235205: W tensorflow/stream_executor/cuda/cuda_driver.cc:326] failed call to cuInit: UNKNOWN ERROR (303)
+2022-05-13 21:10:40.235286: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:156] kernel driver does not appear to be running on this host (pg-node032): /proc/driver/nvidia/version does not exist
+2022-05-13 21:10:40.236425: I tensorflow/core/common_runtime/process_util.cc:146] Creating new thread pool with default inter op setting: 2. Tune using inter_op_parallelism_threads for best performance.
+2022-05-13 21:10:45.950086: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:176] None of the MLIR Optimization Passes are enabled (registered 2)
+2022-05-13 21:10:45.950676: I tensorflow/core/platform/profile_utils/cpu_utils.cc:114] CPU Frequency: 2499965000 Hz
+4000 200 60 3
+Pair:  models/mcts_medium_porder/guessing68_839_0.34_4000.model/ models/mcts_medium_porder/playing_839_0.34_4000.model/
+Game instance:  1
+Game instance:  2
+Game instance:  3
+Game instance:  4
+Game instance:  5
+Game instance:  6
+Game instance:  7
+Game instance:  8
+Game instance:  9
+Game instance:  10
+Agents: (<Guessing_Agent.GuessingAgent object at 0x7fa1eec730d0>, <Playing_Agent.PlayingAgent object at 0x7fa1eec73100>), Game 10, accuracy: 0.285, Last10: [57 74 47 14  5  1  2  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+Game instance:  11
+Game instance:  12
+Game instance:  13
+Game instance:  14
+Game instance:  15
+Game instance:  16
+Game instance:  17
+Game instance:  18
+Game instance:  19
+Game instance:  20
+Agents: (<Guessing_Agent.GuessingAgent object at 0x7fa1eec730d0>, <Playing_Agent.PlayingAgent object at 0x7fa1eec73100>), Game 20, accuracy: 0.34, Last10: [68 73 37 16  4  1  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+Game instance:  21
+Game instance:  22
+Game instance:  23
+Game instance:  24
+Game instance:  25
+Game instance:  26
+Game instance:  27
+Game instance:  28
+Game instance:  29
+Game instance:  30
+Agents: (<Guessing_Agent.GuessingAgent object at 0x7fa1eec730d0>, <Playing_Agent.PlayingAgent object at 0x7fa1eec73100>), Game 30, accuracy: 0.335, Last10: [67 83 37  6  7  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+Game instance:  31
+Game instance:  32
+Game instance:  33
+Game instance:  34
+Game instance:  35
+Game instance:  36
+Game instance:  37
+Game instance:  38
+Game instance:  39
+Game instance:  40
+Agents: (<Guessing_Agent.GuessingAgent object at 0x7fa1eec730d0>, <Playing_Agent.PlayingAgent object at 0x7fa1eec73100>), Game 40, accuracy: 0.355, Last10: [71 69 35 17  6  2  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+Game instance:  41
+Game instance:  42
+Game instance:  43
+Game instance:  44
+Game instance:  45
+Game instance:  46
+Game instance:  47
+Game instance:  48
+Game instance:  49
+Game instance:  50
+Agents: (<Guessing_Agent.GuessingAgent object at 0x7fa1eec730d0>, <Playing_Agent.PlayingAgent object at 0x7fa1eec73100>), Game 50, accuracy: 0.35, Last10: [70 82 32 10  4  1  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+Game instance:  51
+Game instance:  52
+Game instance:  53
+Game instance:  54
+Game instance:  55
+Game instance:  56
+Game instance:  57
+Game instance:  58
+Game instance:  59
+Game instance:  60
+Agents: (<Guessing_Agent.GuessingAgent object at 0x7fa1eec730d0>, <Playing_Agent.PlayingAgent object at 0x7fa1eec73100>), Game 60, accuracy: 0.35, Last10: [70 81 36  6  6  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+Game instance:  61
+Game instance:  62
+Game instance:  63
+Game instance:  64
+Game instance:  65
+Game instance:  66
+Game instance:  67
+Game instance:  68
+Game instance:  69
+Game instance:  70
+Agents: (<Guessing_Agent.GuessingAgent object at 0x7fa1eec730d0>, <Playing_Agent.PlayingAgent object at 0x7fa1eec73100>), Game 70, accuracy: 0.315, Last10: [63 69 41 19  6  1  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+Game instance:  71
+Game instance:  72
+Game instance:  73
+Game instance:  74
+Game instance:  75
+Game instance:  76
+Game instance:  77
+Game instance:  78
+Game instance:  79
+Game instance:  80
+Agents: (<Guessing_Agent.GuessingAgent object at 0x7fa1eec730d0>, <Playing_Agent.PlayingAgent object at 0x7fa1eec73100>), Game 80, accuracy: 0.315, Last10: [63 87 28 17  5  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+Game instance:  81
+Game instance:  82
+Game instance:  83
+Game instance:  84
+Game instance:  85
+Game instance:  86
+Game instance:  87
+Game instance:  88
+Game instance:  89
+Game instance:  90
+Agents: (<Guessing_Agent.GuessingAgent object at 0x7fa1eec730d0>, <Playing_Agent.PlayingAgent object at 0x7fa1eec73100>), Game 90, accuracy: 0.37, Last10: [74 80 29 11  4  2  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+Game instance:  91
+Game instance:  92
+Game instance:  93
+Game instance:  94
+Game instance:  95
+Game instance:  96
+Game instance:  97
+Game instance:  98
+Game instance:  99
+Game instance:  100
+Agents: (<Guessing_Agent.GuessingAgent object at 0x7fa1eec730d0>, <Playing_Agent.PlayingAgent object at 0x7fa1eec73100>), Game 100, accuracy: 0.35, Last10: [70 72 43  7  6  1  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+Pair:  ('models/mcts_medium_porder/guessing68_839_0.34_4000.model/', 'models/mcts_medium_porder/playing_839_0.34_4000.model/')
+Scores:  [64.2, 125.10000000000002, 154.5]
+Wins:  [16, 37, 49]
+Mistakes (high guess, low guess):  [581, 746]
+
+
+###############################################################################
+Peregrine Cluster
+Job 24039817 for user 's3135152'
+Finished at: Fri May 13 22:58:24 CEST 2022
+
+Job details:
+============
+
+Job ID              : 24039794_17
+Name                : multi_comp.sh
+User                : s3135152
+Partition           : regular
+Nodes               : pg-node032
+Number of Nodes     : 1
+Cores               : 1
+Number of Tasks     : 1
+State               : COMPLETED
+Submit              : 2022-05-13T20:56:17
+Start               : 2022-05-13T20:57:14
+End                 : 2022-05-13T22:58:24
+Reserved walltime   : 02:30:00
+Used walltime       : 02:01:10
+Used CPU time       : 01:47:48 (efficiency: 88.97%)
+% User (Computation): 99.54%
+% System (I/O)      :  0.47%
+Mem reserved        : 2G
+Max Mem (Node/step) : 459.68M (pg-node032, per node)
+Full Max Mem usage  : 459.68M
+Total Disk Read     : 3.39M
+Total Disk Write    : 178.90K
+
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Peregrine in your publications:
+
+https://wiki.hpc.rug.nl/peregrine/introduction/scientific_output
+
+################################################################################
