@@ -59,6 +59,7 @@ def learned_n_games(
         "porder": (68, 3795),
         "old": (68, 3731),
         "small": (68, 195),
+        "smallcheater": (188, 315),
         "random": (68, 195),
         "random_player": (68, 195),
         "random_guesser": (68, 3795),

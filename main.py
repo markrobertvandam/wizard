@@ -119,9 +119,8 @@ def avg_n_games(
     player_epsilon: float,
     iters_done: int,
 ) -> None:
-    print("Verb: ", verbose)
-    input_size_guess = 68
-    input_size_play = 3795
+    input_size_guess = 188
+    input_size_play = 315
 
     name = None
     if save_folder != "":
@@ -269,7 +268,6 @@ def avg_n_games(
 
 if __name__ == "__main__":
     args = parse_args()
-    print("Verbose: ", args.verbose)
     avg_n_games(
         args.games,
         args.runtype,
