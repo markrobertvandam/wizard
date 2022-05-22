@@ -15,9 +15,10 @@ MINIBATCH_SIZE = 32  # How many steps (samples) to use for training
 
 # Agent class
 class PlayingNetwork:
-    def __init__(self, input_size):
+    def __init__(self, input_size, name):
 
         self.input_size = input_size
+        self.name = name
 
         # Main model
         self.model = self.create_model()
@@ -36,8 +37,12 @@ class PlayingNetwork:
         #
         # combined = concatenate([input1, input2])
         if self.input_size > 3000:
-            x = self.dense_layer(2048)(input1)
-            # x = self.dense_layer(1024)(input1)
+            if self.name == "small":
+                x = self.dense_layer(1024)(input1)
+            else:
+                x = self.dense_layer(2048)(input1)
+            if self.name == "large":
+                x = self.dense_layer(1024)(x)
             x = self.dense_layer(512)(x)
             x = self.dense_layer(256)(x)
             x = self.dense_layer(128)(x)

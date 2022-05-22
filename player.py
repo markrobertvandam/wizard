@@ -141,7 +141,7 @@ class Player:
             key_state = self.play_agent.state_to_key(state_space)
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
-                self.play_agent.parent_node = Node(key_state, root=1, expanded=True)
+                self.play_agent.parent_node = Node(key_state, root=1)
 
             self.play_agent.expand(
                 legal_cards,

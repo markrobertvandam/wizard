@@ -122,8 +122,15 @@ def avg_n_games(
     print("Verb: ", verbose)
     input_size_guess = 68
     input_size_play = 3795
+
+    name = None
+    if save_folder != "":
+        name = save_folder.split("_")[1]
+    elif player_model is not None:
+        name = player_model.split("/")[0].split("_")[1]
+
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
-    playing_agent = PlayingAgent(input_size=input_size_play, verbose=verbose)
+    playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
     if model_path is not None:
         guess_agent.model = tf.keras.models.load_model(
             os.path.join("models", model_path)

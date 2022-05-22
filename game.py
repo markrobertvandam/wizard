@@ -304,7 +304,8 @@ class Game:
         """
         if (
             player.guess_agent.input_size == 188
-            and player.play_agent.input_size == 3915
+            and (player.play_agent.input_size == 3915 or
+                 player.play_agent.input_size == 315)
         ):
             # Cheating player sees all three hands
             one_hot_hand = 60 * [0]

@@ -44,7 +44,7 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
     f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
     current_pos = 60
     # if cheater
-    if input_size == 3915:
+    if input_size == 3915 or input_size == 315:
         f.write("Hand2: " + str(np.nonzero(play_state[60:120])[0].tolist()) + "\n")
         f.write("Hand3: " + str(np.nonzero(play_state[120:180])[0].tolist()) + "\n")
         current_pos = 180
@@ -98,12 +98,12 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
 
 # Agent class
 class PlayingAgent:
-    def __init__(self, input_size: int, verbose=0):
+    def __init__(self, input_size: int, name: str, verbose=0):
 
         self.game = None
         self.input_size = input_size
         self.nodes = dict()
-        self.network_policy = PlayingNetwork(input_size)
+        self.network_policy = PlayingNetwork(input_size, name)
         self.verbose = verbose
         self.counter = 0
         self.parent_node = None
@@ -217,7 +217,7 @@ class PlayingAgent:
         self,
         legal_moves: list,
         player_order: list,
-        game_instance: game.Game,
+        game_instance,
         requested_color: int,
         played_cards: list,
         player_hand: list,
@@ -262,7 +262,7 @@ class PlayingAgent:
         self,
         move: tuple,
         player_order: list,
-        game_instance: game.Game,
+        game_instance,
         requested_color: int,
         played_cards: list,
         run_type: str,
@@ -348,7 +348,7 @@ class PlayingAgent:
             self.last_terminal_node = self.nodes[key_state]
 
     @staticmethod
-    def temp_game(game_instance, played_cards) -> game.Game:
+    def temp_game(game_instance, played_cards):
         """
         returns a temporary copy of game_instance to simulate different plays
         :param game_instance: the game to copy
