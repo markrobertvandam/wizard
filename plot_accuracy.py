@@ -23,18 +23,21 @@ def plot_accuracy(
     save_folder: str,
     name: str,
 ) -> None:
-    print(x_values, y_values, names)
     fig = plt.figure()
+    x_values_ticks = x_values[::2]
     for i in range(len(x_values)):
         plt.plot(x_values[i], y_values[i], label=names[i], linestyle="-")
     plt.xlabel("Iterations (n)", fontsize=13)
+    plt.xticks(fontsize=8)
+    axes = fig.add_axes([1, 1, 1, 1])
+    axes.set_xticks(x_values_ticks)
     if name == "accuracy":
         plt.ylabel("Accuracy in %", fontsize=13)
     elif name == "wins":
         plt.ylabel("Wins of 1000 games", fontsize=13)
     elif name == "relative_scores":
         plt.ylabel("Avg. score diff to winning heuristic", fontsize=13)
-    fig.legend()
+    fig.legend("right", fontsize=13)
     fig.savefig(f"wizard/plots/{save_folder}/{name}_plot")
     plt.close()
 
