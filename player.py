@@ -12,6 +12,7 @@ class Player:
     def __init__(
         self,
         player_name: str,
+        deck_dict: dict,
         player_type="random",
         guess_agent=None,
         play_agent=None,
@@ -22,6 +23,7 @@ class Player:
         self.verbose = verbose
         self.player_name = player_name
         self.hand = []
+        self.deck_dict = deck_dict
         self.idx_dict = dict()
         self.win_cards = []
         self.player_guesses = 0
@@ -92,9 +94,11 @@ class Player:
                 print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
 
             # NODE IS HERE BEFORE PLAY
+            # print("Learning agent is picking a card...")
 
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
+                # print("its a root node! (hand length equals round)")
                 if (
                     self.play_agent.state_to_key(state_space)
                     not in self.play_agent.nodes.keys()
@@ -114,13 +118,14 @@ class Player:
 
                 if np.random.random() > self.player_epsilon:
                     # evaluate the best state
-                    card = self.play_agent.predict()
+                    card = self.play_agent.predict(self.deck_dict)
                 else:
                     # rollout till end of game
                     card = self.play_agent.rollout_policy()
 
             # its a child, either terminal or not
             else:
+                # print("its a child node!, hand length and round: ", len(self.hand), game_instance.game_round)
                 # expand in case of unseen children, then predict best move
                 self.play_agent.expand(
                     legal_cards,
@@ -131,11 +136,15 @@ class Player:
                     self.hand,
                 )
                 if np.random.random() > self.player_epsilon:
+                    # print("get card from prediction")
                     # evaluate the best state
-                    card = self.play_agent.predict()
+                    card = self.play_agent.predict(self.deck_dict)
+                    # print("obtained card: ", card)
                 else:
+                    # print("get card from rollout: ")
                     # rollout till end of game
                     card = self.play_agent.rollout_policy()
+                    # print("obtained card: ", card)
 
         elif self.player_type == "learned" and self.play_agent.trained:
             key_state = self.play_agent.state_to_key(state_space)
@@ -153,7 +162,7 @@ class Player:
                 run_type="learned",
             )
             # get action from network
-            card = self.play_agent.predict()
+            card = self.play_agent.predict(self.deck_dict)
 
         # Play the only legal card if theres only one
         elif len(legal_cards) == 1:
@@ -202,7 +211,8 @@ class Player:
                                 ):
                                     card = card_option
                                     break
-
+        # print("CARD AT THIS MOMENT IS: ", card)
+        # print("Player type is:", self.player_type)
         if card is None:
             card = legal_cards[0]
             # card = random.choice(legal_cards)
@@ -214,12 +224,25 @@ class Player:
             print("Card not in hand? error..")
             print(legal_cards, card, self.idx_dict)
 
+        elif self.idx_dict[card] > len(self.hand) - 1:
+            print("out of range!")
+            print("Actual hand: ", self.hand)
+            print("Requested index and card: ", self.idx_dict[card], card)
+            print("Legal moves:", legal_cards)
+
         elif card != self.hand[self.idx_dict[card]]:
             print("Oh no! it went wrong!, card is not at that index?")
+            print("Card to remove: ", card)
+            print("Index it is supposedly at: ", self.idx_dict[card])
+            print("Actual hand:", self.hand)
+            print("Legal moves:", legal_cards)
             self.hand.remove(card)
 
         else:
+            # print("Deleting card...", card)
             del self.hand[self.idx_dict[card]]
+            # print("Hand after deletion: ", self.hand)
+
         return card
 
     def guess_wins(self, max_guesses: int, trump: int, state_space=None) -> int:

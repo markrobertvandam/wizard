@@ -32,6 +32,7 @@ class Game:
         self.game_round = 1
         self.player1 = Player(
             "player1",
+            deck_dict,
             run_type,
             guess_agent,
             playing_agent,
@@ -458,13 +459,13 @@ class Game:
                 if player.player_type == "learning":
                     player.update_agent(100)
                     player.play_agent.backpropagate(
-                        player.play_agent.last_terminal_node, 100
+                        player.play_agent.last_terminal_node, self.deck_dict, 100
                     )
             else:
                 if player.player_type == "learning":
                     player.update_agent(0)
                     player.play_agent.backpropagate(
-                        player.play_agent.last_terminal_node, 0
+                        player.play_agent.last_terminal_node, self.deck_dict, 100
                     )
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":

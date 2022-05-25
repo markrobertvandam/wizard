@@ -158,7 +158,7 @@ class PlayingAgent:
         return self.parent_node.card
 
     # function for backpropagation
-    def backpropagate(self, node: Node, result: int) -> None:
+    def backpropagate(self, node: Node, deck_dict: dict, result: int, done=True) -> None:
         self.counter += 1
         if self.counter % 2000 == 0:
             print(self.counter)
@@ -167,36 +167,32 @@ class PlayingAgent:
         node.wins += result / 100
         if self.verbose >= 3:
             print("Node card: ", node.card)
-        self.network_policy.update_replay_memory([node.state, result])
+        action = deck_dict[node.card]
+        self.network_policy.update_replay_memory([node.parent.state, action, result, node.state, done])
         self.network_policy.train()
-        self.backpropagate(node.parent, result)
+        self.backpropagate(node.parent, deck_dict, result, False)
 
-    def best_child(self, node: Node) -> tuple:
-        best_child = node.children[0]
-        max_value = self.evaluate_state(best_child)
-        for child in node.children[1:]:
-            value = self.evaluate_state(child)
-            if value > max_value:
-                best_child = child
-                max_value = value
-            elif value == max_value and random.getrandbits(1):
-                best_child = child
-                max_value = value
-        self.parent_node = best_child
+    def best_child(self, node: Node, deck_dict: dict) -> tuple:
+        q_vals = self.network_policy.get_qs(node.state)
+        legal_moves = [child.card for child in node.children]
+        card_indexes = [deck_dict[card] for card in legal_moves]
+        legal_q_vals = [q_vals[index] for index in card_indexes]
+        best_child = np.argmax(legal_q_vals)
+        card = legal_moves[best_child]
 
-        return best_child.card
+        self.parent_node = [child for child in node.children if child.card == card][0]
+        if card != self.parent_node.card:
+            print("ERROOR ERROORR ERRORR")
+            exit()
+        return card
 
-    def evaluate_state(self, node: Node) -> float:
-        sparse_state = self.key_to_state(self.input_size, node.state)
-        return self.network_policy.predict(sparse_state)
-
-    def predict(self) -> tuple:
+    def predict(self, deck_dict: dict) -> tuple:
         """
         Use network to get best move
         :return:
         """
         node = self.parent_node
-        return self.best_child(node)
+        return self.best_child(node, deck_dict)
 
     def unseen_state(self, play_state: np.ndarray) -> None:
         """
@@ -347,6 +343,7 @@ class PlayingAgent:
         if terminal_node and run_type == "learning":
             self.last_terminal_node = self.nodes[key_state]
 
+        # print("End of create child, created child for move: ", move)
     @staticmethod
     def temp_game(game_instance, played_cards):
         """

@@ -119,8 +119,8 @@ def avg_n_games(
     player_epsilon: float,
     iters_done: int,
 ) -> None:
-    input_size_guess = 188
-    input_size_play = 315
+    input_size_guess = 68
+    input_size_play = 195
 
     name = None
     if save_folder != "":
