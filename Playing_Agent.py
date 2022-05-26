@@ -17,7 +17,6 @@ class Node:
     ):
         self.state = state
         self.parent = parent
-        self.wins = 0
         self.children = []
         self.root = root
 
@@ -146,16 +145,45 @@ class PlayingAgent:
         return sparse_state
 
     # function for randomly selecting a child node
-    def rollout_policy(self) -> tuple:
+    def rollout_policy(self,
+                       legal_moves: list,
+                       player_order: list,
+                       game_instance,
+                       requested_color: int,
+                       played_cards: list,
+                       player_hand: list,
+                       run_type: str,) -> tuple:
         node = self.parent_node
         if self.verbose >= 2:
             print("Rollout policy used...")
-        if len(node.children) > 0:
-            self.parent_node = random.choice(node.children)
+        if len(player_hand) == 1:
+            move = legal_moves[0]
+            child = self.create_child(move,
+                                      player_order,
+                                      game_instance,
+                                      requested_color,
+                                      played_cards,
+                                      run_type,
+                                      terminal_node=True
+                                      )
+            self.parent_node = child
+        elif len(legal_moves) > 0:
+            move = random.choice(legal_moves)
+            child = self.create_child(move,
+                                      player_order,
+                                      game_instance,
+                                      requested_color,
+                                      played_cards,
+                                      run_type,
+                                      )
+            self.parent_node = child
         else:
-            print("Parent has no children!!! oh no!")
+            print("Parent has no legal moves!")
             return tuple((0, 0))
-        return self.parent_node.card
+        if move != self.parent_node.card:
+            print("Move is not correct, move and parent move respectively are: ", move, self.parent_node.card)
+            exit()
+        return move
 
     # function for backpropagation
     def backpropagate(self, node: Node, deck_dict: dict, result: int, done=True) -> None:
@@ -163,8 +191,9 @@ class PlayingAgent:
         if self.counter % 2000 == 0:
             print(self.counter)
         if node.root:
+            # done propagating entire game, nodes can be reset
+            self.nodes = dict()
             return
-        node.wins += result / 100
         if self.verbose >= 3:
             print("Node card: ", node.card)
         action = deck_dict[node.card]
@@ -172,27 +201,83 @@ class PlayingAgent:
         self.network_policy.train()
         self.backpropagate(node.parent, deck_dict, result, False)
 
-    def best_child(self, node: Node, deck_dict: dict) -> tuple:
-        q_vals = self.network_policy.get_qs(node.state)
-        legal_moves = [child.card for child in node.children]
-        card_indexes = [deck_dict[card] for card in legal_moves]
-        legal_q_vals = [q_vals[index] for index in card_indexes]
-        best_child = np.argmax(legal_q_vals)
-        card = legal_moves[best_child]
+    def best_child(self,
+                   node: Node,
+                   deck_dict: dict,
+                   legal_moves: list,
+                   player_order: list,
+                   game_instance,
+                   requested_color: int,
+                   played_cards: list,
+                   player_hand: list,
+                   run_type: str,) -> tuple:
 
-        self.parent_node = [child for child in node.children if child.card == card][0]
-        if card != self.parent_node.card:
-            print("ERROOR ERROORR ERRORR")
+        if len(player_hand) == 1:
+            move = legal_moves[0]
+            child = self.create_child(move,
+                                      player_order,
+                                      game_instance,
+                                      requested_color,
+                                      played_cards,
+                                      run_type,
+                                      terminal_node=True
+                                      )
+            self.parent_node = child
+
+            if move != self.parent_node.card:
+                print("ERROOR ERROORR ERRORR")
+                exit()
+            return move
+
+        elif len(legal_moves) > 0:
+            q_vals = self.network_policy.get_qs(node.state)
+            card_indexes = [deck_dict[card] for card in legal_moves]
+            legal_q_vals = [q_vals[index] for index in card_indexes]
+            best_child = np.argmax(legal_q_vals)
+            move = legal_moves[best_child]
+
+            child = self.create_child(move,
+                                      player_order,
+                                      game_instance,
+                                      requested_color,
+                                      played_cards,
+                                      run_type,
+                                     )
+            self.parent_node = child
+
+            if move != self.parent_node.card:
+                print("ERROOR ERROORR ERRORR")
+                exit()
+            return move
+
+        else:
+            print("No cards in hand / no legal moves!")
             exit()
-        return card
 
-    def predict(self, deck_dict: dict) -> tuple:
+    def predict(self,
+                deck_dict: dict,
+                legal_moves: list,
+                player_order: list,
+                game_instance,
+                requested_color: int,
+                played_cards: list,
+                player_hand: list,
+                run_type: str,) -> tuple:
         """
         Use network to get best move
         :return:
         """
         node = self.parent_node
-        return self.best_child(node, deck_dict)
+        return self.best_child(node,
+                               deck_dict,
+                               legal_moves,
+                               player_order,
+                               game_instance,
+                               requested_color,
+                               played_cards,
+                               player_hand,
+                               run_type
+                               )
 
     def unseen_state(self, play_state: np.ndarray) -> None:
         """
@@ -209,51 +294,6 @@ class PlayingAgent:
         self.nodes[key_state] = root_node
         self.parent_node = root_node
 
-    def expand(
-        self,
-        legal_moves: list,
-        player_order: list,
-        game_instance,
-        requested_color: int,
-        played_cards: list,
-        player_hand: list,
-        run_type="learning",
-    ) -> None:
-        """
-        Creates child nodes for all legal moves
-        :param legal_moves: the legal moves for player in current state
-        :param player_order: list of players in turn order
-        :param game_instance: instance of Game in current state
-        :param requested_color: requested color
-        :param played_cards: cards played in trick so far
-        :param player_hand: cards in the players' hand
-        :param run_type: type of agent {"learning", "learned", "heuristic", "random"}
-        :return:
-        """
-        if self.verbose >= 2:
-            print("Expanding the following moves: ", legal_moves)
-        if len(player_hand) > 1:
-            for move in legal_moves:
-                self.create_child(
-                    move,
-                    player_order,
-                    game_instance,
-                    requested_color,
-                    played_cards,
-                    run_type,
-                )
-        else:
-            # terminal node
-            self.create_child(
-                legal_moves[0],
-                player_order,
-                game_instance,
-                requested_color,
-                played_cards,
-                run_type,
-                terminal_node=True,
-            )
-
     def create_child(
         self,
         move: tuple,
@@ -263,7 +303,7 @@ class PlayingAgent:
         played_cards: list,
         run_type: str,
         terminal_node=False,
-    ) -> None:
+    ) -> Node:
         """
         simulates and saves a child node where the given move
         is played in the given playing state
@@ -343,7 +383,9 @@ class PlayingAgent:
         if terminal_node and run_type == "learning":
             self.last_terminal_node = self.nodes[key_state]
 
+        return node
         # print("End of create child, created child for move: ", move)
+
     @staticmethod
     def temp_game(game_instance, played_cards):
         """

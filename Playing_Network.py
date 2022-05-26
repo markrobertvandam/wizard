@@ -98,7 +98,8 @@ class PlayingNetwork:
         y = []
 
         # Now we need to enumerate our batches
-        for index, (current_state, action, reward, new_current_state, done) in enumerate(minibatch):
+        for index, (_, action, reward, _, done) in enumerate(minibatch):
+            current_state = current_states[index]
 
             # If not a terminal state, get new q from future states, otherwise set it to 0
             # almost like with Q Learning, but we use just part of equation here

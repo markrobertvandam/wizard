@@ -99,51 +99,49 @@ class Player:
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
                 # print("its a root node! (hand length equals round)")
-                if (
-                    self.play_agent.state_to_key(state_space)
-                    not in self.play_agent.nodes.keys()
-                ):
-                    self.play_agent.unseen_state(state_space)
-                else:
-                    self.play_agent.parent_node = self.play_agent.get_node(state_space)
-                # expand either way in case of unseen children
-                self.play_agent.expand(
-                    legal_cards,
-                    player_order,
-                    game_instance,
-                    requested_color,
-                    played_cards,
-                    self.hand,
-                )
+                self.play_agent.unseen_state(state_space)
 
                 if np.random.random() > self.player_epsilon:
-                    # evaluate the best state
-                    card = self.play_agent.predict(self.deck_dict)
+                    # get move with highest q-value
+                    card = self.play_agent.predict(self.deck_dict,
+                                                   legal_cards,
+                                                   player_order,
+                                                   game_instance,
+                                                   requested_color,
+                                                   played_cards,
+                                                   self.hand,)
                 else:
-                    # rollout till end of game
-                    card = self.play_agent.rollout_policy()
+                    # rollout a random move
+                    card = self.play_agent.rollout_policy(legal_cards,
+                                                          player_order,
+                                                          game_instance,
+                                                          requested_color,
+                                                          played_cards,
+                                                          self.hand,)
 
             # its a child, either terminal or not
             else:
                 # print("its a child node!, hand length and round: ", len(self.hand), game_instance.game_round)
-                # expand in case of unseen children, then predict best move
-                self.play_agent.expand(
-                    legal_cards,
-                    player_order,
-                    game_instance,
-                    requested_color,
-                    played_cards,
-                    self.hand,
-                )
                 if np.random.random() > self.player_epsilon:
                     # print("get card from prediction")
-                    # evaluate the best state
-                    card = self.play_agent.predict(self.deck_dict)
+                    # get move with higest q-value
+                    card = self.play_agent.predict(self.deck_dict,
+                                                   legal_cards,
+                                                   player_order,
+                                                   game_instance,
+                                                   requested_color,
+                                                   played_cards,
+                                                   self.hand,)
                     # print("obtained card: ", card)
                 else:
                     # print("get card from rollout: ")
-                    # rollout till end of game
-                    card = self.play_agent.rollout_policy()
+                    # rollout a random move
+                    card = self.play_agent.rollout_policy(legal_cards,
+                                                          player_order,
+                                                          game_instance,
+                                                          requested_color,
+                                                          played_cards,
+                                                          self.hand,)
                     # print("obtained card: ", card)
 
         elif self.player_type == "learned" and self.play_agent.trained:
@@ -152,15 +150,6 @@ class Player:
             if len(self.hand) == game_instance.game_round:
                 self.play_agent.parent_node = Node(key_state, root=1)
 
-            self.play_agent.expand(
-                legal_cards,
-                player_order,
-                game_instance,
-                requested_color,
-                played_cards,
-                self.hand,
-                run_type="learned",
-            )
             # get action from network
             card = self.play_agent.predict(self.deck_dict)
 
