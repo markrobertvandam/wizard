@@ -2,6 +2,7 @@ import copy
 import game
 import numpy as np
 import random
+import time
 
 from Playing_Network import PlayingNetwork
 from scipy.sparse import coo_matrix
@@ -152,8 +153,7 @@ class PlayingAgent:
                        requested_color: int,
                        played_cards: list,
                        player_hand: list,
-                       run_type: str,) -> tuple:
-        node = self.parent_node
+                       run_type="learning",) -> tuple:
         if self.verbose >= 2:
             print("Rollout policy used...")
         if len(player_hand) == 1:
@@ -198,6 +198,7 @@ class PlayingAgent:
             print("Node card: ", node.card)
         action = deck_dict[node.card]
         self.network_policy.update_replay_memory([node.parent.state, action, result, node.state, done])
+        t1 = time.time()
         self.network_policy.train()
         self.backpropagate(node.parent, deck_dict, result, False)
 
@@ -262,7 +263,7 @@ class PlayingAgent:
                 requested_color: int,
                 played_cards: list,
                 player_hand: list,
-                run_type: str,) -> tuple:
+                run_type = "learning",) -> tuple:
         """
         Use network to get best move
         :return:

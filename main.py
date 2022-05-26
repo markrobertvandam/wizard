@@ -120,7 +120,7 @@ def avg_n_games(
     iters_done: int,
 ) -> None:
     input_size_guess = 68
-    input_size_play = 195
+    input_size_play = 3795
 
     name = None
     if save_folder != "":
@@ -145,7 +145,7 @@ def avg_n_games(
     print(playing_agent.network_policy.model.summary())
     # Exploration settings
     epsilon_decay = 0.997
-    player_decay = 0.999
+    player_decay = 0.997
     min_epsilon = 0.02
 
     # For keeping track of performance

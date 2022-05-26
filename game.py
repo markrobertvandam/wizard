@@ -3,6 +3,7 @@ from player import Player
 
 import copy
 import random
+import time
 import numpy as np
 
 
@@ -459,14 +460,15 @@ class Game:
                 if player.player_type == "learning":
                     player.update_agent(100)
                     player.play_agent.backpropagate(
-                        player.play_agent.last_terminal_node, self.deck_dict, 100
+                        player.play_agent.last_terminal_node, self.deck_dict, 1
                     )
             else:
                 if player.player_type == "learning":
                     player.update_agent(0)
                     player.play_agent.backpropagate(
-                        player.play_agent.last_terminal_node, self.deck_dict, 100
+                        player.play_agent.last_terminal_node, self.deck_dict, 0
                     )
+
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":
                     if self.verbose >= 2:

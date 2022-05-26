@@ -151,7 +151,14 @@ class Player:
                 self.play_agent.parent_node = Node(key_state, root=1)
 
             # get action from network
-            card = self.play_agent.predict(self.deck_dict)
+            card = self.play_agent.predict(self.deck_dict,
+                                           legal_cards,
+                                           player_order,
+                                           game_instance,
+                                           requested_color,
+                                           played_cards,
+                                           self.hand,
+                                           run_type="learned")
 
         # Play the only legal card if theres only one
         elif len(legal_cards) == 1:
