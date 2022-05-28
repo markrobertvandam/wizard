@@ -26,7 +26,11 @@ def plot_accuracy(
     print(x_values, y_values, names)
     fig = plt.figure()
     for i in range(len(x_values)):
-        plt.plot(x_values[i], y_values[i], label=names[i], linestyle="-")
+        if len(x_values[i]) > 1:
+            plt.plot(x_values[i], y_values[i], label=names[i], linestyle="-")
+        else:
+            # plot horizontal line for fixed agents
+            plt.axhline(y=y_values[i][0], label=names[i], linestyle="--")
     plt.xlabel("Iterations (n)", fontsize=13)
     if name == "accuracy":
         plt.ylabel("Accuracy in %", fontsize=13)
