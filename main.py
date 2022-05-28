@@ -19,7 +19,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run n-games")
     parser.add_argument("games", help="How many games to run", type=int)
     parser.add_argument(
-        "runtype",
+        "guesstype",
+        help="type of agent for player 1 (random, heuristic, learning, learned)",
+    )
+    parser.add_argument(
+        "playertype",
         help="type of agent for player 1 (random, heuristic, learning, learned)",
     )
     parser.add_argument(
@@ -108,7 +112,8 @@ def save_models(
 
 def avg_n_games(
     n: int,
-    run_type: str,
+    guess_type: str,
+    player_type: str,
     save_bool: str,
     save_folder: str,
     model_path: str,
@@ -130,16 +135,15 @@ def avg_n_games(
 
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
     playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
-    if model_path is not None:
+    if guess_type == "learned":
         guess_agent.model = tf.keras.models.load_model(
             os.path.join("models", model_path)
         )
-        guess_agent.trained = True
-    if player_model is not None:
+
+    if player_type == "learned":
         playing_agent.network_policy.model = tf.keras.models.load_model(
             os.path.join("models", player_model)
         )
-        playing_agent.trained = True
 
     print(guess_agent.model.summary())
     print(playing_agent.network_policy.model.summary())
@@ -173,11 +177,12 @@ def avg_n_games(
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
         if verbose:
             print("\nGame instance: ", game_instance)
-
+        print("Guess type: ", guess_type, "Player type: ", player_type)
         wizard = game.Game(
             full_deck,
             deck_dict,
-            run_type,
+            guess_type=guess_type,
+            player_type=player_type,
             output_path=output_path,
             guess_agent=guess_agent,
             playing_agent=playing_agent,
@@ -209,12 +214,11 @@ def avg_n_games(
             last_ten_performance *= 0
 
             # for early stopping
-            if accuracy > max_acc and run_type == "learning":
+            if accuracy > max_acc and (player_type == "learning" or guess_type == "learning"):
                 last_max = game_instance
                 max_acc = accuracy
 
-        if run_type == "learning":
-
+        if player_type == "learning" or guess_type == "learning":
             if game_instance % 1000 == 0:
                 if save_bool.startswith("y"):
                     plot_accuracy(
@@ -270,7 +274,8 @@ if __name__ == "__main__":
     args = parse_args()
     avg_n_games(
         args.games,
-        args.runtype,
+        args.guesstype,
+        args.playertype,
         args.save,
         args.save_folder,
         args.model,

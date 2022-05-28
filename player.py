@@ -13,6 +13,7 @@ class Player:
         self,
         player_name: str,
         deck_dict: dict,
+        guess_type="random",
         player_type="random",
         guess_agent=None,
         play_agent=None,
@@ -28,13 +29,16 @@ class Player:
         self.win_cards = []
         self.player_guesses = 0
         self.trick_wins = 0
+        self.guess_type = guess_type
         self.player_type = player_type
-        if self.player_type.startswith("learn"):
+        if self.guess_type.startswith("learn"):
             self.guess_agent = guess_agent
             self.guess_agent.avg_reward = 0
-            self.play_agent = play_agent
             self.current_state = None
             self.epsilon = epsilon
+
+        if self.player_type.startswith("learn"):
+            self.play_agent = play_agent
             self.player_epsilon = player_epsilon
 
     def draw_cards(self, amount: int, deck: list) -> list:
@@ -164,9 +168,7 @@ class Player:
         elif len(legal_cards) == 1:
             card = legal_cards[0]
 
-        elif self.player_type == "random" or (
-            self.player_type == "learned" and not self.play_agent.trained
-        ):
+        elif self.player_type == "random":
             card = random.choice(legal_cards)
 
         elif self.player_type == "heuristic":
@@ -249,13 +251,11 @@ class Player:
         :param state_space: observation state used for guessing agent
         :return: None
         """
-        if self.player_type == "random" or (
-            self.player_type == "learned" and not self.guess_agent.trained
-        ):
+        if self.guess_type == "random":
             self.player_guesses = random.randrange(max_guesses + 1)
         else:
             # print("im the smart one")
-            if self.player_type == "learning":
+            if self.guess_type == "learning":
                 self.current_state = state_space
                 if np.random.random() > self.epsilon:
                     # Get action from Q table
@@ -265,7 +265,7 @@ class Player:
                 else:
                     # Get random action
                     self.player_guesses = random.randrange(max_guesses + 1)
-            elif self.player_type == "learned":
+            elif self.guess_type == "learned":
                 self.current_state = state_space
                 self.player_guesses = np.argmax(self.guess_agent.get_qs(state_space))
             else:
@@ -301,7 +301,7 @@ class Player:
 
     def update_agent(self, reward):
         # safety catch
-        if self.player_type == "learning":
+        if self.guess_type == "learning":
             self.guess_agent.update_replay_memory(
                 (self.current_state, self.player_guesses, reward)
             )

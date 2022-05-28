@@ -12,7 +12,8 @@ class Game:
         self,
         full_deck: list,
         deck_dict: dict,
-        run_type: str,
+        guess_type: str,
+        player_type: str,
         shuffled_decks=None,
         shuffled_players=None,
         output_path=None,
@@ -34,7 +35,8 @@ class Game:
         self.player1 = Player(
             "player1",
             deck_dict,
-            run_type,
+            guess_type,
+            player_type,
             guess_agent,
             playing_agent,
             epsilon,
@@ -46,14 +48,14 @@ class Game:
             guess_agent_fixed = copy.copy(guess_agent)
             playing_agent_fixed = copy.copy(playing_agent)
             self.player2 = Player(
-                "player2", "learned", guess_agent_fixed, playing_agent_fixed
+                "player2", deck_dict, "learned", "learned", guess_agent_fixed, playing_agent_fixed
             )
             self.player3 = Player(
-                "player3", "learned", guess_agent_fixed, playing_agent_fixed
+                "player3", deck_dict, "learned", "learned", guess_agent_fixed, playing_agent_fixed
             )
         else:
-            self.player2 = Player("player2", "heuristic")
-            self.player3 = Player("player3", "heuristic")
+            self.player2 = Player("player2", deck_dict, "heuristic", "heuristic")
+            self.player3 = Player("player3", deck_dict, "heuristic", "heuristic")
 
         self.players = [
             self.player1,
@@ -133,16 +135,17 @@ class Game:
         # Guessing phase
         self.guesses = []  # reset guesses every round
         for player in self.players:
-            if player.player_type.startswith("learn"):
+            if player.guess_type.startswith("learn"):
                 self.guesses.append(
                     player.guess_wins(
                         self.game_round, self.trump, self.guessing_state_space(player)
                     )
                 )
-                if player.player_name == "player1":
-                    self.guess_distribution[player.get_guesses()] += 1
             else:
                 self.guesses.append(player.guess_wins(self.game_round, self.trump))
+
+            if player.player_name == "player1":
+                self.guess_distribution[player.get_guesses()] += 1
             # print("Hand: ", player.hand)
             # print("Player guess: ", player.guesses, "\n")
 
