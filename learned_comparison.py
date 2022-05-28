@@ -134,7 +134,6 @@ def learned_n_games(
             (game_instance - 1) * 20: (game_instance - 1) * 20 + 20
         ]
         shuffled_players = all_players[game_instance - 1]
-        print("Guess type: ", guess_type, "Player type: ", player_type)
         off_game, scores, offs, distribution = play_game(
             full_deck,
             deck_dict,
