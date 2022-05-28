@@ -1,4 +1,5 @@
 import argparse
+import matplotlib
 import os
 from matplotlib import pyplot as plt
 
@@ -23,8 +24,7 @@ def plot_accuracy(
     save_folder: str,
     name: str,
 ) -> None:
-    print(x_values, y_values, names)
-    fig = plt.figure()
+    fig, ax = plt.subplots()
     for i in range(len(x_values)):
         if len(x_values[i]) > 1:
             plt.plot(x_values[i], y_values[i], label=names[i], linestyle="-")
@@ -32,13 +32,17 @@ def plot_accuracy(
             # plot horizontal line for fixed agents
             plt.axhline(y=y_values[i][0], label=names[i], linestyle="--")
     plt.xlabel("Iterations (n)", fontsize=13)
+    plt.xticks(fontsize=8)
+    for n, label in enumerate(ax.xaxis.get_ticklabels()):
+        if n % 2 != 0:
+            label.set_visible(False)
     if name == "accuracy":
         plt.ylabel("Accuracy in %", fontsize=13)
     elif name == "wins":
         plt.ylabel("Wins of 1000 games", fontsize=13)
     elif name == "relative_scores":
         plt.ylabel("Avg. score diff to winning heuristic", fontsize=13)
-    fig.legend()
+    fig.legend(loc="right", fontsize=8)
     fig.savefig(f"wizard/plots/{save_folder}/{name}_plot")
     plt.close()
 
