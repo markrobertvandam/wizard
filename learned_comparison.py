@@ -86,17 +86,10 @@ def learned_n_games(
     guess_type = "random"
     player_type = "random"
 
-    if model_folder == "random_player":
-        input_size_guess = input_sizes["random_player"][0]
-        input_size_play = input_sizes["random_player"][1]
-
-    elif model_folder == "random_guesser":
-        input_size_guess = input_sizes["random_guesser"][0]
-        input_size_play = input_sizes["random_guesser"][1]
-
-    elif model_folder == "random":
-        input_size_guess = input_sizes["random"][0]
-        input_size_play = input_sizes["random"][1]
+    if model_folder in ["random_player", "random_guesser", "random",
+                        "heuristic_player", "heuristic_guesser", "heuristic"]:
+        input_size_guess = input_sizes[model_folder][0]
+        input_size_play = input_sizes[model_folder][1]
 
     else:
         input_size_guess = input_sizes[model_folder.split("_")[-1]][0]
