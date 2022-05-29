@@ -395,15 +395,28 @@ class PlayingAgent:
         :param played_cards: cards played in trick so far
         :return:
         """
+        old_guess_agent = None
+        old_epsilon = None
+
+        old_play_agent = None
+        old_play_epsilon = None
+
+        if game_instance.player1.guess_type.startswith("learn"):
+            old_guess_agent = game_instance.player1.guess_agent
+            old_epsilon = game_instance.player1.epsilon
+        if game_instance.player1.player_type.startswith("learn"):
+            old_play_agent = game_instance.player1.play_agent
+            old_play_epsilon = game_instance.player1.player_epsilon
+
         temp_game = game.Game(
             full_deck=copy.deepcopy(game_instance.full_deck),
             deck_dict=copy.deepcopy(game_instance.deck_dict),
             guess_type=copy.deepcopy(game_instance.player1.guess_type),
             player_type=copy.deepcopy(game_instance.player1.player_type),
-            guess_agent=copy.copy(game_instance.player1.guess_agent),
-            playing_agent=copy.copy(game_instance.player1.play_agent),
-            epsilon=copy.deepcopy(game_instance.player1.epsilon),
-            player_epsilon=copy.deepcopy(game_instance.player1.player_epsilon),
+            guess_agent=copy.copy(old_guess_agent),
+            playing_agent=copy.copy(old_play_agent),
+            epsilon=copy.deepcopy(old_epsilon),
+            player_epsilon=copy.deepcopy(old_play_epsilon),
             verbose=copy.deepcopy(game_instance.player1.verbose),
             use_agent=copy.deepcopy(game_instance.use_agent),
         )

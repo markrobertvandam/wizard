@@ -300,18 +300,16 @@ class Game:
 
         return strongest_card
 
-    def hand_state_space(self, player_order: list, player: Player) -> list:
+    def hand_state_space(self, player_order: list, player: Player, type: str) -> list:
         """
         returns state space representing the hand(s) of players
         :param player_order: list with the players in turn order
         :param player: the player for which state is retrieved
         :return:
         """
-        if (
-            player.guess_agent.input_size == 188
-            and (player.play_agent.input_size == 3915 or
-                 player.play_agent.input_size == 315)
-        ):
+        if (type == "guess" and player.guess_agent.input_size == 188) or \
+            (type == "play" and (player.play_agent.input_size == 3915 or
+                                 player.play_agent.input_size == 315)):
             # Cheating player sees all three hands
             one_hot_hand = 60 * [0]
             one_hot_hand2 = 60 * [0]
@@ -350,7 +348,7 @@ class Game:
         :return: guessing state space
         """
         state = []
-        state += self.hand_state_space(self.players, player)
+        state += self.hand_state_space(self.players, player, "guess")
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
         previous_guesses = self.guesses[:]
@@ -383,7 +381,7 @@ class Game:
             else:
                 print("This is a real game call!\n")
 
-        state += self.hand_state_space(player_order, player)
+        state += self.hand_state_space(player_order, player, "play")
 
         trump = [0, 0, 0, 0, 0]
         trump[self.trump] = 1
