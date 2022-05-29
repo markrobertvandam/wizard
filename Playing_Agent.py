@@ -108,7 +108,6 @@ class PlayingAgent:
         self.counter = 0
         self.parent_node = None
         self.last_terminal_node = None
-        self.trained = False
 
     def get_node(self, state_space: np.ndarray) -> Node:
         """"
@@ -358,7 +357,8 @@ class PlayingAgent:
         temp_game = game.Game(
             full_deck=copy.deepcopy(game_instance.full_deck),
             deck_dict=copy.deepcopy(game_instance.deck_dict),
-            run_type=copy.deepcopy(game_instance.player1.player_type),
+            guess_type=copy.deepcopy(game_instance.player1.guess_type),
+            player_type=copy.deepcopy(game_instance.player1.player_type),
             guess_agent=copy.copy(game_instance.player1.guess_agent),
             playing_agent=copy.copy(game_instance.player1.play_agent),
             epsilon=copy.deepcopy(game_instance.player1.epsilon),

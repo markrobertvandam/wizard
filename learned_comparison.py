@@ -61,8 +61,11 @@ def learned_n_games(
         "small": (68, 195),
         "smallcheater": (188, 315),
         "random": (68, 195),
-        "random_player": (68, 195),
-        "random_guesser": (68, 3795),
+        "random_player": (68, 1),
+        "random_guesser": (1, 3795),
+        "heuristic_player": (68, 1),
+        "heuristic_guesser": (1, 3795),
+        "heuristic": (1, 1),
     }
 
     # Make the deck
@@ -79,6 +82,9 @@ def learned_n_games(
     all_decks = pickle.load(open(f"{games_folder}/decks.pkl", "rb"))
     all_players = pickle.load(open(f"{games_folder}/players.pkl", "rb"))
     print(len(all_decks), len(all_players), len(all_decks[0]), len(all_players[0]))
+
+    guess_type = "random"
+    player_type = "random"
 
     if model_folder == "random_player":
         input_size_guess = input_sizes["random_player"][0]
@@ -100,13 +106,19 @@ def learned_n_games(
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
     playing_agent = PlayingAgent(input_size=input_size_play, verbose=verbose)
 
-    if guessing_model != "random":
-        guess_agent.model = tf.keras.models.load_model(guessing_model)
-        guess_agent.trained = True
+    if guessing_model == "heuristic" or guessing_model == "random":
+        guess_type = guessing_model
 
-    if playing_model != "random":
-        playing_agent.network_policy.model = tf.keras.models.load_model(playing_model)
-        playing_agent.trained = True
+    else:
+        guess_agent.model = tf.keras.models.load_model(guessing_model)
+        guess_type = "learned"
+
+    if playing_model == "heuristic" or playing_model == "random":
+        player_type = playing_model
+
+    else:
+        playing_model.model = tf.keras.models.load_model(playing_model)
+        player_type = "learned"
 
     print(guess_agent.model.summary())
     print(playing_agent.network_policy.model.summary())
@@ -125,6 +137,8 @@ def learned_n_games(
         off_game, scores, offs, distribution = play_game(
             full_deck,
             deck_dict,
+            guess_type,
+            player_type,
             shuffled_decks,
             shuffled_players,
             guess_agent,
@@ -163,6 +177,8 @@ def learned_n_games(
 def play_game(
     full_deck,
     deck_dict,
+    guess_type,
+    player_type,
     shuffled_decks,
     shuffled_players,
     guess_agent,
@@ -174,7 +190,8 @@ def play_game(
     wizard = game.Game(
         full_deck,
         deck_dict,
-        "learned",
+        guess_type=guess_type,
+        player_type=player_type,
         shuffled_decks=shuffled_decks,
         shuffled_players=shuffled_players,
         output_path="state_err1",
