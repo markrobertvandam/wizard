@@ -110,7 +110,7 @@ def learned_n_games(
         player_type = playing_model
 
     else:
-        playing_model.model = tf.keras.models.load_model(playing_model)
+        playing_agent.network_policy.model = tf.keras.models.load_model(playing_model)
         player_type = "learned"
 
     print(guess_agent.model.summary())
