@@ -52,8 +52,8 @@ class Game:
                 "player3", "learned", "learned", guess_agent_fixed, playing_agent_fixed
             )
         else:
-            self.player2 = Player("player2", "heuristic")
-            self.player3 = Player("player3", "heuristic")
+            self.player2 = Player("player2", "heuristic", "heuristic")
+            self.player3 = Player("player3", "heuristic", "heuristic")
 
         self.players = [
             self.player1,
