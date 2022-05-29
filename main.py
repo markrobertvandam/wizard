@@ -149,7 +149,7 @@ def avg_n_games(
     print(playing_agent.network_policy.model.summary())
     # Exploration settings
     epsilon_decay = 0.997
-    player_decay = 0.997
+    player_decay = 0.999
     min_epsilon = 0.02
 
     # For keeping track of performance
@@ -257,7 +257,7 @@ def avg_n_games(
 
         if player_epsilon > min_epsilon:
             player_epsilon *= player_decay
-            player_epsilon = max(0.25, player_epsilon)
+            player_epsilon = max(0.02, player_epsilon)
 
         if game_instance % 900 == 0:
             print(
