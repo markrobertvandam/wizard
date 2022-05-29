@@ -257,7 +257,7 @@ def avg_n_games(
 
         if player_epsilon > min_epsilon:
             player_epsilon *= player_decay
-            player_epsilon = max(0.02, player_epsilon)
+            player_epsilon = max(0.25, player_epsilon)
 
         if game_instance % 900 == 0:
             print(
