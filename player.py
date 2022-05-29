@@ -32,7 +32,6 @@ class Player:
         if self.guess_type.startswith("learn"):
             self.guess_agent = guess_agent
             self.guess_agent.avg_reward = 0
-            self.play_agent = play_agent
             self.current_state = None
             self.epsilon = epsilon
 
