@@ -3,7 +3,6 @@ from player import Player
 
 import copy
 import random
-import time
 import numpy as np
 
 
@@ -82,6 +81,7 @@ class Game:
         ]
         self.off_game = np.zeros(21, dtype=int)
         self.guess_distribution = np.zeros(21, dtype=int)
+        self.actual_distribution = np.zeros(21, dtype=int)
 
         # for info per round/trick
         self.played_round = []
@@ -300,16 +300,17 @@ class Game:
 
         return strongest_card
 
-    def hand_state_space(self, player_order: list, player: Player, type: str) -> list:
+    def hand_state_space(self, player_order: list, player: Player, called: str) -> list:
         """
         returns state space representing the hand(s) of players
         :param player_order: list with the players in turn order
         :param player: the player for which state is retrieved
+        :param called: whether it is a guessing or playing state space
         :return:
         """
-        if (type == "guess" and player.guess_agent.input_size == 188) or \
-            (type == "play" and (player.play_agent.input_size == 3915 or
-                                 player.play_agent.input_size == 315)):
+        if (called == "guess" and player.guess_agent.input_size == 188) or \
+           (called == "play" and (player.play_agent.input_size == 3915 or
+                                  player.play_agent.input_size == 315)):
             # Cheating player sees all three hands
             one_hot_hand = 60 * [0]
             one_hot_hand2 = 60 * [0]
@@ -472,6 +473,7 @@ class Game:
 
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":
+                    self.actual_distribution[player.get_trick_wins()] += 1
                     if self.verbose >= 2:
                         print(
                             "player_won: ",
@@ -488,8 +490,8 @@ class Game:
     def get_game_performance(self) -> np.ndarray:
         return self.off_game
 
-    def get_distribution(self) -> np.ndarray:
-        return self.guess_distribution
+    def get_distribution(self) -> tuple[np.ndarray, np.ndarray]:
+        return self.guess_distribution, self.actual_distribution
 
     def get_output_path(self) -> str:
         return self.output_path
