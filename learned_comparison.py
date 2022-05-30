@@ -121,13 +121,14 @@ def learned_n_games(
     # win_counter, score_counter, total_offs(too high guess, too low guess), last_ten, accuracy_hist
     performance = [[0, 0, 0], [0, 0, 0], [0, 0], 21 * [0], []]
     total_distribution = np.zeros(21, dtype=int)
+    total_actual = np.zeros(21, dtype=int)
 
     for game_instance in range(1, n + 1):
         shuffled_decks = all_decks[
             (game_instance - 1) * 20: (game_instance - 1) * 20 + 20
         ]
         shuffled_players = all_players[game_instance - 1]
-        off_game, scores, offs, distribution = play_game(
+        off_game, scores, offs, guess_distribution, actual_distribution = play_game(
             full_deck,
             deck_dict,
             guess_type,
@@ -139,7 +140,8 @@ def learned_n_games(
             verbose,
             use_agent,
         )
-        total_distribution = np.add(total_distribution, distribution)
+        total_distribution = np.add(total_distribution, guess_distribution)
+        total_actual = np.add(total_actual, actual_distribution)
         # win_counter, score_counter, total_offs(too high guess, too low guess), last_ten, accuracy_hist
         # For command-line output
         performance[3] += off_game
@@ -165,6 +167,7 @@ def learned_n_games(
     print("Wins: ", performance[0])
     print("Mistakes (high guess, low guess): ", performance[2])
     print("Guesses: ", total_distribution)
+    print("Actual: ", total_actual)
 
 
 def play_game(
@@ -196,7 +199,7 @@ def play_game(
     scores, offs = wizard.play_game()
     off_game = wizard.get_game_performance()
     distribution = wizard.get_distribution()
-    return off_game, scores, offs, distribution
+    return off_game, scores, offs, distribution[0], distribution[1]
 
 
 if __name__ == "__main__":
