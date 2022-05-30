@@ -166,8 +166,8 @@ def learned_n_games(
     print("Scores: ", performance[1])
     print("Wins: ", performance[0])
     print("Mistakes (high guess, low guess): ", performance[2])
-    print("Guesses: ", total_distribution)
-    print("Actual: ", total_actual)
+    print(f"Guesses: {list(total_distribution)}")
+    print(f"Actual: {list(total_actual)}")
 
 
 def play_game(

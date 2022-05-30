@@ -450,6 +450,7 @@ class Game:
             #  print(player.player_name, player.trick_wins, player.guesses)
             off_mark = abs(player.get_trick_wins() - player.get_guesses())
             if player.player_name == "player1":
+                self.actual_distribution[player.get_trick_wins()] += 1
                 if off_mark > 19 or player.get_guesses() > 19:
                     print(
                         player.get_guesses(), player.get_trick_wins(), self.game_round
@@ -470,7 +471,6 @@ class Game:
                     )
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":
-                    self.actual_distribution[player.get_trick_wins()] += 1
                     if self.verbose >= 2:
                         print(
                             "player_won: ",
@@ -487,7 +487,7 @@ class Game:
     def get_game_performance(self) -> np.ndarray:
         return self.off_game
 
-    def get_distribution(self) -> tuple[np.ndarray, np.ndarray]:
+    def get_distribution(self) -> tuple():
         return self.guess_distribution, self.actual_distribution
 
     def get_output_path(self) -> str:
