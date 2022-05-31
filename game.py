@@ -490,7 +490,7 @@ class Game:
     def get_game_performance(self) -> np.ndarray:
         return self.off_game
 
-    def get_distribution(self) -> tuple[np.ndarray, np.ndarray]:
+    def get_distribution(self) -> tuple:
         return self.guess_distribution, self.actual_distribution
 
     def get_output_path(self) -> str:
