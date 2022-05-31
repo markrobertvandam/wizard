@@ -16,6 +16,12 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+# function to add value labels
+def addlabels(x,y):
+    for i in range(len(x)):
+        if y[i] > 0:
+            plt.text(i, y[i]+5, y[i], ha='center', fontsize=6)
+
 def plot_distribution(
     x_values: list,
     y_values: list,
@@ -23,8 +29,8 @@ def plot_distribution(
     name: str,
 ) -> None:
     fig = plt.figure()
-    ax = fig.add_axes([0, 0, 1, 1])
-    ax.bar(x_values, y_values)
+    plt.bar(x_values, y_values)
+    addlabels(x_values, y_values)
     fig.savefig(f"wizard/plots/{save_folder}/{name}_plot")
     plt.close()
 
@@ -40,11 +46,14 @@ if __name__ == "__main__":
     actual = None
     for line in lines:
         if line.startswith("Guesses:"):
-            guesses = line.split('[')[1].rstrip(']').split()
+            # guesses = [int(x.strip("]")) for x in line.split('[')[1].split()]
+            guesses = [int(x) for x in line.split(": ")[1].strip("[]\n").split(", ")]
         if line.startswith("Actual:"):
-            actual = line.split('[')[1].rstrip(']').split()
+            actual = [int(x) for x in line.split(": ")[1].strip("[]\n").split(", ")]
 
     if guesses is not None:
+        print(sum(guesses))
         plot_distribution([x for x in range(0, 21)], guesses, "bar-test", "guesses")
     if actual is not None:
+        print(sum(actual))
         plot_distribution([x for x in range(0, 21)], actual, "bar-test", "actual")
