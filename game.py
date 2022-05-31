@@ -360,6 +360,10 @@ class Game:
         round_number = [self.game_round]
         state += trump + previous_guesses + round_number
 
+        if player.guess_agent.input_size == 69:
+            players_turn = self.players.index(player)
+            state += [players_turn]
+
         state_space = np.array(state, dtype=int)
         return state_space
 

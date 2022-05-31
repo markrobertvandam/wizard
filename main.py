@@ -124,7 +124,7 @@ def avg_n_games(
     player_epsilon: float,
     iters_done: int,
 ) -> None:
-    input_size_guess = 68
+    input_size_guess = 69
     input_size_play = 3795
 
     name = None
@@ -258,12 +258,6 @@ def avg_n_games(
         if player_epsilon > min_epsilon:
             player_epsilon *= player_decay
             player_epsilon = max(0.03, player_epsilon)
-
-        if game_instance % 900 == 0:
-            print(
-                "Forgetting ", len(wizard.player1.play_agent.nodes.keys()), " nodes.."
-            )
-            wizard.player1.play_agent.nodes = dict()
 
     print("Scores: ", score_counter)
     print("Wins: ", win_counter)
