@@ -303,7 +303,7 @@ class Player:
         # safety catch
         if self.guess_type == "learning":
             self.guess_agent.update_replay_memory(
-                (self.current_state, self.player_guesses, reward)
+                (self.current_state, self.trick_wins)
             )
             self.guess_agent.avg_reward += reward / self.guess_agent.guess_max
             self.guess_agent.train()

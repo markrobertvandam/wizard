@@ -148,9 +148,9 @@ def avg_n_games(
     print(guess_agent.model.summary())
     print(playing_agent.network_policy.model.summary())
     # Exploration settings
-    epsilon_decay = 0.997
+    epsilon_decay = 0.9985
     player_decay = 0.999
-    min_epsilon = 0.02
+    min_epsilon = 0.03
 
     # For keeping track of performance
     win_counter = [0, 0, 0]
@@ -257,7 +257,7 @@ def avg_n_games(
 
         if player_epsilon > min_epsilon:
             player_epsilon *= player_decay
-            player_epsilon = max(0.02, player_epsilon)
+            player_epsilon = max(0.03, player_epsilon)
 
         if game_instance % 900 == 0:
             print(

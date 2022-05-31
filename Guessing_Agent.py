@@ -41,13 +41,13 @@ class GuessingAgent:
         x = self.dense_layer(128)(input1)
         x = self.dense_layer(64)(x)
         x = self.dense_layer(32)(x)
-        x = Dense(self.guess_max, activation="linear")(x)
+        x = Dense(self.guess_max, activation="softmax")(x)
         # guess_max = how many rounds + 1 (output_size) (21)
 
         model = Model(inputs=input1, outputs=x)
 
         model.compile(
-            loss="mse",
+            loss="sparse_categorical_crossentropy",
             optimizer=adam_v2.Adam(learning_rate=0.0001),
             metrics=["accuracy"],
         )
@@ -55,21 +55,12 @@ class GuessingAgent:
         return model
 
     # Adds data to a memory replay array
-    # (current state, guess made by player, reward)
+    # (current state, tricks won)
     def update_replay_memory(self, transition):
-        if transition[2] == 100:
-            if self.accuracy == 0:
-                priority = 50
-            else:
-                priority = min(50, int(1 / self.accuracy))
-            for i in range(priority):
-                self.replay_memory.append(transition)
-        else:
-            self.replay_memory.append(transition)
+        self.replay_memory.append(transition)
 
     # Trains main network every step during episode
     def train(self):
-
         # Start training only if certain number of samples is already saved
         if len(self.replay_memory) < MIN_REPLAY_MEMORY_SIZE:
             return
@@ -77,25 +68,14 @@ class GuessingAgent:
         # Get a minibatch of random samples from memory replay table
         minibatch = random.sample(self.replay_memory, MINIBATCH_SIZE)
 
-        # Get current states from minibatch, then query NN model for Q values
-        current_states = np.array([transition[0] for transition in minibatch])
-        current_qs_list = self.model.predict(current_states)
-
         x = []
         y = []
 
         # Now we need to enumerate our batches
-        for index, (current_state, action, reward) in enumerate(minibatch):
-
-            new_q = reward
-
-            # Update Q value for given state
-            current_qs = current_qs_list[index]
-            current_qs[action] = new_q
-
-            # And append to our training data
+        for (current_state, trick_wins) in minibatch:
+            # append to our training data
             x.append(current_state)
-            y.append(current_qs)
+            y.append(trick_wins)
 
         # Fit on all samples as one batch, log only on terminal state
         self.model.fit(
