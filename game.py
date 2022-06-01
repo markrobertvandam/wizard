@@ -426,12 +426,13 @@ class Game:
         else:
             # played trick is ordered in order of play
             played_this_trick = 120 * [0]
-            order_names = [int(p.player_name[-1]) for p in player_order]
+            players_turn = self.players.index(player)
+            state += [players_turn]
             for card in played_trick:
                 one_hot = self.deck_dict[card]
                 offset = played_trick.index(card) * 60
                 played_this_trick[one_hot + offset] = 1
-            state += order_names + played_this_trick
+            state += played_this_trick
 
         if inp_size > 3600:
             # 20 rounds of 3 cards that are one-hot encoded
@@ -445,6 +446,10 @@ class Game:
             state += played_this_round
 
         state_space = np.array(state, dtype=int)
+        if len(state) != inp_size:
+            print("Input size is wrong")
+            exit()
+
         return state_space
 
     def update_scores(self) -> None:
