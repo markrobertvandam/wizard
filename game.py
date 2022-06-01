@@ -426,8 +426,14 @@ class Game:
         else:
             # played trick is ordered in order of play
             played_this_trick = 120 * [0]
-            players_turn = self.players.index(player)
-            state += [players_turn]
+
+            if inp_size == 3793:
+                players_turn = self.players.index(player)
+                state += [players_turn]
+            elif inp_size == 3795:
+                order_names = [int(p.player_name[-1]) for p in player_order]
+                state += order_names
+
             for card in played_trick:
                 one_hot = self.deck_dict[card]
                 offset = played_trick.index(card) * 60

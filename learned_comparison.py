@@ -20,7 +20,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("guesser", help="Which guessing model", type=str)
     parser.add_argument("player", help="Which playing model", type=str)
     parser.add_argument("games_folder", help="Where to find generated games", type=str)
-
+    parser.add_argument(
+        "guesser_input",
+        help="argument to set guess inp_size",
+        type=int,
+    )
+    parser.add_argument(
+        "player_input",
+        help="argument to set player inp_size",
+        type=int,
+    )
     parser.add_argument(
         "--verbose",
         help="optional argument to set how verbose the run is",
@@ -50,23 +59,11 @@ def learned_n_games(
     games_folder: str,
     guessing_model: str,
     playing_model: str,
+    guess_inp_size: int,
+    player_inp_size: int,
     verbose: int,
     use_agent: bool,
 ) -> None:
-
-    input_sizes = {
-        "cheater": (188, 3915),
-        "porder": (68, 3795),
-        "old": (68, 3731),
-        "small": (68, 195),
-        "smallcheater": (188, 315),
-        "random": (68, 195),
-        "random_player": (68, 1),
-        "random_guesser": (1, 3795),
-        "heuristic_player": (68, 1),
-        "heuristic_guesser": (1, 3795),
-        "heuristic": (1, 1),
-    }
 
     # Make the deck
     full_deck = []
@@ -86,18 +83,9 @@ def learned_n_games(
     guess_type = "random"
     player_type = "random"
 
-    if model_folder in ["random_player", "random_guesser", "random",
-                        "heuristic_player", "heuristic_guesser", "heuristic"]:
-        input_size_guess = input_sizes[model_folder][0]
-        input_size_play = input_sizes[model_folder][1]
-
-    else:
-        input_size_guess = input_sizes[model_folder.split("_")[-1]][0]
-        input_size_play = input_sizes[model_folder.split("_")[-1]][1]
-
     print("Pair: ", guessing_model, playing_model)
-    guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
-    playing_agent = PlayingAgent(input_size=input_size_play, verbose=verbose)
+    guess_agent = GuessingAgent(input_size=guess_inp_size, guess_max=21)
+    playing_agent = PlayingAgent(input_size=player_inp_size, verbose=verbose)
 
     if guessing_model == "heuristic" or guessing_model == "random":
         guess_type = guessing_model
@@ -210,6 +198,8 @@ if __name__ == "__main__":
         args.games_folder,
         args.guesser,
         args.player,
+        args.guesser_input,
+        args.player_input,
         args.verbose,
         args.use_agent,
     )
