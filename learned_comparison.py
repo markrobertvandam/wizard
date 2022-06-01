@@ -16,7 +16,6 @@ def parse_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description="Run n-games")
     parser.add_argument("games", help="How many games to run", type=int)
-    parser.add_argument("model_folder", help="folder of model", type=str)
     parser.add_argument("guesser", help="Which guessing model", type=str)
     parser.add_argument("player", help="Which playing model", type=str)
     parser.add_argument("games_folder", help="Where to find generated games", type=str)
@@ -55,7 +54,6 @@ def print_performance(agent_pair, score_counter, win_counter, total_offs):
 
 def learned_n_games(
     n: int,
-    model_folder: str,
     games_folder: str,
     guessing_model: str,
     playing_model: str,
@@ -79,9 +77,6 @@ def learned_n_games(
     all_decks = pickle.load(open(f"{games_folder}/decks.pkl", "rb"))
     all_players = pickle.load(open(f"{games_folder}/players.pkl", "rb"))
     print(len(all_decks), len(all_players), len(all_decks[0]), len(all_players[0]))
-
-    guess_type = "random"
-    player_type = "random"
 
     print("Pair: ", guessing_model, playing_model)
     guess_agent = GuessingAgent(input_size=guess_inp_size, guess_max=21)
@@ -194,7 +189,6 @@ if __name__ == "__main__":
     args = parse_args()
     learned_n_games(
         args.games,
-        args.model_folder,
         args.games_folder,
         args.guesser,
         args.player,
