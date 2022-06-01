@@ -146,11 +146,15 @@ def avg_n_games(
         )
 
     print(guess_agent.model.summary())
+    print(f"Guesser loss-function: ", guess_agent.model.loss)
     print(playing_agent.network_policy.model.summary())
+    print(f"Player loss-function: ", playing_agent.network_policy.model.loss)
     # Exploration settings
     epsilon_decay = 0.9985
     player_decay = 0.999
     min_epsilon = 0.03
+
+    print(f"Min epsilon and epsilon decay: {min_epsilon} and {epsilon_decay}")
 
     # For keeping track of performance
     win_counter = [0, 0, 0]

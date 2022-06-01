@@ -97,7 +97,9 @@ def learned_n_games(
         player_type = "learned"
 
     print(guess_agent.model.summary())
+    print(f"Guesser loss-function: ", guess_agent.model.loss)
     print(playing_agent.network_policy.model.summary())
+    print(f"Player loss-function: ", playing_agent.network_policy.model.loss)
 
     pair_name = (guessing_model, playing_model)
 
