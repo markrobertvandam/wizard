@@ -1,5 +1,6 @@
 from math import floor
 from player import Player
+from Playing_Agent import write_state
 
 import copy
 import random
@@ -417,7 +418,7 @@ class Game:
                 previous_guesses.append(other_player.get_guesses())
 
         state += previous_guesses + round_number + tricks_needed + tricks_needed_others
-        if inp_size == 3731:
+        if inp_size % 100 == 31:
             # old system, played_trick is unordered
             played_this_trick = 60 * [0]
             for card in played_trick:
@@ -427,10 +428,10 @@ class Game:
             # played trick is ordered in order of play
             played_this_trick = 120 * [0]
 
-            if inp_size == 3793:
+            if inp_size % 100 == 93:
                 players_turn = self.players.index(player)
                 state += [players_turn]
-            elif inp_size == 3795:
+            elif inp_size % 100 == 95:
                 order_names = [int(p.player_name[-1]) for p in player_order]
                 state += order_names
 
@@ -455,7 +456,6 @@ class Game:
         if len(state) != inp_size:
             print("Input size is wrong")
             exit()
-
         return state_space
 
     def update_scores(self) -> None:

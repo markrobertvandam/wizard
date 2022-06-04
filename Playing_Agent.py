@@ -44,7 +44,7 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
     f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
     current_pos = 60
     # if cheater
-    if input_size == 3915 or input_size == 315:
+    if input_size % 100 == 15 or input_size % 100 == 13:
         f.write("Hand2: " + str(np.nonzero(play_state[60:120])[0].tolist()) + "\n")
         f.write("Hand3: " + str(np.nonzero(play_state[120:180])[0].tolist()) + "\n")
         current_pos = 180
@@ -52,7 +52,7 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
     current_pos += 5
 
     # if old
-    if input_size == 3731:
+    if input_size % 100 == 31:
         f.write("Guesses: " + str(play_state[current_pos: current_pos + 2]) + "\n")
         current_pos += 2
     else:
@@ -68,7 +68,17 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
     current_pos += 2
 
     # if not old
-    if input_size != 3731:
+    if input_size % 100 == 93:
+        f.write("Order: " + str(play_state[current_pos]) + "\n")
+        f.write(
+            "played trick: "
+            + str(
+                np.nonzero(play_state[current_pos + 1: current_pos + 121])[0].tolist()
+            )
+            + "\n"
+        )
+        current_pos += 121
+    elif input_size % 100 == 95:
         f.write("Order: " + str(play_state[current_pos: current_pos + 3]) + "\n")
         f.write(
             "played trick: "
@@ -78,7 +88,7 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
             + "\n"
         )
         current_pos += 123
-    else:
+    elif input_size % 100 == 31:
         f.write(
             "played trick: "
             + str(np.nonzero(play_state[current_pos: current_pos + 60])[0].tolist())
