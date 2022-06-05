@@ -358,6 +358,10 @@ class Game:
         round_number = [self.game_round]
         state += trump + previous_guesses + round_number
 
+        if player.guess_agent.input_size == 69:
+            players_turn = self.players.index(player)
+            state += [players_turn]
+
         state_space = np.array(state, dtype=int)
         return state_space
 
@@ -411,7 +415,7 @@ class Game:
                 previous_guesses.append(other_player.get_guesses())
 
         state += previous_guesses + round_number + tricks_needed + tricks_needed_others
-        if inp_size == 3731:
+        if inp_size % 100 == 31:
             # old system, played_trick is unordered
             played_this_trick = 60 * [0]
             for card in played_trick:
@@ -420,12 +424,19 @@ class Game:
         else:
             # played trick is ordered in order of play
             played_this_trick = 120 * [0]
-            order_names = [int(p.player_name[-1]) for p in player_order]
+
+            if inp_size % 100 == 93:
+                players_turn = self.players.index(player)
+                state += [players_turn]
+            elif inp_size % 100 == 95:
+                order_names = [int(p.player_name[-1]) for p in player_order]
+                state += order_names
+
             for card in played_trick:
                 one_hot = self.deck_dict[card]
                 offset = played_trick.index(card) * 60
                 played_this_trick[one_hot + offset] = 1
-            state += order_names + played_this_trick
+            state += played_this_trick
 
         if inp_size > 3600:
             # 20 rounds of 3 cards that are one-hot encoded
@@ -439,6 +450,9 @@ class Game:
             state += played_this_round
 
         state_space = np.array(state, dtype=int)
+        if len(state) != inp_size:
+            print("Input size is wrong")
+            exit()
         return state_space
 
     def update_scores(self) -> None:
@@ -458,17 +472,20 @@ class Game:
                 self.off_game[off_mark] += 1
             if off_mark == 0:
                 self.scores[player] += 20 + 10 * player.get_guesses()
+                if player.guess_type == "learning":
+                    player.update_agent()
                 if player.player_type == "learning":
-                    player.update_agent(100)
                     player.play_agent.backpropagate(
-                        player.play_agent.last_terminal_node, 100
+                        player.play_agent.last_terminal_node,  1
                     )
             else:
+                if player.guess_type == "learning":
+                    player.update_agent()
                 if player.player_type == "learning":
-                    player.update_agent(0)
                     player.play_agent.backpropagate(
                         player.play_agent.last_terminal_node, 0
                     )
+
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":
                     if self.verbose >= 2:
@@ -482,7 +499,7 @@ class Game:
                         self.offs[0] += 1
                     else:
                         self.offs[1] += 1
-        #  print("\n\n")
+            #  print("\n\n")
 
     def get_game_performance(self) -> np.ndarray:
         return self.off_game
