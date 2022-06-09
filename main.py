@@ -137,11 +137,13 @@ def avg_n_games(
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
     playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
     if guess_type == "learned" or (guess_type == "learning" and model_path != ""):
+        print(f"Loading saved model {model_path}")
         guess_agent.model = tf.keras.models.load_model(
             os.path.join("models", model_path)
         )
 
-    if player_type == "learned":
+    if player_type == "learned" or (guess_type == "learning" and player_model != ""):
+        print(f"Loading saved model {player_model}")
         playing_agent.network_policy.model = tf.keras.models.load_model(
             os.path.join("models", player_model)
         )

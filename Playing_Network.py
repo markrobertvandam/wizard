@@ -64,7 +64,7 @@ class PlayingNetwork:
         model.compile(
             loss="mse",
             optimizer=adam_v2.Adam(learning_rate=0.0001),
-            metrics=["accuracy"],
+            metrics=["mse"],
         )
         # print(model.summary())
         return model
