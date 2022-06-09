@@ -125,17 +125,18 @@ def avg_n_games(
     iters_done: int,
 ) -> None:
     input_size_guess = 69
-    input_size_play = 193
+    input_size_play = 3793
 
     name = None
     if save_folder != "":
         name = save_folder.split("_")[1]
     elif player_model is not None:
         name = player_model.split("/")[0].split("_")[1]
-
+    
+    print(f"Inp_size guess: {input_size_guess} and Inp_size play: {input_size_play}")
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
     playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
-    if guess_type == "learned":
+    if guess_type == "learned" or (guess_type == "learning" and model_path != ""):
         guess_agent.model = tf.keras.models.load_model(
             os.path.join("models", model_path)
         )
