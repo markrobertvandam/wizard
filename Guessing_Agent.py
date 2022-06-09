@@ -23,7 +23,6 @@ class GuessingAgent:
 
         # Main model
         self.model = self.create_model()
-        self.trained = False
 
         # An array with last n steps for training
         self.replay_memory = deque(maxlen=REPLAY_MEMORY_SIZE)
