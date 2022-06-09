@@ -152,9 +152,9 @@ def avg_n_games(
     print(playing_agent.network_policy.model.summary())
     print(f"Player loss-function: ", playing_agent.network_policy.model.loss)
     # Exploration settings
-    epsilon_decay = 0.9985
+    epsilon_decay = 0.997
     player_decay = 0.999
-    min_epsilon = 0.03
+    min_epsilon = 0.02
 
     print(f"Min epsilon and epsilon decay: {min_epsilon} and {epsilon_decay}")
     # For keeping track of performance

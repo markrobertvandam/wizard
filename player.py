@@ -280,11 +280,11 @@ class Player:
 
         return self.player_guesses
 
-    def update_agent(self):
+    def update_agent(self, reward):
         # safety catch
         if self.guess_type == "learning":
             self.guess_agent.update_replay_memory(
-                (self.current_state, self.trick_wins)
+                (self.current_state, self.player_guesses, reward)
             )
             self.guess_agent.train()
 
