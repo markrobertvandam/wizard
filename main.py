@@ -142,7 +142,7 @@ def avg_n_games(
             os.path.join("models", model_path)
         )
 
-    if player_type == "learned" or (guess_type == "learning" and player_model != ""):
+    if player_type == "learned" or (player_type == "learning" and player_model != ""):
         print(f"Loading saved model {player_model}")
         playing_agent.network_policy.model = tf.keras.models.load_model(
             os.path.join("models", player_model)
