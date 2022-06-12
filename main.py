@@ -124,8 +124,8 @@ def avg_n_games(
     player_epsilon: float,
     iters_done: int,
 ) -> None:
-    input_size_guess = 69
-    input_size_play = 3793
+    input_size_guess = 68
+    input_size_play = 3795
 
     name = None
     if save_folder != "":
@@ -136,13 +136,13 @@ def avg_n_games(
     print(f"Inp_size guess: {input_size_guess} and Inp_size play: {input_size_play}")
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
     playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
-    if guess_type == "learned" or (guess_type == "learning" and model_path != ""):
+    if guess_type == "learned" or (guess_type == "learning" and model_path is not None):
         print(f"Loading saved model {model_path}")
         guess_agent.model = tf.keras.models.load_model(
             os.path.join("models", model_path)
         )
 
-    if player_type == "learned" or (player_type == "learning" and player_model != ""):
+    if player_type == "learned" or (player_type == "learning" and player_model is not None):
         print(f"Loading saved model {player_model}")
         playing_agent.network_policy.model = tf.keras.models.load_model(
             os.path.join("models", player_model)
@@ -183,8 +183,7 @@ def avg_n_games(
     output_path = "state_err1"
     print("Guess type: ", guess_type, "Player type: ", player_type)
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
-        if verbose:
-            print("\nGame instance: ", game_instance)
+        print("\nGame instance: ", game_instance)
         wizard = game.Game(
             full_deck,
             deck_dict,

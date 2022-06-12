@@ -1,19 +1,24 @@
 import numpy as np
 
 from collections import deque
+
+from keras.callbacks import TensorBoard
+from keras.metrics import mean_squared_error as mse
 from keras.models import Model
 from keras.layers import Input, Dense
 from keras.optimizers import adam_v2
 
+import matplotlib.pyplot as plt
 import Playing_Agent
 import random
+import time
+import tensorflow as tf
 
 REPLAY_MEMORY_SIZE = 42000  # How many of last   to keep for model training, 42000 means remember last ~200 games
 MIN_REPLAY_MEMORY_SIZE = 4200  # Minimum number of tricks in memory to start training, 10500 means at least ~20 games
 MINIBATCH_SIZE = 32  # How many steps (samples) to use for training
 UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
 DISCOUNT = 0.9
-
 
 # Agent class
 class PlayingNetwork:
@@ -30,9 +35,14 @@ class PlayingNetwork:
         self.target_model.set_weights(self.model.get_weights())
 
         self.target_update_counter = 0
+        self.q_memory_counter = 0
 
         # An array with last n steps for training
         self.replay_memory = deque(maxlen=REPLAY_MEMORY_SIZE)
+
+        # Array for plotting how avg q changes
+        self.avg_q_memory = []
+        self.ptp_q_memory = []
 
     @staticmethod
     def dense_layer(num_units):
@@ -64,7 +74,7 @@ class PlayingNetwork:
         model.compile(
             loss="mse",
             optimizer=adam_v2.Adam(learning_rate=0.0001),
-            metrics=["mse"],
+            metrics=[mse]
         )
         # print(model.summary())
         return model
@@ -76,6 +86,7 @@ class PlayingNetwork:
 
     # Trains main network every step during episode
     def train(self):
+        self.q_memory_counter += 1
         # Start training only if certain number of samples is already saved
         if len(self.replay_memory) < MIN_REPLAY_MEMORY_SIZE:
             return
@@ -97,6 +108,8 @@ class PlayingNetwork:
         X = []
         y = []
 
+        ptp_q_memory = []
+        avg_q_memory = []
         # Now we need to enumerate our batches
         for index, (_, action, reward, _, done) in enumerate(minibatch):
             current_state = current_states[index]
@@ -113,12 +126,26 @@ class PlayingNetwork:
             current_qs = current_qs_list[index]
             current_qs[action] = new_q
 
+            # Every 10 games add to memory, start after 50 games
+            if self.q_memory_counter % 2100 == 0 and self.q_memory_counter >= 10500:
+                avg_q_memory.append(np.average(current_qs))
+                ptp_q_memory.append(np.ptp(current_qs))
+
             # And append to our training data
             X.append(current_state)
             y.append(current_qs)
 
+        if len(avg_q_memory) > 0:
+            self.avg_q_memory.append(round(np.average(avg_q_memory), 2))
+            self.ptp_q_memory.append(round(np.average(ptp_q_memory), 2))
+
         # Fit on all samples as one batch, log only on terminal state
-        self.model.fit(np.array(X), np.array(y), batch_size=MINIBATCH_SIZE, verbose=0, shuffle=False)
+
+        self.model.fit(np.array(X), np.array(y),
+                       batch_size=MINIBATCH_SIZE,
+                       verbose=0,
+                       shuffle=False,
+                       callbacks=[self.Tensorboard])
 
         # Update target network counter every episode
         self.target_update_counter += 1
@@ -127,6 +154,20 @@ class PlayingNetwork:
         if self.target_update_counter > UPDATE_TARGET_EVERY:
             self.target_model.set_weights(self.model.get_weights())
             self.target_update_counter = 0
+
+        if self.q_memory_counter % 21000 == 0:
+            x = [i for i in range(50, len(self.ptp_q_memory) * 10 + 50, 10)]
+            plt.plot(x, self.ptp_q_memory)
+            plt.xlabel("Games (n)", fontsize=10)
+            plt.ylabel("PTP of q-values", fontsize=10)
+            plt.savefig(f"wizard/plots/q_plots/ptp_plot")
+            plt.close()
+
+            plt.plot(x, self.avg_q_memory)
+            plt.xlabel("Games (n)", fontsize=10)
+            plt.ylabel("AVG of q-values", fontsize=10)
+            plt.savefig(f"wizard/plots/q_plots/avg_plot")
+            plt.close()
 
     # Queries main network for Q values given current observation space (environment state)
     def get_qs(self, state):
