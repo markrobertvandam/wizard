@@ -2,7 +2,6 @@ import numpy as np
 
 from collections import deque
 
-from keras.callbacks import TensorBoard
 from keras.metrics import mean_squared_error as mse
 from keras.models import Model
 from keras.layers import Input, Dense
@@ -11,8 +10,6 @@ from keras.optimizers import adam_v2
 import matplotlib.pyplot as plt
 import Playing_Agent
 import random
-import time
-import tensorflow as tf
 
 REPLAY_MEMORY_SIZE = 42000  # How many of last   to keep for model training, 42000 means remember last ~200 games
 MIN_REPLAY_MEMORY_SIZE = 4200  # Minimum number of tricks in memory to start training, 10500 means at least ~20 games
@@ -144,8 +141,7 @@ class PlayingNetwork:
         self.model.fit(np.array(X), np.array(y),
                        batch_size=MINIBATCH_SIZE,
                        verbose=0,
-                       shuffle=False,
-                       callbacks=[self.Tensorboard])
+                       shuffle=False)
 
         # Update target network counter every episode
         self.target_update_counter += 1
