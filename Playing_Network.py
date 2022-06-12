@@ -160,13 +160,13 @@ class PlayingNetwork:
             plt.plot(x, self.ptp_q_memory)
             plt.xlabel("Games (n)", fontsize=10)
             plt.ylabel("PTP of q-values", fontsize=10)
-            plt.savefig(f"wizard/plots/q_plots/ptp_plot")
+            plt.savefig(f"plots/q_plots/ptp_plot")
             plt.close()
 
             plt.plot(x, self.avg_q_memory)
             plt.xlabel("Games (n)", fontsize=10)
             plt.ylabel("AVG of q-values", fontsize=10)
-            plt.savefig(f"wizard/plots/q_plots/avg_plot")
+            plt.savefig(f"plots/q_plots/avg_plot")
             plt.close()
 
     # Queries main network for Q values given current observation space (environment state)
