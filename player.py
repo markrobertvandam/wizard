@@ -1,7 +1,7 @@
 import numpy as np
 import random
 
-from Playing_Agent import Node
+import Playing_Agent
 import game
 
 #
@@ -109,18 +109,10 @@ class Player:
                     # get move with highest q-value
                     card = self.play_agent.predict(self.deck_dict,
                                                    legal_cards,
-                                                   player_order,
-                                                   game_instance,
-                                                   requested_color,
-                                                   played_cards,
-                                                   self.hand,)
+                                                   player_order)
                 else:
                     # rollout a random move
                     card = self.play_agent.rollout_policy(legal_cards,
-                                                          player_order,
-                                                          game_instance,
-                                                          requested_color,
-                                                          played_cards,
                                                           self.hand,)
 
             # its a child, either terminal or not
@@ -131,38 +123,25 @@ class Player:
                     # get move with higest q-value
                     card = self.play_agent.predict(self.deck_dict,
                                                    legal_cards,
-                                                   player_order,
-                                                   game_instance,
-                                                   requested_color,
-                                                   played_cards,
-                                                   self.hand,)
+                                                   player_order)
                     # print("obtained card: ", card)
                 else:
                     # print("get card from rollout: ")
                     # rollout a random move
                     card = self.play_agent.rollout_policy(legal_cards,
-                                                          player_order,
-                                                          game_instance,
-                                                          requested_color,
-                                                          played_cards,
                                                           self.hand,)
                     # print("obtained card: ", card)
 
-        elif self.player_type == "learned" and self.play_agent.trained:
+        elif self.player_type == "learned":
             key_state = self.play_agent.state_to_key(state_space)
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
-                self.play_agent.parent_node = Node(key_state, root=1)
+                self.play_agent.parent_node = Playing_Agent.Node(key_state, root=1)
 
             # get action from network
             card = self.play_agent.predict(self.deck_dict,
                                            legal_cards,
-                                           player_order,
-                                           game_instance,
-                                           requested_color,
-                                           played_cards,
-                                           self.hand,
-                                           run_type="learned")
+                                           player_order,)
 
         # Play the only legal card if theres only one
         elif len(legal_cards) == 1:

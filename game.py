@@ -1,6 +1,5 @@
 from math import floor
 from player import Player
-from Playing_Agent import write_state
 
 import copy
 import random
@@ -48,14 +47,14 @@ class Game:
             guess_agent_fixed = copy.copy(guess_agent)
             playing_agent_fixed = copy.copy(playing_agent)
             self.player2 = Player(
-                "player2", deck_dict, "learned", "learned", guess_agent_fixed, playing_agent_fixed
+                "player2", deck_dict, "learned", "learned", guess_agent_fixed, playing_agent_fixed, verbose=verbose
             )
             self.player3 = Player(
-                "player3", deck_dict, "learned", "learned", guess_agent_fixed, playing_agent_fixed
+                "player3", deck_dict, "learned", "learned", guess_agent_fixed, playing_agent_fixed, verbose=verbose
             )
         else:
-            self.player2 = Player("player2", deck_dict, "heuristic", "heuristic")
-            self.player3 = Player("player3", deck_dict, "heuristic", "heuristic")
+            self.player2 = Player("player2", deck_dict, "heuristic", "heuristic", verbose=verbose)
+            self.player3 = Player("player3", deck_dict, "heuristic", "heuristic", verbose=verbose)
 
         self.players = [
             self.player1,
@@ -159,25 +158,12 @@ class Game:
                     [p.player_name for p in player_order],
                 )
             self.played_cards = []
-            self.play_trick(player_order, 4, 0)
+            winner = self.play_trick(player_order, 4, 0)
             # print(
             #     f"Order: {[player.player_name for player in player_order]}, Played: {self.played_cards}\n{self.trump}"
             # )
             if self.verbose >= 3:
-                print("We made it HERE! Trick was played!")
-            winner = self.trick_winner(self.played_cards, self.trump)
-            if self.verbose >= 3:
-                print(
-                    "The winner is: ", winner, self.played_cards, "trump: ", self.trump
-                )
-            self.played_round.append(self.played_cards)
-
-            if self.verbose >= 2:
-                print("Played in actual trick: ", self.played_cards)
-                print(
-                    "Winner index: ", winner, "name: ", player_order[winner].player_name
-                )
-            player_order[winner].trick_wins += 1
+                print(f"We made it HERE! Trick was played!, winner is: {winner}")
             player_order = player_order[winner:] + player_order[:winner]
 
         self.update_scores()
@@ -187,21 +173,20 @@ class Game:
         player_order: list,
         requested_color: int,
         player: int,
-        card=None,
-        player_limit=None,
-    ) -> None:
+        player_and_card=None,
+    ) -> int:
         """
         plays one entire trick (each player plays 1 card)
         :param player_order: order in which players play
         :param requested_color: the requested color that has to be played if possible
                                 (blue, yellow, red, green, None yet, None this round)
         :param player: how manieth player it is in this particular trick
-        :param card: used to force the player to play that specific card, used in simulation
-        :param player_limit: also used for simulation to play on until the players next turn
+        :param player_and_card: for finishing a terminal trick before adding a child
         :return: None
         """
+        winner = None
         if self.verbose >= 3:
-            print("\nPlaytrick called with card: ", card)
+            print("\nPlaytrick called with card: ", player_and_card)
         while player != 3:
             if self.verbose >= 3:
                 print(
@@ -214,39 +199,22 @@ class Game:
                     "The player order at this moment is: ",
                     [p.player_name for p in player_order],
                 )
-            if player_limit and (3 > player_limit == player):
-                break
 
-            if card is None:
-                playing_state = None
-                if player_order[player].player_type.startswith("learn"):
-                    playing_state = self.playing_state_space(
-                        player_order, player_order[player], self.played_cards
-                    )
-                self.played_cards.append(
-                    player_order[player].play_card(
-                        self.trump,
-                        requested_color,
-                        self.played_cards,
-                        player_order,
-                        self,
-                        playing_state,
-                    )
+            playing_state = None
+            if player_order[player].player_type.startswith("learn"):
+                playing_state = self.playing_state_space(
+                    player_order, player_order[player], self.played_cards
                 )
-            else:
-                # play the passed card to simulate that child-node
-                if self.verbose >= 3:
-                    print(
-                        "Players and card: ",
-                        [p.player_name for p in player_order],
-                        card,
-                    )
-                    print(
-                        "Players hand in playtrick with card: ",
-                        player_order[player].hand,
-                    )
-                player_order[player].hand.remove(card)
-                self.played_cards.append(card)
+            self.played_cards.append(
+                player_order[player].play_card(
+                    self.trump,
+                    requested_color,
+                    self.played_cards,
+                    player_order,
+                    self,
+                    playing_state,
+                )
+            )
 
             if requested_color == 4:
 
@@ -258,15 +226,64 @@ class Game:
                 elif self.played_cards[player][1] != 0:
                     requested_color = self.played_cards[player][0]
 
+            if player_order[player].player_type == "learning":
+                if self.verbose:
+                    print(f"Learning player has the hand: {player_order[player].get_hand()}")
+                # final trick, wrap up round
+                if len(player_order[player].get_hand()) == 0:
+                    if player == 2:
+                        move = self.played_cards[-1]
+                        winner = self.wrap_up_trick(player_order)
+                        playing_state = self.playing_state_space(
+                            player_order, player_order[player], self.played_cards
+                        )
+                        player_order[player].play_agent.create_child(
+                            move,
+                            self.output_path,
+                            playing_state,
+                            self.played_cards,
+                            terminal_node=True)
+
+                    else:
+                        # play on till end somehow
+                        player_and_card = (player_order[player], self.played_cards[-1])
+                        pass
+
+                # more tricks to follow, only wrap up if trick ended
+                else:
+                    move = self.played_cards[-1]
+                    if player == 2:
+                        winner = self.wrap_up_trick(player_order)
+                    playing_state = self.playing_state_space(
+                        player_order, player_order[player], self.played_cards
+                    )
+                    player_order[player].play_agent.create_child(
+                        move,
+                        self.output_path,
+                        playing_state,
+                        self.played_cards)
+
             player += 1
-            card = None
             if self.verbose >= 2:
-                print(
-                    "finished one iteration of playtrick, chosen card: ",
-                    self.played_cards[-1],
-                )
+                print("finished one iteration of playtrick")
+
         if self.verbose >= 3:
             print("Done with while loop ", player)
+
+        if winner is None:
+            winner = self.wrap_up_trick(player_order)
+        if player_and_card is not None:
+            # finished terminal trick, add child
+            playing_state = self.playing_state_space(
+                player_order, player_and_card[0], self.played_cards
+            )
+            player_and_card[0].play_agent.create_child(
+                player_and_card[1],
+                self.output_path,
+                playing_state,
+                self.played_cards,
+                terminal_node=True)
+        return winner
 
     @staticmethod
     def trick_winner(played_cards: list, trump: int) -> int:
