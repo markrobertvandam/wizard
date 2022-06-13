@@ -152,6 +152,12 @@ class PlayingNetwork:
             self.target_update_counter = 0
 
         if self.q_memory_counter % 21000 == 0:
+            print("Saving q_mem...")
+            f = open("plots/q_plots/values.txt", "w")
+            f.write(f"{self.avg_q_memory}\n")
+            f.write(f"{self.ptp_q_memory}\n")
+            f.close()
+
             x = [i for i in range(50, len(self.ptp_q_memory) * 10 + 50, 10)]
             plt.plot(x, self.ptp_q_memory)
             plt.xlabel("Games (n)", fontsize=10)
