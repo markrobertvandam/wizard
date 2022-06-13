@@ -61,6 +61,7 @@ class Game:
             for player in self.players:  # reset trick wins
                 player.trick_wins = 0
                 player.win_cards = []
+        print(self.player1.play_agent.pred_counter)
 
     def play_round(self) -> None:
         """

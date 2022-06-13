@@ -107,6 +107,11 @@ class Game:
                 player.trick_wins = 0
                 player.win_cards = []
 
+        if self.player1.play_agent.pred_counter != 210 and self.player1.player_type == "learned":
+            print(f"Predict was called {self.player1.play_agent.pred_counter} times")
+            exit()
+        self.player1.play_agent.pred_counter = 0
+
         return (
             [
                 self.scores[self.player1],

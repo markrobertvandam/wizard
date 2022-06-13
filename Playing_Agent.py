@@ -115,6 +115,7 @@ class PlayingAgent:
         self.counter = 0
         self.parent_node = None
         self.last_terminal_node = None
+        self.pred_counter = 0
 
     def get_node(self, state_space: np.ndarray) -> Node:
         """"
@@ -216,6 +217,7 @@ class PlayingAgent:
         Use network to get best move
         :return:
         """
+        self.pred_counter += 1
         node = self.parent_node
         return self.best_child(node,
                                deck_dict,
