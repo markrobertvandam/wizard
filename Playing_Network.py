@@ -134,7 +134,7 @@ class PlayingNetwork:
             X.append(current_state)
             y.append(current_qs)
 
-        if len(avg_q_memory) > 0:
+        if len(avg_q_memory) > 0 and len(ptp_q_memory) > 0:
             # average over the 32 batches
             avg = round(np.average(avg_q_memory), 2)
             ptp = round(np.average(ptp_q_memory), 2)
@@ -142,10 +142,12 @@ class PlayingNetwork:
             if not math.isnan(avg):
                 self.avg_q_memory.append(avg)
             else:
+                print(f"obtained avg nan, curr_qs: {current_qs}, avg_q_mem: {avg_q_memory}")
                 self.avg_q_memory.append(self.avg_q_memory[-1])
             if not math.isnan(ptp):
                 self.ptp_q_memory.append(ptp)
             else:
+                print(f"obtained ptp nan, curr_qs: {current_qs}, avg_q_mem: {ptp_q_memory}")
                 self.ptp_q_memory.append(self.ptp_q_memory[-1])
             self.x_q_mem.append(self.q_memory_counter//210)
 
