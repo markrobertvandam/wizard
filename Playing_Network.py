@@ -1,3 +1,4 @@
+import math
 import numpy as np
 
 from collections import deque
@@ -40,6 +41,7 @@ class PlayingNetwork:
         # Array for plotting how avg q changes
         self.avg_q_memory = []
         self.ptp_q_memory = []
+        self.x_q_mem = []
 
     @staticmethod
     def dense_layer(num_units):
@@ -133,8 +135,19 @@ class PlayingNetwork:
             y.append(current_qs)
 
         if len(avg_q_memory) > 0:
-            self.avg_q_memory.append(round(np.average(avg_q_memory), 2))
-            self.ptp_q_memory.append(round(np.average(ptp_q_memory), 2))
+            # average over the 32 batches
+            avg = round(np.average(avg_q_memory), 2)
+            ptp = round(np.average(ptp_q_memory), 2)
+
+            if not math.isnan(avg):
+                self.avg_q_memory.append(avg)
+            else:
+                self.avg_q_memory.append(self.avg_q_memory[-1])
+            if not math.isnan(ptp):
+                self.ptp_q_memory.append(ptp)
+            else:
+                self.ptp_q_memory.append(self.ptp_q_memory[-1])
+            self.x_q_mem.append(self.q_memory_counter//210)
 
         # Fit on all samples as one batch, log only on terminal state
 
@@ -158,14 +171,13 @@ class PlayingNetwork:
             f.write(f"{self.ptp_q_memory}\n")
             f.close()
 
-            x = [i for i in range(50, len(self.ptp_q_memory) * 10 + 50, 10)]
-            plt.plot(x, self.ptp_q_memory)
+            plt.plot(self.x_q_mem, self.ptp_q_memory)
             plt.xlabel("Games (n)", fontsize=10)
             plt.ylabel("PTP of q-values", fontsize=10)
             plt.savefig(f"plots/q_plots/ptp_plot")
             plt.close()
 
-            plt.plot(x, self.avg_q_memory)
+            plt.plot(self.x_q_mem, self.avg_q_memory)
             plt.xlabel("Games (n)", fontsize=10)
             plt.ylabel("AVG of q-values", fontsize=10)
             plt.savefig(f"plots/q_plots/avg_plot")
