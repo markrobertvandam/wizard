@@ -16,7 +16,7 @@ REPLAY_MEMORY_SIZE = 42000  # How many of last   to keep for model training, 420
 MIN_REPLAY_MEMORY_SIZE = 4200  # Minimum number of tricks in memory to start training, 10500 means at least ~20 games
 MINIBATCH_SIZE = 32  # How many steps (samples) to use for training
 UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
-DISCOUNT = 0.9
+DISCOUNT = 0.7
 
 # Agent class
 class PlayingNetwork:
@@ -139,16 +139,8 @@ class PlayingNetwork:
             avg = round(np.average(avg_q_memory), 2)
             ptp = round(np.average(ptp_q_memory), 2)
 
-            if not math.isnan(avg):
-                self.avg_q_memory.append(avg)
-            else:
-                print(f"obtained avg nan, curr_qs: {current_qs}, avg_q_mem: {avg_q_memory}")
-                self.avg_q_memory.append(self.avg_q_memory[-1])
-            if not math.isnan(ptp):
-                self.ptp_q_memory.append(ptp)
-            else:
-                print(f"obtained ptp nan, curr_qs: {current_qs}, avg_q_mem: {ptp_q_memory}")
-                self.ptp_q_memory.append(self.ptp_q_memory[-1])
+            self.avg_q_memory.append(avg)
+            self.ptp_q_memory.append(ptp)
             self.x_q_mem.append(self.q_memory_counter//210)
 
         # Fit on all samples as one batch, log only on terminal state
