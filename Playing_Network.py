@@ -15,7 +15,7 @@ import random
 REPLAY_MEMORY_SIZE = 42000  # How many of last   to keep for model training, 42000 means remember last ~200 games
 MIN_REPLAY_MEMORY_SIZE = 4200  # Minimum number of tricks in memory to start training, 10500 means at least ~20 games
 MINIBATCH_SIZE = 32  # How many steps (samples) to use for training
-UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
+UPDATE_TARGET_EVERY = 20  # Terminal states (end of episodes)
 DISCOUNT = 0.7
 
 # Agent class
@@ -33,7 +33,6 @@ class PlayingNetwork:
         self.target_model = self.create_model()
         self.target_model.set_weights(self.model.get_weights())
 
-        self.target_update_counter = 0
         self.q_memory_counter = 0
 
         # An array with last n steps for training
@@ -160,14 +159,6 @@ class PlayingNetwork:
                        batch_size=MINIBATCH_SIZE,
                        verbose=0,
                        shuffle=False)
-
-        # Update target network counter every episode
-        self.target_update_counter += 1
-
-        # If counter reaches set value, update target network with weights of main network
-        if self.target_update_counter > UPDATE_TARGET_EVERY:
-            self.target_model.set_weights(self.model.get_weights())
-            self.target_update_counter = 0
 
         if self.q_memory_counter % 21000 == 0:
             print("Saving q_mem...")
