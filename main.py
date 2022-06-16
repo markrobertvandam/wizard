@@ -128,11 +128,8 @@ def avg_n_games(
     input_size_play = 3793
 
     name = None
-    if save_folder != "":
-        if "_" in name:
-            name = save_folder.split("_")[1]
-        else:
-            name = "medium"
+    if save_folder != "" and "_" in save_folder:
+        name = save_folder.split("_")[1]
     elif player_model is not None:
         name = player_model.split("/")[0].split("_")[1]
     
