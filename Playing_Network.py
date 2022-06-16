@@ -20,10 +20,11 @@ DISCOUNT = 0.7
 
 # Agent class
 class PlayingNetwork:
-    def __init__(self, input_size, name):
+    def __init__(self, input_size, name, masking=False):
 
         self.input_size = input_size
         self.name = name
+        self.masking = masking
 
         # Main model
         self.model = self.create_model()
@@ -102,7 +103,8 @@ class PlayingNetwork:
         # When using target network, query it, otherwise main network should be queried
         new_current_states = np.array([Playing_Agent.PlayingAgent.key_to_state(self.input_size, transition[3])
                                        for transition in minibatch])
-        future_qs_list = self.target_model.predict(new_current_states)
+        future_qs_list = self.model.predict(new_current_states)
+        future_q_vals = self.target_model.predict(new_current_states)
 
         X = []
         y = []
@@ -116,7 +118,11 @@ class PlayingNetwork:
             # If not a terminal state, get new q from future states, otherwise set it to 0
             # almost like with Q Learning, but we use just part of equation here
             if not done:
-                max_future_q = np.max(future_qs_list[index])
+                # best action predicted by online model
+                best_future_action = np.argmax(future_qs_list[index])
+
+                # evaluation of best action done by target model
+                max_future_q = future_q_vals[index][best_future_action]
                 new_q = reward + DISCOUNT * max_future_q
             else:
                 new_q = reward
@@ -124,6 +130,11 @@ class PlayingNetwork:
             # Update Q value for given state
             current_qs = current_qs_list[index]
             current_qs[action] = new_q
+
+            if self.masking:
+                # for each illegal move:
+                    # set current_qs[illegal_move] = -1000
+                pass
 
             # Every 10 games add to memory, start after 50 games
             if self.q_memory_counter % 2100 == 0 and self.q_memory_counter >= 10500:
