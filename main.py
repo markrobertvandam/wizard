@@ -129,7 +129,10 @@ def avg_n_games(
 
     name = None
     if save_folder != "":
-        name = save_folder.split("_")[1]
+        if "_" in name:
+            name = save_folder.split("_")[1]
+        else:
+            name = "medium"
     elif player_model is not None:
         name = player_model.split("/")[0].split("_")[1]
     
@@ -183,7 +186,7 @@ def avg_n_games(
     output_path = "state_err1"
     print("Guess type: ", guess_type, "Player type: ", player_type)
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
-        print("\nGame instance: ", game_instance)
+        #print("\nGame instance: ", game_instance)
         wizard = game.Game(
             full_deck,
             deck_dict,
