@@ -125,7 +125,7 @@ def avg_n_games(
     iters_done: int,
 ) -> None:
     input_size_guess = 69
-    input_size_play = 3793
+    input_size_play = 193
 
     name = None
     if save_folder != "" and "_" in save_folder:
