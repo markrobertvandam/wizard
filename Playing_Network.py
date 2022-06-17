@@ -161,8 +161,9 @@ class PlayingNetwork:
                        shuffle=False)
 
         if self.q_memory_counter % 21000 == 0:
+            save_name = "DDQN"
             print("Saving q_mem...")
-            f = open("plots/q_plots/values.txt", "w")
+            f = open(f"plots/q_plots/values_{save_name}", "w")
             f.write(f"{self.avg_q_memory}\n")
             f.write(f"{self.ptp_q_memory}\n")
             f.close()
@@ -170,13 +171,13 @@ class PlayingNetwork:
             plt.plot(self.x_q_mem, self.ptp_q_memory)
             plt.xlabel("Games (n)", fontsize=10)
             plt.ylabel("PTP of q-values", fontsize=10)
-            plt.savefig(f"plots/q_plots/ptp_plot")
+            plt.savefig(f"plots/q_plots/ptp_plot_{save_name}")
             plt.close()
 
             plt.plot(self.x_q_mem, self.avg_q_memory)
             plt.xlabel("Games (n)", fontsize=10)
             plt.ylabel("AVG of q-values", fontsize=10)
-            plt.savefig(f"plots/q_plots/avg_plot")
+            plt.savefig(f"plots/q_plots/avg_plot_{save_name}")
             plt.close()
 
     # Queries main network for Q values given current observation space (environment state)
