@@ -103,7 +103,7 @@ class Player:
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
                 # print("its a root node! (hand length equals round)")
-                self.play_agent.unseen_state(state_space)
+                self.play_agent.unseen_state(state_space, legal_cards)
 
                 if np.random.random() > self.player_epsilon:
                     # get move with highest q-value
@@ -136,7 +136,7 @@ class Player:
             key_state = self.play_agent.state_to_key(state_space)
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
-                self.play_agent.parent_node = Playing_Agent.Node(key_state, root=1)
+                self.play_agent.parent_node = Playing_Agent.Node(key_state, legal_cards, root=1)
 
             # get action from network
             card = self.play_agent.predict(self.deck_dict,
@@ -220,7 +220,7 @@ class Player:
             del self.hand[self.idx_dict[card]]
             # print("Hand after deletion: ", self.hand)
 
-        return card
+        return card, legal_cards
 
     def guess_wins(self, max_guesses: int, trump: int, state_space=None) -> int:
         """

@@ -179,7 +179,7 @@ class Game:
         player_order: list,
         requested_color: int,
         player: int,
-        player_and_card=None,
+        saved_info=None,
     ) -> int:
         """
         plays one entire trick (each player plays 1 card)
@@ -187,12 +187,12 @@ class Game:
         :param requested_color: the requested color that has to be played if possible
                                 (blue, yellow, red, green, None yet, None this round)
         :param player: how manieth player it is in this particular trick
-        :param player_and_card: for finishing a terminal trick before adding a child
+        :param saved_info: for finishing a terminal trick before adding a child
         :return: None
         """
         winner = None
         if self.verbose >= 3:
-            print("\nPlaytrick called with card: ", player_and_card)
+            print("\nPlaytrick called with card: ", saved_info)
         while player != 3:
             if self.verbose >= 3:
                 print(
@@ -211,16 +211,15 @@ class Game:
                 playing_state = self.playing_state_space(
                     player_order, player_order[player], self.played_cards
                 )
-            self.played_cards.append(
-                player_order[player].play_card(
-                    self.trump,
-                    requested_color,
-                    self.played_cards,
-                    player_order,
-                    self,
-                    playing_state,
-                )
-            )
+            card, legal_cards = player_order[player].play_card(
+                                    self.trump,
+                                    requested_color,
+                                    self.played_cards,
+                                    player_order,
+                                    self,
+                                    playing_state,
+                                )
+            self.played_cards.append(card)
 
             if requested_color == 4:
 
@@ -248,11 +247,12 @@ class Game:
                             self.output_path,
                             playing_state,
                             self.played_cards,
+                            legal_cards,
                             terminal_node=True)
 
                     else:
                         # play on till end somehow
-                        player_and_card = (player_order[player], self.played_cards[-1])
+                        saved_info = (player_order[player], self.played_cards[-1], legal_cards)
                         pass
 
                 # more tricks to follow, only wrap up if trick ended
@@ -267,7 +267,8 @@ class Game:
                         move,
                         self.output_path,
                         playing_state,
-                        self.played_cards)
+                        self.played_cards,
+                        legal_cards)
 
             player += 1
             if self.verbose >= 2:
@@ -278,16 +279,17 @@ class Game:
 
         if winner is None:
             winner = self.wrap_up_trick(player_order)
-        if player_and_card is not None:
+        if saved_info is not None:
             # finished terminal trick, add child
             playing_state = self.playing_state_space(
-                player_order, player_and_card[0], self.played_cards
+                player_order, saved_info[0], self.played_cards
             )
-            player_and_card[0].play_agent.create_child(
-                player_and_card[1],
+            saved_info[0].play_agent.create_child(
+                saved_info[1],
                 self.output_path,
                 playing_state,
                 self.played_cards,
+                saved_info[2],
                 terminal_node=True)
         return winner
 

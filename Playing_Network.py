@@ -111,7 +111,7 @@ class PlayingNetwork:
         ptp_q_memory = []
         avg_q_memory = []
         # Now we need to enumerate our batches
-        for index, (_, action, reward, _, done) in enumerate(minibatch):
+        for index, (_, action, reward, _, illegal_moves, done) in enumerate(minibatch):
             current_state = current_states[index]
 
             # If not a terminal state, get new q from future states, otherwise set it to 0
@@ -131,9 +131,8 @@ class PlayingNetwork:
             current_qs[action] = new_q
 
             if self.masking:
-                # for each illegal move:
-                    # set current_qs[illegal_move] = -1000
-                pass
+                for move in illegal_moves:
+                    current_qs[move] = -1000
 
             # Every 10 games add to memory, start after 50 games
             if self.q_memory_counter % 2100 == 0 and self.q_memory_counter >= 10500:

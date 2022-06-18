@@ -48,12 +48,8 @@ def parse_args() -> argparse.Namespace:
         "--play_model",
         help="optional argument to load in the weights of a saved player model",
     )
-    parser.add_argument(
-        "--use_agent",
-        help="optional argument to set whether opponents should be fixed agents",
-        default=0,
-        type=bool,
-    )
+    parser.add_argument("--use_agent", action="store_true",
+                        help="mask illegal moves")
     parser.add_argument(
         "--epsilon",
         help="optional argument to set starting epsilon",
@@ -72,6 +68,8 @@ def parse_args() -> argparse.Namespace:
         default=0,
         type=int,
     )
+    parser.add_argument("--mask", action="store_true",
+                        help="mask illegal moves")
 
     return parser.parse_args()
 
@@ -123,6 +121,7 @@ def avg_n_games(
     epsilon: float,
     player_epsilon: float,
     iters_done: int,
+    mask: bool,
 ) -> None:
     input_size_guess = 69
     input_size_play = 193
@@ -135,7 +134,7 @@ def avg_n_games(
     
     print(f"Inp_size guess: {input_size_guess} and Inp_size play: {input_size_play}")
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
-    playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
+    playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose, mask=mask)
     if guess_type == "learned" or (guess_type == "learning" and model_path is not None):
         print(f"Loading saved model {model_path}")
         guess_agent.model = tf.keras.models.load_model(
@@ -278,6 +277,8 @@ def avg_n_games(
 
 if __name__ == "__main__":
     args = parse_args()
+    print(f"Use agent: {args.use_agent}")
+    print(f"Masking: {args.mask}")
     avg_n_games(
         args.games,
         args.guesstype,
@@ -291,4 +292,5 @@ if __name__ == "__main__":
         args.epsilon,
         args.player_epsilon,
         args.iters_done,
+        args.mask,
     )

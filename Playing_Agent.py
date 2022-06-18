@@ -11,11 +11,12 @@ class Node:
     Monte-Carlo Treesearch
     """
     def __init__(
-        self, state, root=0, card=None, parent=None
+        self, state, legal_cards, root=0, card=None, parent=None
     ):
         self.state = state
         self.parent = parent
         self.children = []
+        self.legal_moves = legal_cards
         self.root = root
 
         # card that was played to get to the state
@@ -105,12 +106,12 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
 
 # Agent class
 class PlayingAgent:
-    def __init__(self, input_size: int, name=None, verbose=0):
+    def __init__(self, input_size: int, name=None, verbose=0, mask=False):
 
         self.game = None
         self.input_size = input_size
         self.nodes = dict()
-        self.network_policy = PlayingNetwork(input_size, name)
+        self.network_policy = PlayingNetwork(input_size, name, masking=mask)
         self.verbose = verbose
         self.counter = 0
         self.parent_node = None
@@ -182,7 +183,9 @@ class PlayingAgent:
         if self.verbose >= 3:
             print("Node card: ", node.card)
         action = deck_dict[node.card]
-        self.network_policy.update_replay_memory([node.parent.state, action, result, node.state, done])
+        legal_moves = [deck_dict[move] for move in node.parent.legal_moves]
+        illegal_moves = [move for move in range(60) if move not in legal_moves]
+        self.network_policy.update_replay_memory([node.parent.state, action, result, node.state, illegal_moves, done])
         self.network_policy.train()
         self.backpropagate(node.parent, deck_dict, result, False)
 
@@ -224,7 +227,7 @@ class PlayingAgent:
                                legal_moves,
                                player_order,)
 
-    def unseen_state(self, play_state: np.ndarray) -> None:
+    def unseen_state(self, play_state: np.ndarray, legal_cards: list) -> None:
         """
         Create root node for unseen state
         :param play_state: playing state to create a node for
@@ -233,7 +236,7 @@ class PlayingAgent:
         if self.verbose >= 2:
             print("Adding unseen root node..")
         key_state = self.state_to_key(play_state)
-        root_node = Node(key_state, root=1)
+        root_node = Node(key_state, legal_cards, root=1)
         if self.verbose:
             write_state(play_state, "state_err1", self.input_size, True)
         self.nodes[key_state] = root_node
@@ -245,6 +248,7 @@ class PlayingAgent:
         output_path,
         play_state,
         played_cards: list,
+        legal_cards: list,
         terminal_node=False,
     ) -> None:
         """
@@ -264,7 +268,7 @@ class PlayingAgent:
 
         key_state = self.state_to_key(play_state)
 
-        node = Node(key_state, card=move, parent=parent)
+        node = Node(key_state, legal_cards, card=move, parent=parent)
         parent.children.append(node)
         self.nodes[key_state] = node
 
