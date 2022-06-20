@@ -70,6 +70,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--mask", action="store_true",
                         help="mask illegal moves")
+    parser.add_argument("--dueling", action="store_true",
+                        help="use dueling DQN")
 
     return parser.parse_args()
 
@@ -122,19 +124,28 @@ def avg_n_games(
     player_epsilon: float,
     iters_done: int,
     mask: bool,
+    dueling: bool
 ) -> None:
     input_size_guess = 69
     input_size_play = 193
 
     name = None
-    if save_folder != "" and "_" in save_folder:
-        name = save_folder.split("_")[1]
+    if save_folder != "":
+        models_path = os.path.join("models", save_folder)
+        plot_path = os.path.join("plots", save_folder)
+        if "_" in save_folder:
+            name = save_folder.split("_")[1]
+        if save_bool:
+            if not os.path.exists(models_path):
+                os.mkdir(models_path)
+            if not os.path.exists(plot_path):
+                os.mkdir(plot_path)
     elif player_model is not None:
         name = player_model.split("/")[0].split("_")[1]
     
     print(f"Inp_size guess: {input_size_guess} and Inp_size play: {input_size_play}")
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
-    playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose, mask=mask)
+    playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose, mask=mask, dueling=dueling)
     if guess_type == "learned" or (guess_type == "learning" and model_path is not None):
         print(f"Loading saved model {model_path}")
         guess_agent.model = tf.keras.models.load_model(
@@ -279,6 +290,7 @@ if __name__ == "__main__":
     args = parse_args()
     print(f"Use agent: {args.use_agent}")
     print(f"Masking: {args.mask}")
+    print(f"Dueling: {args.dueling}")
     avg_n_games(
         args.games,
         args.guesstype,
@@ -293,4 +305,5 @@ if __name__ == "__main__":
         args.player_epsilon,
         args.iters_done,
         args.mask,
+        args.dueling
     )

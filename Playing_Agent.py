@@ -106,12 +106,12 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
 
 # Agent class
 class PlayingAgent:
-    def __init__(self, input_size: int, name=None, verbose=0, mask=False):
+    def __init__(self, input_size: int, name=None, verbose=0, mask=False, dueling=False):
 
         self.game = None
         self.input_size = input_size
         self.nodes = dict()
-        self.network_policy = PlayingNetwork(input_size, name, masking=mask)
+        self.network_policy = PlayingNetwork(input_size, name, masking=mask, dueling=dueling)
         self.verbose = verbose
         self.counter = 0
         self.parent_node = None

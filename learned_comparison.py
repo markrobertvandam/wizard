@@ -1,6 +1,7 @@
 import argparse
 import game
 import numpy as np
+import os
 import pickle
 import tensorflow as tf
 from Guessing_Agent import GuessingAgent
@@ -41,6 +42,8 @@ def parse_args() -> argparse.Namespace:
         default=0,
         type=bool,
     )
+    parser.add_argument("--dueling", action="store_true",
+                        help="use dueling DQN")
 
     return parser.parse_args()
 
@@ -61,6 +64,7 @@ def learned_n_games(
     player_inp_size: int,
     verbose: int,
     use_agent: bool,
+    dueling: bool
 ) -> None:
 
     # Make the deck
@@ -80,20 +84,26 @@ def learned_n_games(
 
     print("Pair: ", guessing_model, playing_model)
     guess_agent = GuessingAgent(input_size=guess_inp_size, guess_max=21)
-    playing_agent = PlayingAgent(input_size=player_inp_size, verbose=verbose)
+    playing_agent = PlayingAgent(input_size=player_inp_size, verbose=verbose, dueling=dueling)
 
     if guessing_model == "heuristic" or guessing_model == "random":
         guess_type = guessing_model
 
     else:
-        guess_agent.model = tf.keras.models.load_model(guessing_model)
+        if guessing_model != "none":
+            guess_agent.model = tf.keras.models.load_model(
+                os.path.join("models", guessing_model)
+            )
         guess_type = "learned"
 
     if playing_model == "heuristic" or playing_model == "random":
         player_type = playing_model
 
     else:
-        playing_agent.network_policy.model = tf.keras.models.load_model(playing_model)
+        if playing_model != "none":
+            playing_agent.network_policy.model = tf.keras.models.load_model(
+                os.path.join("models", playing_model)
+            )
         player_type = "learned"
 
     print(guess_agent.model.summary())
@@ -189,6 +199,8 @@ def play_game(
 
 if __name__ == "__main__":
     args = parse_args()
+    print(f"Use agent: {args.use_agent}")
+    print(f"Dueling: {args.dueling}")
     learned_n_games(
         args.games,
         args.games_folder,
@@ -198,4 +210,5 @@ if __name__ == "__main__":
         args.player_input,
         args.verbose,
         args.use_agent,
+        args.dueling
     )

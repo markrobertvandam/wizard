@@ -1,4 +1,3 @@
-import math
 import numpy as np
 
 from collections import deque
@@ -7,6 +6,8 @@ from keras.metrics import mean_squared_error as mse
 from keras.models import Model
 from keras.layers import Input, Dense
 from keras.optimizers import adam_v2
+
+from tensorflow import math
 
 import matplotlib.pyplot as plt
 import Playing_Agent
@@ -20,11 +21,12 @@ DISCOUNT = 0.7
 
 # Agent class
 class PlayingNetwork:
-    def __init__(self, input_size, name, masking=False):
+    def __init__(self, input_size, name, masking: bool, dueling: bool):
 
         self.input_size = input_size
         self.name = name
         self.masking = masking
+        self.dueling = dueling
 
         # Main model
         self.model = self.create_model()
@@ -65,10 +67,19 @@ class PlayingNetwork:
             x = self.dense_layer(128)(x)
         else:
             x = self.dense_layer(128)(input1)
-        x = self.dense_layer(64)(x)
-        x = Dense(60, activation="linear")(x)  # evaluation
 
-        model = Model(inputs=input1, outputs=x)
+        q = self.dense_layer(64)(x)
+        q = Dense(60, activation="linear")(q)  # q-values for actions
+
+        if self.dueling:
+            v = self.dense_layer(64)(x)
+            v = Dense(1, activation="linear")(v)  # evaluation of state
+
+            mean = math.reduce_mean(q, axis=1, keepdims=True)
+            new_q = v + (q - mean)
+            model = Model(inputs=input1, outputs=new_q)
+        else:
+            model = Model(inputs=input1, outputs=q)
 
         model.compile(
             loss="mse",
@@ -160,7 +171,7 @@ class PlayingNetwork:
                        shuffle=False)
 
         if self.q_memory_counter % 21000 == 0:
-            save_name = "DDQN_small"
+            save_name = "DDDQN_small"
             print("Saving q_mem...")
             f = open(f"plots/q_plots/values_{save_name}", "w")
             f.write(f"{self.avg_q_memory}\n")
