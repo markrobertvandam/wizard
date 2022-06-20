@@ -1,6 +1,7 @@
 import argparse
 import game
 import numpy as np
+import os
 import pickle
 import tensorflow as tf
 from Guessing_Agent import GuessingAgent
@@ -86,14 +87,18 @@ def learned_n_games(
         guess_type = guessing_model
 
     else:
-        guess_agent.model = tf.keras.models.load_model(guessing_model)
+        guess_agent.model = tf.keras.models.load_model(
+            os.path.join("models", guessing_model)
+        )
         guess_type = "learned"
 
     if playing_model == "heuristic" or playing_model == "random":
         player_type = playing_model
 
     else:
-        playing_agent.network_policy.model = tf.keras.models.load_model(playing_model)
+        playing_agent.network_policy.model = tf.keras.models.load_model(
+            os.path.join("models", playing_model)
+        )
         player_type = "learned"
 
     print(guess_agent.model.summary())
