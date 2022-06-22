@@ -7,6 +7,10 @@ import time
 import tensorflow as tf
 from Guessing_Agent import GuessingAgent
 from Playing_Agent import PlayingAgent
+from numpy.random import seed
+
+seed(1)
+tf.random.set_seed(1)
 
 
 def parse_args() -> argparse.Namespace:
