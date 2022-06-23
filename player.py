@@ -92,7 +92,7 @@ class Player:
         #  print(f"\ncolor: {requested_color}\n hand: {self.hand}\n legal: {legal_cards}\n")
         card = None
 
-        if self.player_type == "learning":
+        if self.player_type == "learningggg":
             if self.verbose >= 3:
                 print("Round: ", game_instance.game_round)
                 print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
@@ -150,7 +150,7 @@ class Player:
         elif self.player_type == "random":
             card = random.choice(legal_cards)
 
-        elif self.player_type == "heuristic":
+        elif self.player_type == "heuristic" or self.player_type == "learning":
             # dodge win as high as possible if I am already at my goal
             if self.player_guesses == self.trick_wins:
                 sorted_legal = sorted(legal_cards, key=lambda x: x[1], reverse=True)

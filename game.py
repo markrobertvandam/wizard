@@ -242,13 +242,17 @@ class Game:
                         playing_state = self.playing_state_space(
                             player_order, player_order[player], self.played_cards
                         )
-                        player_order[player].play_agent.create_child(
-                            move,
-                            self.output_path,
-                            playing_state,
-                            self.played_cards,
-                            legal_cards,
-                            terminal_node=True)
+                        key_state = player_order[player].play_agent.state_to_key(playing_state)
+                        if key_state in player_order[player].play_agent.nodes:
+                            player_order[player].play_agent.cntr[self.game_round-1] += 1
+                        player_order[player].play_agent.nodes[key_state] = 0
+                        # player_order[player].play_agent.create_child(
+                        #     move,
+                        #     self.output_path,
+                        #     playing_state,
+                        #     self.played_cards,
+                        #     legal_cards,
+                        #     terminal_node=True)
 
                     else:
                         # play on till end somehow
@@ -263,12 +267,16 @@ class Game:
                     playing_state = self.playing_state_space(
                         player_order, player_order[player], self.played_cards
                     )
-                    player_order[player].play_agent.create_child(
-                        move,
-                        self.output_path,
-                        playing_state,
-                        self.played_cards,
-                        legal_cards)
+                    key_state = player_order[player].play_agent.state_to_key(playing_state)
+                    if key_state in player_order[player].play_agent.nodes:
+                        player_order[player].play_agent.cntr[self.game_round-1] += 1
+                    player_order[player].play_agent.nodes[key_state] = 0
+                    # player_order[player].play_agent.create_child(
+                    #     move,
+                    #     self.output_path,
+                    #     playing_state,
+                    #     self.played_cards,
+                    #     legal_cards)
 
             player += 1
             if self.verbose >= 2:
@@ -284,13 +292,18 @@ class Game:
             playing_state = self.playing_state_space(
                 player_order, saved_info[0], self.played_cards
             )
-            saved_info[0].play_agent.create_child(
-                saved_info[1],
-                self.output_path,
-                playing_state,
-                self.played_cards,
-                saved_info[2],
-                terminal_node=True)
+            key_state = saved_info[0].play_agent.state_to_key(playing_state)
+            if key_state in saved_info[0].play_agent.nodes:
+                saved_info[0].play_agent.cntr[self.game_round-1] += 1
+            else:
+                saved_info[0].play_agent.nodes[key_state] = 0
+            # saved_info[0].play_agent.create_child(
+            #     saved_info[1],
+            #     self.output_path,
+            #     playing_state,
+            #     self.played_cards,
+            #     saved_info[2],
+            #     terminal_node=True)
         return winner
 
     @staticmethod
@@ -502,17 +515,17 @@ class Game:
                 self.scores[player] += 20 + 10 * player.get_guesses()
                 if player.guess_type == "learning":
                     player.update_agent(100)
-                if player.player_type == "learning":
-                    player.play_agent.backpropagate(
-                        player.play_agent.last_terminal_node, self.deck_dict, 1
-                    )
+                # if player.player_type == "learning":
+                #     player.play_agent.backpropagate(
+                #         player.play_agent.last_terminal_node, self.deck_dict, 1
+                #     )
             else:
                 if player.guess_type == "learning":
                     player.update_agent(0)
-                if player.player_type == "learning":
-                    player.play_agent.backpropagate(
-                        player.play_agent.last_terminal_node, self.deck_dict, 0
-                    )
+                # if player.player_type == "learning":
+                #     player.play_agent.backpropagate(
+                #         player.play_agent.last_terminal_node, self.deck_dict, 0
+                #     )
 
                 self.scores[player] -= 10 * off_mark
                 if player.player_name == "player1":

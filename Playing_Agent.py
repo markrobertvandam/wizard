@@ -113,6 +113,7 @@ class PlayingAgent:
         self.nodes = dict()
         self.network_policy = PlayingNetwork(input_size, name, masking=mask, dueling=dueling)
         self.verbose = verbose
+        self.cntr = [0] * 20
         self.counter = 0
         self.parent_node = None
         self.last_terminal_node = None

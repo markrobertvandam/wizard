@@ -131,7 +131,7 @@ def avg_n_games(
     dueling: bool
 ) -> None:
     input_size_guess = 69
-    input_size_play = 193
+    input_size_play = 3793
 
     name = None
     if save_folder != "":
@@ -239,11 +239,11 @@ def avg_n_games(
                 max_acc = accuracy
 
         if player_type == "learning" or guess_type == "learning":
-            if player_type == "learning" and game_instance % 10 == 0:
-                    print("Updating target network weights..")
-                    target_model = playing_agent.network_policy.target_model
-                    online_model = playing_agent.network_policy.model
-                    target_model.set_weights(online_model.get_weights())
+            # if player_type == "learning" and game_instance % 10 == 0:
+            #         print("Updating target network weights..")
+            #         target_model = playing_agent.network_policy.target_model
+            #         online_model = playing_agent.network_policy.model
+            #         target_model.set_weights(online_model.get_weights())
 
             if game_instance % 1000 == 0:
                 if save_bool.startswith("y"):
@@ -259,6 +259,9 @@ def avg_n_games(
                         accuracy,
                         game_instance,
                     )
+
+            if game_instance % 100 == 0:
+                print(f"Re-occured states: {playing_agent.cntr}")
 
             if game_instance - last_max > 10000:
                 if save_bool.startswith("y"):
