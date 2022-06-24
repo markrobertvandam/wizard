@@ -197,7 +197,7 @@ def avg_n_games(
     output_path = "state_err1"
     print("Guess type: ", guess_type, "Player type: ", player_type)
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
-        #print("\nGame instance: ", game_instance)
+        print("\nGame instance: ", game_instance)
         wizard = game.Game(
             full_deck,
             deck_dict,

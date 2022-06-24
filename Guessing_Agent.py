@@ -85,6 +85,6 @@ class GuessingAgent:
             shuffle=False,
         )
 
-    # Queries main network for Q values given current observation space (environment state)
-    def get_qs(self, state):
+    # Queries main network for probability values given current observation space (environment state)
+    def get_probs(self, state):
         return self.model.predict(state.reshape(-1, *state.shape))[0]

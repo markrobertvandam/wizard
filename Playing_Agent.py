@@ -118,6 +118,13 @@ class PlayingAgent:
         self.last_terminal_node = None
         self.pred_counter = 0
 
+        # initialize Atoms
+        self.num_atoms = 51  # 51 for C51
+        self.v_max = 10  # Max reward is 1, max avg q-score is ~3 in DDQN
+        self.v_min = 0  # min score is 0
+        self.delta_z = (self.v_max - self.v_min) / float(self.num_atoms - 1)
+        self.z = [round(self.v_min + i * self.delta_z, 2) for i in range(self.num_atoms)]
+
     def get_node(self, state_space: np.ndarray) -> Node:
         """"
         get node from node dictionary using key_state
@@ -200,11 +207,15 @@ class PlayingAgent:
             return move
 
         elif len(legal_moves) > 0:
-            q_vals = self.network_policy.get_qs(node.state)
+            z = self.network_policy.get_qs(node.state)  # [1x51, 1x51... 1x51] (60x51)
             card_indexes = [deck_dict[card] for card in legal_moves]
-            legal_q_vals = [q_vals[index] for index in card_indexes]
-            best_child = np.argmax(legal_q_vals)
-            move = legal_moves[best_child]
+            multiplied = np.multiply(z, np.array(self.z))
+            q = np.sum(multiplied, axis=1)
+            legal_q_vals = [q[index] for index in card_indexes]
+
+            # Pick action with the biggest Q value
+            action_idx = np.argmax(legal_q_vals)
+            move = legal_moves[action_idx]
 
             return move
 

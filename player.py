@@ -239,14 +239,14 @@ class Player:
                 if np.random.random() > self.epsilon:
                     # Get action from Q table
                     self.player_guesses = np.argmax(
-                        self.guess_agent.get_qs(state_space)
+                        self.guess_agent.get_probs(state_space)
                     )
                 else:
                     # Get random action
                     self.player_guesses = random.randrange(max_guesses + 1)
             elif self.guess_type == "learned":
                 self.current_state = state_space
-                self.player_guesses = np.argmax(self.guess_agent.get_qs(state_space))
+                self.player_guesses = np.argmax(self.guess_agent.get_probs(state_space))
             else:
                 guesses = 0
                 for card in self.hand:

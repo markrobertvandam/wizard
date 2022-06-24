@@ -4,7 +4,7 @@ from collections import deque
 
 from keras.metrics import mean_squared_error as mse
 from keras.models import Model
-from keras.layers import Input, Dense
+from keras.layers import Input, Dense, Reshape, Softmax
 from keras.optimizers import adam_v2
 
 from tensorflow import math
@@ -45,6 +45,14 @@ class PlayingNetwork:
         self.ptp_q_memory = []
         self.x_q_mem = []
 
+        # Initialize Atoms
+        self.num_actions = 60
+        self.num_atoms = 51  # 51 for C51
+        self.v_max = 10  # Max reward is 1, max avg q-score is ~3 in DDQN
+        self.v_min = 0  # min score is 0
+        self.delta_z = (self.v_max - self.v_min) / float(self.num_atoms - 1)
+        self.z = [self.v_min + i * self.delta_z for i in range(self.num_atoms)]
+
     @staticmethod
     def dense_layer(num_units):
         return Dense(num_units, activation="relu")
@@ -68,21 +76,13 @@ class PlayingNetwork:
         else:
             x = self.dense_layer(128)(input1)
 
-        q = self.dense_layer(64)(x)
-        q = Dense(60, activation="linear")(q)  # q-values for actions
-
-        if self.dueling:
-            v = self.dense_layer(64)(x)
-            v = Dense(1, activation="linear")(v)  # evaluation of state
-
-            mean = math.reduce_mean(q, axis=1, keepdims=True)
-            new_q = v + (q - mean)
-            model = Model(inputs=input1, outputs=new_q)
-        else:
-            model = Model(inputs=input1, outputs=q)
+        distribution_list = self.dense_layer(60*51)(x)
+        reshaped = Reshape((60, 51))(distribution_list)
+        probs = Softmax(axis=1)(reshaped)
+        model = Model(inputs=input1, outputs=probs)
 
         model.compile(
-            loss="mse",
+            loss='categorical_crossentropy',
             optimizer=adam_v2.Adam(learning_rate=0.0001, clipvalue=0.5),
             metrics=[mse]
         )
@@ -103,69 +103,56 @@ class PlayingNetwork:
 
         # Get a minibatch of random samples from memory replay table
         minibatch = random.sample(self.replay_memory, MINIBATCH_SIZE)
-
-        # Get current states from minibatch, then query NN model for Q values
-        current_states = np.array([Playing_Agent.PlayingAgent.key_to_state(self.input_size, transition[0])
-                                   for transition in minibatch])
-        current_qs_list = self.model.predict(current_states)
+        m_prob = [np.zeros((self.num_actions, self.num_atoms)) for _ in range(MINIBATCH_SIZE)]
+        current_states, actions, rewards, new_current_states, illegal_moves, done = [], [], [], [], [], []
+        for index in range(MINIBATCH_SIZE):
+            transition = minibatch[index]
+            # Get current states from minibatch, then query NN model for Q values
+            sparse_state = Playing_Agent.PlayingAgent.key_to_state(self.input_size, transition[0])
+            reshaped = sparse_state.reshape(-1, *sparse_state.shape)
+            current_states.append(reshaped)
+            actions.append(transition[1])
+            rewards.append(transition[2])
+            sparse_new_state = Playing_Agent.PlayingAgent.key_to_state(self.input_size, transition[3])
+            reshaped = sparse_new_state.reshape(-1, *sparse_new_state.shape)
+            new_current_states.append(reshaped)
+            illegal_moves.append(transition[4])
+            done.append(transition[5])
 
         # Get future states from minibatch, then query NN model for Q values
-        # When using target network, query it, otherwise main network should be queried
-        new_current_states = np.array([Playing_Agent.PlayingAgent.key_to_state(self.input_size, transition[3])
-                                       for transition in minibatch])
-        future_qs_list = self.model.predict(new_current_states)
-        future_q_vals = self.target_model.predict(new_current_states)
+        # TODO: batch predict
+        # z = self.model.predict(new_current_states)
+        # z_ = self.target_model.predict(new_current_states)
 
-        X = []
-        y = []
+        z = [self.model.predict(i)[0] for i in new_current_states]
+        z_ = [self.target_model.predict(i)[0] for i in new_current_states]
+        # #
+        # # Get Optimal Actions for the next states (from distribution z)
+        q = np.sum(np.multiply(z, np.array(self.z)), axis=-1)  # shaped (32, 60)
+        optimal_action_idxs = np.argmax(q, axis=1)  # optimal action per batch (32,)
 
-        ptp_q_memory = []
-        avg_q_memory = []
-        # Now we need to enumerate our batches
-        for index, (_, action, reward, _, illegal_moves, done) in enumerate(minibatch):
-            current_state = current_states[index]
-
-            # If not a terminal state, get new q from future states, otherwise set it to 0
-            # almost like with Q Learning, but we use just part of equation here
-            if not done:
-                # best action predicted by online model
-                best_future_action = np.argmax(future_qs_list[index])
-
-                # evaluation of best action done by target model
-                max_future_q = future_q_vals[index][best_future_action]
-                new_q = reward + DISCOUNT * max_future_q
-            else:
-                new_q = reward
-
-            # Update Q value for given state
-            current_qs = current_qs_list[index]
-            current_qs[action] = new_q
-
-            if self.masking:
-                for move in illegal_moves:
-                    current_qs[move] = -1000
-
-            # Every 10 games add to memory, start after 50 games
-            if self.q_memory_counter % 2100 == 0 and self.q_memory_counter >= 10500:
-                avg_q_memory.append(np.average(current_qs))
-                ptp_q_memory.append(np.ptp(current_qs))
-
-            # And append to our training data
-            X.append(current_state)
-            y.append(current_qs)
-
-        if len(avg_q_memory) > 0 and len(ptp_q_memory) > 0:
-            # average over the 32 batches
-            avg = round(np.average(avg_q_memory), 2)
-            ptp = round(np.average(ptp_q_memory), 2)
-
-            self.avg_q_memory.append(avg)
-            self.ptp_q_memory.append(ptp)
-            self.x_q_mem.append(self.q_memory_counter//210)
+        # # Project Next State Value Distribution (of optimal action) to Current State
+        # for i in range(MINIBATCH_SIZE):
+        #     if done[i]:  # Terminal State
+        #         # # unnecessary because ml and mu always equal bj
+        #         # # Distribution collapses to a single point
+        #         # Tz = rewards[i]  # reward is only 0 or 1, always between v_max and v_min
+        #         # bj = (Tz - self.v_min) / self.delta_z
+        #         # m_l, m_u = bj, bj  # bj is always 0 or 5, no need for floor/ceil
+        #         # m_prob[i][actions[i]][m_l] += (m_u - bj)
+        #         # m_prob[i][actions[i]][m_u] += (bj - m_l)
+        #         pass
+        #     else:
+        #         for j in range(self.num_atoms):
+        #             # reward {0, 1} + discount * atom {0, 0.2... 10}
+        #             Tz = min(self.v_max, max(self.v_min, rewards[i] + DISCOUNT * self.z[j]))
+        #             bj = (Tz - self.v_min) / self.delta_z
+        #             m_l, m_u = math.floor(bj), math.ceil(bj)
+        #             m_prob[i][actions[i]][int(m_l)] += z_[i][optimal_action_idxs[i]][j] * (m_u - bj)
+        #             m_prob[i][actions[i]][int(m_u)] += z_[i][optimal_action_idxs[i]][j] * (bj - m_l)
 
         # Fit on all samples as one batch, log only on terminal state
-
-        self.model.fit(np.array(X), np.array(y),
+        self.model.fit(np.array(current_states).reshape(MINIBATCH_SIZE, self.input_size), np.array(m_prob),
                        batch_size=MINIBATCH_SIZE,
                        verbose=0,
                        shuffle=False)
@@ -193,4 +180,5 @@ class PlayingNetwork:
     # Queries main network for Q values given current observation space (environment state)
     def get_qs(self, state):
         sparse_state = Playing_Agent.PlayingAgent.key_to_state(self.input_size, state)
-        return self.model.predict(np.array(sparse_state).reshape(-1, *sparse_state.shape))[0]
+        reshaped = sparse_state.reshape(-1, *sparse_state.shape)
+        return np.array(self.model.predict(reshaped))[0]
