@@ -104,8 +104,8 @@ class Game:
                 random.shuffle(self.deck)
             else:
                 self.deck = self.shuffled_decks[game_round][:]
-            if self.verbose >= 2:
-                print(f"Initial player order at start of round: {[p.player_name for p in self.players]}")
+            if self.verbose >= 1:
+                print(f"\nInitial player order at start of round {self.game_round}: {[p.player_name for p in self.players]}")
             self.play_round()
             self.possible_cards_one = [1] * 60
             self.possible_cards_two = [1] * 60
@@ -249,7 +249,7 @@ class Game:
                     requested_color = self.played_cards[player_index][0]
 
             if player_order[player_index].player_type == "learning":
-                if self.verbose:
+                if self.verbose >= 2:
                     print(f"Learning player has the hand: {player_order[player_index].get_hand()}")
                 # final trick, wrap up round
                 if len(player_order[player_index].get_hand()) == 0:
@@ -596,7 +596,7 @@ class Game:
         winner_index = self.trick_winner(self.played_cards, self.trump)
         self.played_round.append(self.played_cards)
         player_order[winner_index].trick_wins += 1
-        if self.verbose >= 2:
+        if self.verbose >= 1:
             print(
                 f"Order: {[player.player_name for player in player_order]}, "
                 f"\nPlayed: {self.played_cards}"
