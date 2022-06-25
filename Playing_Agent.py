@@ -43,11 +43,11 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
         f.write("Simulated node\n")
     f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
     current_pos = 60
-    # if cheater
-    if input_size % 100 == 15 or input_size % 100 == 13:
-        f.write("Hand2: " + str(np.nonzero(play_state[60:120])[0].tolist()) + "\n")
-        f.write("Hand3: " + str(np.nonzero(play_state[120:180])[0].tolist()) + "\n")
-        current_pos = 180
+    # # if cheater
+    # if input_size % 100 == 15 or input_size % 100 == 13:
+    #     f.write("Hand2: " + str(np.nonzero(play_state[60:120])[0].tolist()) + "\n")
+    #     f.write("Hand3: " + str(np.nonzero(play_state[120:180])[0].tolist()) + "\n")
+    #     current_pos = 180
     f.write("Trump: " + str(play_state[current_pos: current_pos + 5]) + "\n")
     current_pos += 5
 
@@ -67,8 +67,8 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
     )
     current_pos += 2
 
-    # if not old
-    if input_size % 100 == 93:
+    # if not olds
+    if input_size % 100 == 93 or input_size % 100 == 13:
         f.write("Order: " + str(play_state[current_pos]) + "\n")
         f.write(
             "played trick: "
@@ -101,6 +101,18 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
         f.write(
             "played round: "
             + str(np.nonzero(play_state[current_pos:])[0].tolist())
+            + "\n"
+        )
+
+    if input_size == 313:
+        f.write(
+            "possible cards player2: "
+            + str(np.nonzero(play_state[current_pos:current_pos+60])[0].tolist())
+            + "\n"
+        )
+        f.write(
+            "possible cards player3: "
+            + str(np.nonzero(play_state[current_pos+60:])[0].tolist())
             + "\n"
         )
     f.close()
@@ -296,7 +308,7 @@ class PlayingAgent:
         # make temporary copy of the game
         temp_game = self.temp_game(game_instance, played_cards)
 
-        player = len(played_cards)
+        player_index = len(played_cards)
         player_order_names = [p.player_name for p in player_order]
         new_player_dict = {
             "player1": temp_game.player1,
@@ -316,29 +328,37 @@ class PlayingAgent:
 
         if self.verbose >= 3:
             print("Temporary player order: ", [p.player_name for p in new_player_order])
-            print("Player that is learning: ", player, played_cards)
+            print("Player that is learning: ", player_index, played_cards)
 
+        player = new_player_order[player_index]
         # if theres more tricks to follow, children state is after move
         if not terminal_node:
-            # simulate the play with selected move
-            temp_game.play_trick(
-                new_player_order,
-                requested_color,
-                player,
-                card=move,
-                player_limit=player + 1,
-            )
-            if player == 2:
-                temp_game.wrap_up_trick(new_player_order)
+            if player_index == 2:
+                # simulate the play with selected move (final move of trick)
+                _, new_player_order = temp_game.play_trick(
+                    new_player_order,
+                    requested_color,
+                    player_index,
+                    card=move,
+                    player_limit=player_index + 1,
+                )
+            else:
+                # simulate play with selected non-final move
+                temp_game.play_trick(
+                    new_player_order,
+                    requested_color,
+                    player_index,
+                    card=move,
+                    player_limit=player_index + 1,
+                )
 
         # else, terminal node, wrap up the round
         else:
-            temp_game.play_trick(new_player_order, requested_color, player, card=move)
-            temp_game.wrap_up_trick(new_player_order)
+            _, new_player_order = temp_game.play_trick(new_player_order, requested_color, player_index, card=move)
 
         play_state = temp_game.playing_state_space(
             new_player_order,
-            new_player_order[player],
+            player,
             temp_game.played_cards,
             temp=True,
         )
