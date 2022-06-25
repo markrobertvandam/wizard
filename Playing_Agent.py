@@ -41,11 +41,11 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
         f.write("Simulated node\n")
     f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
     current_pos = 60
-    # if cheater
-    if input_size % 100 == 15 or input_size % 100 == 13:
-        f.write("Hand2: " + str(np.nonzero(play_state[60:120])[0].tolist()) + "\n")
-        f.write("Hand3: " + str(np.nonzero(play_state[120:180])[0].tolist()) + "\n")
-        current_pos = 180
+    # # if cheater
+    # if input_size % 100 == 15 or input_size % 100 == 13:
+    #     f.write("Hand2: " + str(np.nonzero(play_state[60:120])[0].tolist()) + "\n")
+    #     f.write("Hand3: " + str(np.nonzero(play_state[120:180])[0].tolist()) + "\n")
+    #     current_pos = 180
     f.write("Trump: " + str(play_state[current_pos: current_pos + 5]) + "\n")
     current_pos += 5
 
@@ -65,8 +65,8 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
     )
     current_pos += 2
 
-    # if not old
-    if input_size % 100 == 93:
+    # if not olds
+    if input_size % 100 == 93 or input_size % 100 == 13:
         f.write("Order: " + str(play_state[current_pos]) + "\n")
         f.write(
             "played trick: "
@@ -99,6 +99,18 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
         f.write(
             "played round: "
             + str(np.nonzero(play_state[current_pos:])[0].tolist())
+            + "\n"
+        )
+
+    if input_size == 313:
+        f.write(
+            "possible cards player2: "
+            + str(np.nonzero(play_state[current_pos:current_pos+60])[0].tolist())
+            + "\n"
+        )
+        f.write(
+            "possible cards player3: "
+            + str(np.nonzero(play_state[current_pos+60:])[0].tolist())
             + "\n"
         )
     f.close()
