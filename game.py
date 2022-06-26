@@ -186,7 +186,6 @@ class Game:
                 print(f"We made it HERE! Trick was played!, winner is: {winner_index}")
 
             if self.verbose >= 2:
-                print("Played in actual trick: ", self.played_cards)
                 print(
                     "Winner index: ", winner_index, "name: ", player_order[winner_index].player_name
                 )
@@ -455,7 +454,7 @@ class Game:
             # played trick is ordered in order of play
             played_this_trick = 120 * [0]
 
-            if inp_size % 100 == 93:
+            if inp_size % 100 == 93 or inp_size == 313:
                 players_turn = self.players.index(player)
                 state += [players_turn]
             elif inp_size % 100 == 95:
@@ -484,7 +483,7 @@ class Game:
 
         state_space = np.array(state, dtype=int)
         if len(state) != inp_size:
-            print("Input size is wrong")
+            print(f"Input size is wrong, state is length {len(state)} while inp_size is {inp_size}")
             exit()
         return state_space
 
