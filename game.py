@@ -302,7 +302,6 @@ class Game:
         :return: index of the winning card
         """
         strongest_card = 0
-        print(f"Trick winner being determined for {played_cards}, with trump: {trump}")
         if played_cards[0][1] == 14:  # If first player played a wizard
             return 0
 
