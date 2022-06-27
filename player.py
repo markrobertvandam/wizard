@@ -102,43 +102,43 @@ class Player:
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
                 # print("its a root node! (hand length equals round)")
+                # Create root node and set it as parent node
                 self.play_agent.unseen_state(state_space, legal_cards)
 
                 if np.random.random() > self.player_epsilon:
-                    # get move with highest q-value
-                    card = self.play_agent.predict(self.deck_dict,
+                    # get move with highest q-value using the parent node
+                    card = self.play_agent.predict(state_space,
+                                                   self.deck_dict,
                                                    legal_cards,
                                                    player_order)
                 else:
-                    # rollout a random move
+                    # rollout a random move from parent node
                     card = self.play_agent.rollout_policy(legal_cards,
                                                           self.hand,)
 
             # its a child, either terminal or not
             else:
-                # print("its a child node!, hand length and round: ", len(self.hand), game_instance.game_round)
+                # TODO: use state_space!!
+                # makes a node before play
+                self.play_agent.new_child_state(state_space, legal_cards)
+
                 if np.random.random() > self.player_epsilon:
-                    # print("get card from prediction")
-                    # get move with higest q-value
-                    card = self.play_agent.predict(self.deck_dict,
+                    # returns move for after play using network
+                    card = self.play_agent.predict(state_space,
+                                                   self.deck_dict,
                                                    legal_cards,
                                                    player_order)
-                    # print("obtained card: ", card)
                 else:
-                    # print("get card from rollout: ")
-                    # rollout a random move
+                    # returns move for after play using rollout
                     card = self.play_agent.rollout_policy(legal_cards,
                                                           self.hand,)
-                    # print("obtained card: ", card)
 
         elif self.player_type == "learned":
-            key_state = state_to_key(state_space)
             # ROOT NODE (cards in hand == round) -> add root and children
-            if len(self.hand) == game_instance.game_round:
-                self.play_agent.parent_node = Playing_Agent.Node(key_state, legal_cards, root=1)
 
             # get action from network
-            card = self.play_agent.predict(self.deck_dict,
+            card = self.play_agent.predict(state_space,
+                                           self.deck_dict,
                                            legal_cards,
                                            player_order,)
 

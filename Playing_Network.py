@@ -199,5 +199,4 @@ class PlayingNetwork:
 
     # Queries main network for Q values given current observation space (environment state)
     def get_qs(self, state):
-        sparse_state = key_to_state(self.input_size, state)
-        return self.model.predict(np.array(sparse_state).reshape(-1, *sparse_state.shape))[0]
+        return self.model.predict(np.array(state).reshape(-1, *state.shape))[0]

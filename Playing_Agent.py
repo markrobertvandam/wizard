@@ -2,7 +2,7 @@ import numpy as np
 import random
 
 from Playing_Network import PlayingNetwork
-from utility_fuctions import state_to_key
+from utility_fuctions import state_to_key, key_to_state
 
 
 class Node:
@@ -11,19 +11,22 @@ class Node:
     Monte-Carlo Treesearch
     """
     def __init__(
-        self, state, legal_cards, root=0, card=None, parent=None
+        self, state, legal_cards, before_play: bool, root=False, card=None, parent=None
     ):
         self.state = state
         self.parent = parent
-        self.children = []
+        self.child = None
         self.legal_moves = legal_cards
         self.root = root
 
         # card that was played to get to the state
         self.card = card
 
+        # is it S or S' (before or after agents action)
+        self.before_play = before_play
 
-def write_state(play_state: np.ndarray, output_path: str, input_size: int, actual=False) -> None:
+
+def write_state(play_state: np.ndarray, output_path: str, input_size: int, type_node="After play") -> None:
     """
     Write playing state to text file for debugging
     :param play_state: actual playing state
@@ -35,10 +38,7 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
     f = open(f"{output_path}.txt", "a")
     f.write("\n\n\n")
     np.set_printoptions(threshold=np.inf)
-    if actual:
-        f.write("Actual node\n")
-    else:
-        f.write("Simulated node\n")
+    f.write(f"{type_node} node\n")
     f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
     current_pos = 60
     # # if cheater
@@ -160,21 +160,38 @@ class PlayingAgent:
         self.counter += 1
         if self.counter % 2000 == 0:
             print(self.counter)
-        if node.root:
-            # done propagating entire game, nodes can be reset
-            self.nodes = dict()
-            return
-        if self.verbose >= 3:
-            print("Node card: ", node.card)
-        action = deck_dict[node.card]
-        legal_moves = [deck_dict[move] for move in node.parent.legal_moves]
-        illegal_moves = [move for move in range(60) if move not in legal_moves]
-        self.network_policy.update_replay_memory([node.parent.state, action, result, node.state, illegal_moves, done])
-        self.network_policy.train()
+
+        if node.before_play:
+            if self.verbose >= 3:
+                print("Node card: ", node.child.card)
+            action = deck_dict[node.child.card]
+            legal_moves = [deck_dict[move] for move in node.legal_moves]
+            illegal_moves = [move for move in range(60) if move not in legal_moves]
+
+            if self.verbose >= 3:
+                # checking if the (S, a, S') pairs are correct
+                write_state(key_to_state(self.input_size, node.state), "sas", self.input_size, type_node="before play")
+                f = open("sas.txt", "a")
+                f.write(f"\nAction taken: {action}, result: {result}\n")
+                f.close()
+                write_state(key_to_state(self.input_size, node.child.state), "sas", self.input_size, type_node="after play")
+                f = open("sas.txt", "a")
+                f.write("\n\n")
+                f.close()
+
+            self.network_policy.update_replay_memory([node.state, action, result, node.child.state, illegal_moves, done])
+            self.network_policy.train()
+
+            # Only add (S, a, S'), go next if current node is S'
+            if node.root:
+                # done propagating entire game, nodes can be reset
+                self.nodes = dict()
+                return
+
         self.backpropagate(node.parent, deck_dict, result, False)
 
     def best_child(self,
-                   node: Node,
+                   state,
                    deck_dict: dict,
                    legal_moves: list,
                    player_hand: list,) -> tuple:
@@ -184,7 +201,10 @@ class PlayingAgent:
             return move
 
         elif len(legal_moves) > 0:
-            q_vals = self.network_policy.get_qs(node.state)
+            if self.verbose >= 3:
+                sparse_state = key_to_state(self.input_size, state)
+                write_state(sparse_state, "predict_nodes", self.input_size, "predict")
+            q_vals = self.network_policy.get_qs(state)
             card_indexes = [deck_dict[card] for card in legal_moves]
             legal_q_vals = [q_vals[index] for index in card_indexes]
             best_child = np.argmax(legal_q_vals)
@@ -197,6 +217,7 @@ class PlayingAgent:
             exit()
 
     def predict(self,
+                state,
                 deck_dict: dict,
                 legal_moves: list,
                 player_order: list,) -> tuple:
@@ -204,9 +225,13 @@ class PlayingAgent:
         Use network to get best move
         :return:
         """
+        # predict based on state right before playing, what actions are best
+        # state before action + action -> state after action
+        # parent = state right before play
+        # action = move taken
+        # child = state after play
         self.pred_counter += 1
-        node = self.parent_node
-        return self.best_child(node,
+        return self.best_child(state,
                                deck_dict,
                                legal_moves,
                                player_order,)
@@ -220,11 +245,27 @@ class PlayingAgent:
         if self.verbose >= 2:
             print("Adding unseen root node..")
         key_state = state_to_key(play_state)
-        root_node = Node(key_state, legal_cards, root=1)
+        root_node = Node(key_state, legal_cards, before_play=True, root=True)
         if self.verbose:
-            write_state(play_state, "state_err1", self.input_size, True)
+            write_state(play_state, "state_err1", self.input_size, "root")
         self.nodes[key_state] = root_node
         self.parent_node = root_node
+
+    def new_child_state(self, play_state: np.ndarray, legal_cards: list) -> None:
+        """
+        Create node for child state before play
+        :param play_state: playing state to create a node for
+        :return:
+        """
+        if self.verbose >= 2:
+            print("Adding unseen new node for before play..")
+        key_state = state_to_key(play_state)
+        new_node = Node(key_state, legal_cards, before_play=True, parent=self.parent_node)
+        if self.verbose:
+            write_state(play_state, "state_err1", self.input_size, "before play")
+        self.nodes[key_state] = new_node
+        self.parent_node.child = new_node
+        self.parent_node = new_node
 
     def create_child(
         self,
@@ -252,8 +293,8 @@ class PlayingAgent:
 
         key_state = state_to_key(play_state)
 
-        node = Node(key_state, legal_cards, card=move, parent=parent)
-        parent.children.append(node)
+        node = Node(key_state, legal_cards, before_play=False, card=move, parent=parent)
+        parent.child = node
         self.nodes[key_state] = node
 
         if terminal_node:

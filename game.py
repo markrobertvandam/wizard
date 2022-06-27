@@ -263,6 +263,7 @@ class Game:
                         playing_state = self.playing_state_space(
                             player_order, player, self.played_cards
                         )
+                        # create child for state after play
                         player.play_agent.create_child(
                             move,
                             self.output_path,
@@ -289,6 +290,7 @@ class Game:
                     playing_state = self.playing_state_space(
                         player_order, player, self.played_cards
                     )
+                    # create child for state after play
                     player.play_agent.create_child(
                         move,
                         self.output_path,
@@ -316,6 +318,7 @@ class Game:
             playing_state = self.playing_state_space(
                 player_order, saved_info[0], self.played_cards
             )
+            # create child for state after play
             saved_info[0].play_agent.create_child(
                 saved_info[1],
                 self.output_path,
