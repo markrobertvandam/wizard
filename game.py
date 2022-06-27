@@ -108,6 +108,8 @@ class Game:
                     f"\nInitial player order at start of round {self.game_round}: "
                     f"{[p.player_name for p in self.players]}")
             self.play_round()
+            if self.verbose >= 2:
+                print("Round over.. \n\n")
 
             self.possible_cards_one = [1] * 60
             self.possible_cards_two = [1] * 60
@@ -185,11 +187,6 @@ class Game:
                 print(f"player order after changing: {[p.player_name for p in player_order]}")
                 print(f"We made it HERE! Trick was played!, winner is: {winner_index}")
 
-            if self.verbose >= 2:
-                print(
-                    "Winner index: ", winner_index, "name: ", player_order[winner_index].player_name
-                )
-
         self.update_scores()
 
     def play_trick(
@@ -199,6 +196,7 @@ class Game:
         player_index: int,
         card=None,
         player_limit=None,
+        temp=False,
     ) -> tuple:
         """
         plays one entire trick (each player plays 1 card)
@@ -215,6 +213,7 @@ class Game:
         while player_index != 3:
             player = player_order[player_index]
             if self.verbose >= 2:
+                print(f"Temp in play_trick: {temp}")
                 print(
                     "Trick iteration with player",
                     player_index,
@@ -244,6 +243,12 @@ class Game:
                         playing_state,
                     )
                 )
+                if self.player1.player_type == "learning" and self.player1.play_agent.input_size == 313:
+                    print(f"Removing {self.played_cards[-1]} from possible cards..")
+                    move = self.deck_dict[self.played_cards[-1]]
+                    self.possible_cards_one[move] = 0
+                    self.possible_cards_two[move] = 0
+                    self.update_possible_hands(self.played_cards[-1], requested_color, player_order, player_index)
             else:
                 # play the passed card to simulate that child-node
                 if self.verbose >= 3:
@@ -279,18 +284,19 @@ class Game:
         if self.verbose >= 3:
             print("Done with while loop ", player_index)
 
-        return self.wrap_up_trick(player_order)
+        return self.wrap_up_trick(player_order, temp=temp)
 
-    def update_possible_hands(self, card, requested_color, player_order, player):
+    def update_possible_hands(self, card: tuple, requested_color: int, player_order: list, player_index: int) -> None:
         # card is not a white card, yet it is not requested color either
         if 0 < card[1] < 14 and requested_color < 4 and requested_color != card[0]:
             if self.verbose >= 2:
-                print(f"{player} did not follow suit, they played {card} while requested color was {requested_color}")
+                print(f"{player_index} did not follow suit, they played {card} "
+                      f"while requested color was {requested_color}")
                 print(f"Player order is {[p.player_name for p in player_order]}")
             for i in range(1 + 15 * requested_color, 15 * (requested_color + 1) - 1):
-                if player_order[player].player_name == "player2":
+                if player_order[player_index].player_name == "player2":
                     self.possible_cards_one[i] = 0
-                elif player_order[player].player_name == "player3":
+                elif player_order[player_index].player_name == "player3":
                     self.possible_cards_two[i] = 0
 
     @staticmethod
@@ -406,11 +412,11 @@ class Game:
         """
         state = []
         inp_size = player.play_agent.input_size
-        if self.verbose >= 3:
+        if self.verbose >= 2:
             if temp:
-                print("This is a temp game call!\n")
+                print("This is a temp game call of playing_state!\n")
             else:
-                print("This is a real game call!\n")
+                print("This is a real game call of playing_state!\n")
 
         state += self.hand_state_space(player_order, player, "play")
 
@@ -430,7 +436,7 @@ class Game:
 
         if self.verbose >= 2:
             print("Creating gamespace, players are in the following order: ")
-            print([p.player_name for p in self.players], player.player_name)
+            print([p.player_name for p in player_order], player.player_name)
         for other_player in self.players:
             # print(
             #     f"Player {other_player.player_name}, "
@@ -454,7 +460,7 @@ class Game:
             played_this_trick = 120 * [0]
 
             if inp_size % 100 == 93 or inp_size == 313:
-                players_turn = self.players.index(player)
+                players_turn = player_order.index(player)
                 state += [players_turn]
             elif inp_size % 100 == 95:
                 order_names = [int(p.player_name[-1]) for p in player_order]
@@ -541,7 +547,7 @@ class Game:
     def get_output_path(self) -> str:
         return self.output_path
 
-    def wrap_up_trick(self, player_order: list) -> tuple:
+    def wrap_up_trick(self, player_order: list, temp=False) -> tuple:
         """
         helper function for when a trick finished
         :param player_order: list of players in turn order
@@ -551,11 +557,13 @@ class Game:
         self.played_round.append(self.played_cards)
         player_order[winner_index].trick_wins += 1
         if self.verbose >= 1:
+            if temp:
+                print("This is a temp call: \n")
             print(
-                f"Order: {[player.player_name for player in player_order]}, "
+                f"\nOrder: {[player.player_name for player in player_order]}, "
                 f"\nPlayed: {self.played_cards}"
                 f"\n{self.trump}, "
-                f"\nWinner: {winner_index}"
+                f"\nWinner: {winner_index}\n"
             )
         self.played_cards = []
         player_order = player_order[winner_index:] + player_order[:winner_index]

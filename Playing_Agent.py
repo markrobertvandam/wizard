@@ -341,6 +341,7 @@ class PlayingAgent:
                     player_index,
                     card=move,
                     player_limit=player_index + 1,
+                    temp=True
                 )
             else:
                 # simulate play with selected non-final move
@@ -350,11 +351,13 @@ class PlayingAgent:
                     player_index,
                     card=move,
                     player_limit=player_index + 1,
+                    temp=True
                 )
 
         # else, terminal node, wrap up the round
         else:
-            _, new_player_order = temp_game.play_trick(new_player_order, requested_color, player_index, card=move)
+            _, new_player_order = temp_game.play_trick(new_player_order, requested_color,
+                                                       player_index, card=move, temp=True)
 
         play_state = temp_game.playing_state_space(
             new_player_order,
@@ -434,5 +437,8 @@ class PlayingAgent:
         temp_game.player1.trick_wins = copy.deepcopy(game_instance.player1.trick_wins)
         temp_game.player2.trick_wins = copy.deepcopy(game_instance.player2.trick_wins)
         temp_game.player3.trick_wins = copy.deepcopy(game_instance.player3.trick_wins)
+
+        temp_game.possible_cards_one = copy.deepcopy(game_instance.possible_cards_one)
+        temp_game.possible_cards_two = copy.deepcopy(game_instance.possible_cards_two)
 
         return temp_game
