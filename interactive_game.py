@@ -1,6 +1,7 @@
 from math import floor
 
 from player import Player
+from utility_fuctions import trick_winner, str_to_card, card_to_str
 import numpy as np
 
 
@@ -48,6 +49,10 @@ class Game:
         self.played_cards = []
         self.guesses = []
 
+        # for playing state
+        self.possible_cards_one = [1] * 60
+        self.possible_cards_two = [1] * 60
+
     def play_game(self) -> None:
         """
         Plays a single game of wizard
@@ -56,12 +61,13 @@ class Game:
         for game_round in range(20):
             self.played_round = []
             self.play_round()
+            self.possible_cards_one = [1] * 60
+            self.possible_cards_two = [1] * 60
             self.game_round += 1
             self.players = self.players[1:] + self.players[:1]  # Rotate player order
             for player in self.players:  # reset trick wins
                 player.trick_wins = 0
                 player.win_cards = []
-        print(self.player1.play_agent.pred_counter)
 
     def play_round(self) -> None:
         """
@@ -69,12 +75,16 @@ class Game:
         :return: None
         """
         # Player hand
-        hand = input("Cards in hand? (seperated by space): ")
-        self.player1.hand = hand.split()
+        hand = input("Cards in hand? (seperated by space): ").split()
+        converted_hand = [str_to_card(card) for card in hand]
+        converted_hand.sort(key=lambda x: (x[0], x[1]))
+        print(f"Player hand: {converted_hand}")
+        self.player1.hand = converted_hand
 
         if self.game_round < 20:
             # Trump card becomes top card after hands are dealt
-            self.trump = input("What is the trump suit?: ")
+            suits = {"blue": 0, "yellow": 1, "red": 2, "green": 3, "b": 0, "y": 1, "r": 2, "g": 3}
+            self.trump = suits[input("What is the trump suit?: ")]
         else:
             # No trump card in final round
             self.trump = 4
@@ -88,6 +98,7 @@ class Game:
                         self.game_round, self.trump, self.guessing_state_space(player)
                     )
                 )
+                print(f"Learning player guessed: {self.guesses[-1]}")
             else:
                 guess = int(input(f"Guess made by player {player.player_name}?: "))
                 self.guesses.append(guess)
@@ -97,91 +108,73 @@ class Game:
         player_order = self.players[:]  # order will change after every trick
         for trick in range(self.game_round):
             self.played_cards = []
-            self.play_trick(player_order, 4, 0)
-
-            winner = self.trick_winner(self.played_cards, self.trump)
-            self.played_round.append(self.played_cards)
-
-            player_order[winner].trick_wins += 1
-            player_order = player_order[winner:] + player_order[:winner]
+            winner_index, player_order = self.play_trick(player_order, 4, 0)
 
     def play_trick(
         self,
         player_order: list,
         requested_color: int,
-        player: int,
-    ) -> None:
+        player_index: int,
+        saved_info=None,
+    ) -> tuple:
         """
         plays one entire trick (each player plays 1 card)
         :param player_order: order in which players play
         :param requested_color: the requested color that has to be played if possible
                                 (blue, yellow, red, green, None yet, None this round)
-        :param player: how manieth player it is in this particular trick
+        :param player_index: how manieth player it is in this particular trick
+        :param saved_info: for finishing a terminal trick before adding a child
         :return: None
         """
-        while player != 3:
-            if player_order[player] == "player1":
+        while player_index != 3:
+            if player_order[player_index].player_type.startswith("learn"):
                 playing_state = self.playing_state_space(
-                    player_order, player_order[player], self.played_cards
+                    player_order, player_order[player_index], self.played_cards
                 )
-                self.played_cards.append(
-                    self.player1.play_card(
-                        self.trump,
-                        requested_color,
-                        self.played_cards,
-                        player_order,
-                        self,
-                        playing_state,
-                    )
-                )
+                card, legal_cards = player_order[player_index].play_card(
+                                        self.trump,
+                                        requested_color,
+                                        self.played_cards,
+                                        player_order,
+                                        self,
+                                        playing_state,
+                                    )
+                self.played_cards.append(card)
+                print(f"Learning player plays: {card_to_str(card)}")
             else:
-                card = input(f"What card is played by {player_order[player]}: ")
-                self.played_cards.append(tuple(card))
+                card = input(f"What card is played by {player_order[player_index].player_name}: ")
+                card = str_to_card(card)
+                self.played_cards.append(card)
+
+            self.update_possible_hands(card, requested_color, player_order, player_index)
 
             if requested_color == 4:
-
                 # Wizard means no requested color this round
-                if self.played_cards[player][1] == 14:
+                if self.played_cards[player_index][1] == 14:
                     requested_color = 5
 
                 # Joker does not change requested color
-                elif self.played_cards[player][1] != 0:
-                    requested_color = self.played_cards[player][0]
+                elif self.played_cards[player_index][1] != 0:
+                    requested_color = self.played_cards[player_index][0]
 
-            player += 1
+            player_index += 1
 
-    @staticmethod
-    def trick_winner(played_cards: list, trump: int) -> int:
-        """
-        Determine the winner of a trick
-        :param played_cards: cards played in the trick
-        :param trump: trump-suit, used to determine the winner
-        :return: index of the winning card
-        """
-        strongest_card = 0
-        if played_cards[0][1] == 14:  # If first player played a wizard
-            return 0
+            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size == 313:
+                move = self.deck_dict[card]
+                self.possible_cards_one[move] = 0
+                self.possible_cards_two[move] = 0
 
-        for i in range(1, 3):
+        winner_index, player_order = self.wrap_up_trick(player_order)
+        return winner_index, player_order
 
-            if played_cards[i][1] == 14:  # If i-th player played a wizard
-                return i
-
-            # if i-th card is trump and strongest card is not
-            if played_cards[i][0] == trump and played_cards[strongest_card][0] != trump:
-                if played_cards[i][1] > 0:  # joker does not count as trump card
-                    strongest_card = i
-
-            # if cards are the same suit
-            if played_cards[i][0] == played_cards[strongest_card][0]:
-                if played_cards[i][1] > played_cards[strongest_card][1]:
-                    strongest_card = i
-
-            # if strongest card is a joker and i-th card is not
-            if played_cards[strongest_card][1] == 0 and played_cards[i][1] != 0:
-                strongest_card = i
-
-        return strongest_card
+    def update_possible_hands(self, card, requested_color, player_order, player):
+        # card is not a white card, yet it is not requested color either
+        if 0 < card[1] < 14 and requested_color < 4 and requested_color != card[0]:
+            for i in range(1 + 15 * requested_color, 15 * (requested_color + 1) - 1):
+                if player_order[player].player_name == "player2":
+                    self.possible_cards_one[i] = 0
+                elif player_order[player].player_name == "player3":
+                    self.possible_cards_two[i] = 0
 
     def hand_state_space(self, player_order: list, player: Player, called: str) -> list:
         """
@@ -192,7 +185,8 @@ class Game:
         :return:
         """
         if (called == "guess" and player.guess_agent.input_size == 188) or \
-           (called == "play" and player.play_agent.input_size % 100 == 15):
+           (called == "play" and (player.play_agent.input_size == 3915 or
+                                  player.play_agent.input_size == 315)):
             # Cheating player sees all three hands
             one_hot_hand = 60 * [0]
             one_hot_hand2 = 60 * [0]
@@ -279,7 +273,6 @@ class Game:
         tricks_needed = [player.get_guesses() - player.get_trick_wins()]
         tricks_needed_others = []
 
-
         for other_player in self.players:
             # print(
             #     f"Player {other_player.player_name}, "
@@ -302,8 +295,8 @@ class Game:
             # played trick is ordered in order of play
             played_this_trick = 120 * [0]
 
-            if inp_size % 100 == 93:
-                players_turn = self.players.index(player)
+            if inp_size % 100 == 93 or inp_size % 100 == 13:
+                players_turn = player_order.index(player)
                 state += [players_turn]
             elif inp_size % 100 == 95:
                 order_names = [int(p.player_name[-1]) for p in player_order]
@@ -326,8 +319,30 @@ class Game:
                     played_this_round[one_hot + turn * 60 + trick * 180] = 1
             state += played_this_round
 
+        if inp_size == 313:
+            # TODO: add 60 for each other player to determine which cards they might have
+            state += self.possible_cards_one + self.possible_cards_two
+
         state_space = np.array(state, dtype=int)
         if len(state) != inp_size:
+            print(f"Len state is {len(state)}, len inp is {inp_size}")
             print("Input size is wrong")
             exit()
         return state_space
+
+    def wrap_up_trick(self, player_order: list) -> tuple:
+        """
+        helper function for when a trick finished
+        :param player_order: list of players in turn order
+        :return: winner of wrapped up trick
+        """
+        winner_index = trick_winner(self.played_cards, self.trump)
+        self.played_round.append(self.played_cards)
+        player_order[winner_index].trick_wins += 1
+
+        print(f"Trick won by {winner_index}th player. Winner name: {player_order[winner_index].player_name}")
+        print(f"Tricks still needed by me: {self.player1.get_guesses() - self.player1.get_trick_wins()}")
+
+        self.played_cards = []
+        player_order = player_order[winner_index:] + player_order[:winner_index]
+        return winner_index, player_order

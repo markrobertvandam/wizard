@@ -1,5 +1,6 @@
 from math import floor
 from player import Player
+from utility_fuctions import trick_winner
 
 import copy
 import random
@@ -172,7 +173,7 @@ class Game:
                     [p.player_name for p in player_order],
                 )
             self.played_cards = []
-            if self.player1.play_agent.input_size == 313:
+            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size == 313:
                 # TODO: set possible cards to invert of one_hot_hand
                 # normal player only sees their own hand
                 cards_in_hand = self.player1.get_hand()
@@ -299,7 +300,7 @@ class Game:
             if self.verbose >= 2:
                 print("finished one iteration of playtrick")
 
-            if self.player1.play_agent.input_size == 313:
+            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size == 313:
                 move = self.deck_dict[card]
                 self.possible_cards_one[move] = 0
                 self.possible_cards_two[move] = 0
@@ -336,39 +337,6 @@ class Game:
                     self.possible_cards_one[i] = 0
                 elif player_order[player].player_name == "player3":
                     self.possible_cards_two[i] = 0
-
-    @staticmethod
-    def trick_winner(played_cards: list, trump: int) -> int:
-        """
-        Determine the winner of a trick
-        :param played_cards: cards played in the trick
-        :param trump: trump-suit, used to determine the winner
-        :return: index of the winning card
-        """
-        strongest_card = 0
-        if played_cards[0][1] == 14:  # If first player played a wizard
-            return 0
-
-        for i in range(1, 3):
-
-            if played_cards[i][1] == 14:  # If i-th player played a wizard
-                return i
-
-            # if i-th card is trump and strongest card is not
-            if played_cards[i][0] == trump and played_cards[strongest_card][0] != trump:
-                if played_cards[i][1] > 0:  # joker does not count as trump card
-                    strongest_card = i
-
-            # if cards are the same suit
-            if played_cards[i][0] == played_cards[strongest_card][0]:
-                if played_cards[i][1] > played_cards[strongest_card][1]:
-                    strongest_card = i
-
-            # if strongest card is a joker and i-th card is not
-            if played_cards[strongest_card][1] == 0 and played_cards[i][1] != 0:
-                strongest_card = i
-
-        return strongest_card
 
     def hand_state_space(self, player_order: list, player: Player, called: str) -> list:
         """
@@ -593,7 +561,7 @@ class Game:
         :param player_order: list of players in turn order
         :return: winner of wrapped up trick
         """
-        winner_index = self.trick_winner(self.played_cards, self.trump)
+        winner_index = trick_winner(self.played_cards, self.trump)
         self.played_round.append(self.played_cards)
         player_order[winner_index].trick_wins += 1
         if self.verbose >= 1:

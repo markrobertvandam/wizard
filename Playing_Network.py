@@ -8,9 +8,9 @@ from keras.layers import Input, Dense
 from keras.optimizers import adam_v2
 
 from tensorflow import math
+from utility_fuctions import key_to_state
 
 import matplotlib.pyplot as plt
-import Playing_Agent
 import random
 
 REPLAY_MEMORY_SIZE = 42000  # How many of last   to keep for model training, 42000 means remember last ~200 games
@@ -54,7 +54,6 @@ class PlayingNetwork:
 
         input1 = Input(self.input_size)  # input size for observation state is 3732
         # input2 = Input(1)  # scalar input for action taken
-        #
         # combined = concatenate([input1, input2])
         if self.input_size > 3000:
             if self.name == "small":
@@ -106,13 +105,13 @@ class PlayingNetwork:
         minibatch = random.sample(self.replay_memory, MINIBATCH_SIZE)
 
         # Get current states from minibatch, then query NN model for Q values
-        current_states = np.array([Playing_Agent.PlayingAgent.key_to_state(self.input_size, transition[0])
+        current_states = np.array([key_to_state(self.input_size, transition[0])
                                    for transition in minibatch])
         current_qs_list = self.model.predict(current_states)
 
         # Get future states from minibatch, then query NN model for Q values
         # When using target network, query it, otherwise main network should be queried
-        new_current_states = np.array([Playing_Agent.PlayingAgent.key_to_state(self.input_size, transition[3])
+        new_current_states = np.array([key_to_state(self.input_size, transition[3])
                                        for transition in minibatch])
 
         future_qs_list = self.model.predict(new_current_states)
@@ -200,5 +199,5 @@ class PlayingNetwork:
 
     # Queries main network for Q values given current observation space (environment state)
     def get_qs(self, state):
-        sparse_state = Playing_Agent.PlayingAgent.key_to_state(self.input_size, state)
+        sparse_state = key_to_state(self.input_size, state)
         return self.model.predict(np.array(sparse_state).reshape(-1, *sparse_state.shape))[0]

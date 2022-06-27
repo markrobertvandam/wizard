@@ -1,4 +1,5 @@
 import argparse
+import os
 import tensorflow as tf
 import interactive_game
 
@@ -28,9 +29,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "shuffled_players",
+        nargs="+",
         help="argument to set player order",
-        type=list,
+        type=str,
     )
+    parser.add_argument("--dueling", action="store_true",
+                        help="use dueling DQN")
 
     return parser.parse_args()
 
@@ -40,7 +44,8 @@ def int_game(
     playing_model: str,
     guess_inp_size: int,
     player_inp_size: int,
-    shuffled_players: list
+    shuffled_players: list,
+    dueling: bool,
 ) -> None:
 
     # Make the deck
@@ -56,20 +61,26 @@ def int_game(
 
     print("Pair: ", guessing_model, playing_model)
     guess_agent = GuessingAgent(input_size=guess_inp_size, guess_max=21)
-    playing_agent = PlayingAgent(input_size=player_inp_size)
+    playing_agent = PlayingAgent(input_size=player_inp_size, dueling=dueling)
 
     if guessing_model == "heuristic" or guessing_model == "random":
         guess_type = guessing_model
 
     else:
-        guess_agent.model = tf.keras.models.load_model(guessing_model)
+        if guessing_model != "none":
+            guess_agent.model = tf.keras.models.load_model(
+                os.path.join("models", guessing_model)
+            )
         guess_type = "learned"
 
     if playing_model == "heuristic" or playing_model == "random":
         player_type = playing_model
 
     else:
-        playing_agent.network_policy.model = tf.keras.models.load_model(playing_model)
+        if playing_model != "none":
+            playing_agent.network_policy.model = tf.keras.models.load_model(
+                os.path.join("models", playing_model)
+            )
         player_type = "learned"
 
     print(guess_agent.model.summary())
@@ -90,10 +101,13 @@ def int_game(
 
 if __name__ == "__main__":
     args = parse_args()
+    print(f"Dueling: {args.dueling}")
+    print(f"Shuffled players: {args.shuffled_players}")
     int_game(
         args.guesser,
         args.player,
         args.guesser_input,
         args.player_input,
         args.shuffled_players,
+        args.dueling,
     )
