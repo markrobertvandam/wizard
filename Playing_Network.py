@@ -21,12 +21,13 @@ DISCOUNT = 0.7
 
 # Agent class
 class PlayingNetwork:
-    def __init__(self, input_size, name, masking: bool, dueling: bool):
+    def __init__(self, input_size, name, masking: bool, dueling: bool, double: bool):
 
         self.input_size = input_size
         self.name = name
         self.masking = masking
         self.dueling = dueling
+        self.double = double
 
         # Main model
         self.model = self.create_model()
@@ -113,6 +114,7 @@ class PlayingNetwork:
         # When using target network, query it, otherwise main network should be queried
         new_current_states = np.array([Playing_Agent.PlayingAgent.key_to_state(self.input_size, transition[3])
                                        for transition in minibatch])
+
         future_qs_list = self.model.predict(new_current_states)
         future_q_vals = self.target_model.predict(new_current_states)
 
@@ -128,11 +130,17 @@ class PlayingNetwork:
             # If not a terminal state, get new q from future states, otherwise set it to 0
             # almost like with Q Learning, but we use just part of equation here
             if not done:
-                # best action predicted by online model
-                best_future_action = np.argmax(future_qs_list[index])
 
-                # evaluation of best action done by target model
-                max_future_q = future_q_vals[index][best_future_action]
+                if self.double:
+                    # best action predicted by online model
+                    best_future_action = np.argmax(future_qs_list[index])
+
+                    # evaluation of best action done by target model
+                    max_future_q = future_q_vals[index][best_future_action]
+                else:
+                    # evaluation of best action chosen by target model
+                    max_future_q = np.max(future_q_vals[index])
+
                 new_q = reward + DISCOUNT * max_future_q
             else:
                 new_q = reward
