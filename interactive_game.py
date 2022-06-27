@@ -74,8 +74,13 @@ class Game:
         Play a single round of wizard
         :return: None
         """
+        print(f"\nPlaying round {self.game_round}, order: {[p.player_name for p in self.players]}")
         # Player hand
         hand = input("Cards in hand? (seperated by space): ").split()
+        if len(hand) != self.game_round:
+            while len(hand) != self.game_round:
+                print(f"Hand needs to have {self.game_round} cards")
+                hand = input("Cards in hand? (seperated by space): ").split()
         converted_hand = [str_to_card(card) for card in hand]
         converted_hand.sort(key=lambda x: (x[0], x[1]))
         print(f"Player hand: {converted_hand}")
@@ -84,7 +89,12 @@ class Game:
         if self.game_round < 20:
             # Trump card becomes top card after hands are dealt
             suits = {"blue": 0, "yellow": 1, "red": 2, "green": 3, "b": 0, "y": 1, "r": 2, "g": 3}
-            self.trump = suits[input("What is the trump suit?: ")]
+            trump = input("What is the trump suit?: ")
+            if trump not in suits:
+                while trump not in suits:
+                    print(f"Trump needs to be b(lue), y(ellow) r(ed) or g(reen)")
+                    trump = input("What is the trump suit?: ")
+            self.trump = suits[trump]
         else:
             # No trump card in final round
             self.trump = 4
@@ -100,8 +110,14 @@ class Game:
                 )
                 print(f"Learning player guessed: {self.guesses[-1]}")
             else:
-                guess = int(input(f"Guess made by player {player.player_name}?: "))
-                self.guesses.append(guess)
+                while True:
+                    try:
+                        guess = int(input(f"Guess made by player {player.player_name}?: "))
+                        break
+                    except ValueError:
+                        print("Please enter a valid number from 0-20")
+                        continue
+                self.guesses.append(int(guess))
                 player.player_guesses = guess
 
         # Playing phase
@@ -115,7 +131,6 @@ class Game:
         player_order: list,
         requested_color: int,
         player_index: int,
-        saved_info=None,
     ) -> tuple:
         """
         plays one entire trick (each player plays 1 card)
@@ -123,7 +138,6 @@ class Game:
         :param requested_color: the requested color that has to be played if possible
                                 (blue, yellow, red, green, None yet, None this round)
         :param player_index: how manieth player it is in this particular trick
-        :param saved_info: for finishing a terminal trick before adding a child
         :return: None
         """
         while player_index != 3:
