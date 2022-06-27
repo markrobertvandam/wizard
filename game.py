@@ -171,7 +171,7 @@ class Game:
                 )
             self.played_cards = []
 
-            if self.player1.play_agent.input_size == 313:
+            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size == 313:
                 # TODO: set possible cards to invert of one_hot_hand
                 # normal player only sees their own hand
                 cards_in_hand = self.player1.get_hand()
@@ -243,7 +243,7 @@ class Game:
                         playing_state,
                     )
                 )
-                if self.player1.player_type == "learning" and self.player1.play_agent.input_size == 313:
+                if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size == 313:
                     move = self.deck_dict[self.played_cards[-1]]
                     self.possible_cards_one[move] = 0
                     self.possible_cards_two[move] = 0
