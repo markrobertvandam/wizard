@@ -129,7 +129,15 @@ def avg_n_games(
 
     name = None
     if save_folder != "":
-        name = save_folder.split("_")[1]
+        models_path = os.path.join("models", save_folder)
+        plot_path = os.path.join("plots", save_folder)
+        if "_" in save_folder:
+            name = save_folder.split("_")[1]
+        if save_bool:
+            if not os.path.exists(models_path):
+                os.mkdir(models_path)
+            if not os.path.exists(plot_path):
+                os.mkdir(plot_path)
     elif player_model is not None:
         name = player_model.split("/")[0].split("_")[1]
 
