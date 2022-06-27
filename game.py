@@ -244,7 +244,6 @@ class Game:
                     )
                 )
                 if self.player1.player_type == "learning" and self.player1.play_agent.input_size == 313:
-                    print(f"Removing {self.played_cards[-1]} from possible cards..")
                     move = self.deck_dict[self.played_cards[-1]]
                     self.possible_cards_one[move] = 0
                     self.possible_cards_two[move] = 0
