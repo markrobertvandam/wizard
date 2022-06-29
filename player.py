@@ -168,7 +168,7 @@ class Player:
 
         elif self.player_type == "heuristic":
             # dodge win as high as possible if I am already at my goal
-            if self.player_guesses == self.trick_wins:
+            if self.player_guesses <= self.trick_wins:
                 sorted_legal = sorted(legal_cards, key=lambda x: x[1], reverse=True)
                 for card_option in sorted_legal:
                     if game.Game.trick_winner(
