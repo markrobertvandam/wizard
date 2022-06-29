@@ -1,9 +1,9 @@
 import numpy as np
-import random
 
 import Playing_Agent
-import game
+import random
 
+from utility_functions import trick_winner, state_to_key
 #
 # TODO: MAKE HAND SORTED ONCE AT START
 
@@ -107,7 +107,8 @@ class Player:
 
                 if np.random.random() > self.player_epsilon:
                     # get move with highest q-value
-                    card = self.play_agent.predict(self.deck_dict,
+                    card = self.play_agent.predict(state_space,
+                                                   self.deck_dict,
                                                    legal_cards,
                                                    player_order)
                 else:
@@ -117,11 +118,13 @@ class Player:
 
             # its a child, either terminal or not
             else:
+                self.play_agent.new_child_state(state_space, legal_cards)
                 # print("its a child node!, hand length and round: ", len(self.hand), game_instance.game_round)
                 if np.random.random() > self.player_epsilon:
                     # print("get card from prediction")
                     # get move with higest q-value
-                    card = self.play_agent.predict(self.deck_dict,
+                    card = self.play_agent.predict(state_space,
+                                                   self.deck_dict,
                                                    legal_cards,
                                                    player_order)
                     # print("obtained card: ", card)
@@ -129,19 +132,16 @@ class Player:
                     # print("get card from rollout: ")
                     # rollout a random move
                     card = self.play_agent.rollout_policy(legal_cards,
-                                                          self.hand,)
+                                                          self.hand, )
                     # print("obtained card: ", card)
 
         elif self.player_type == "learned":
-            key_state = self.play_agent.state_to_key(state_space)
             # ROOT NODE (cards in hand == round) -> add root and children
-            if len(self.hand) == game_instance.game_round:
-                self.play_agent.parent_node = Playing_Agent.Node(key_state, legal_cards, root=1)
-
             # get action from network
-            card = self.play_agent.predict(self.deck_dict,
+            card = self.play_agent.predict(state_space,
+                                           self.deck_dict,
                                            legal_cards,
-                                           player_order,)
+                                           player_order, )
 
         # Play the only legal card if theres only one
         elif len(legal_cards) == 1:
@@ -155,7 +155,7 @@ class Player:
             if self.player_guesses == self.trick_wins:
                 sorted_legal = sorted(legal_cards, key=lambda x: x[1], reverse=True)
                 for card_option in sorted_legal:
-                    if game.Game.trick_winner(
+                    if trick_winner(
                         played_cards
                         + [card_option]
                         + [(0, 0)] * (2 - len(played_cards)),
@@ -171,7 +171,7 @@ class Player:
                 if len(played_cards) == 2:
                     for card_option in reversed_sort_legal:
                         if (
-                            game.Game.trick_winner(played_cards + [card_option], trump)
+                            trick_winner(played_cards + [card_option], trump)
                             == 2
                         ):
                             card = card_option

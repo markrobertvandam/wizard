@@ -1,5 +1,6 @@
 from math import floor
 from player import Player
+from utility_functions import trick_winner, state_to_key
 
 import copy
 import random
@@ -88,6 +89,10 @@ class Game:
         self.played_cards = []
         self.guesses = []
 
+        # for playing state
+        self.possible_cards_one = [1] * 60
+        self.possible_cards_two = [1] * 60
+
     def play_game(self) -> tuple:
         """
         Plays a single game of wizard
@@ -100,7 +105,11 @@ class Game:
                 random.shuffle(self.deck)
             else:
                 self.deck = self.shuffled_decks[game_round][:]
+            if self.verbose >= 2:
+                print(f"Initial player order at start of round: {[p.player_name for p in self.players]}")
             self.play_round()
+            self.possible_cards_one = [1] * 60
+            self.possible_cards_two = [1] * 60
             self.game_round += 1
             self.players = self.players[1:] + self.players[:1]  # Rotate player order
             for player in self.players:  # reset trick wins
@@ -164,13 +173,21 @@ class Game:
                     [p.player_name for p in player_order],
                 )
             self.played_cards = []
-            winner = self.play_trick(player_order, 4, 0)
-            # print(
-            #     f"Order: {[player.player_name for player in player_order]}, Played: {self.played_cards}\n{self.trump}"
-            # )
-            if self.verbose >= 3:
-                print(f"We made it HERE! Trick was played!, winner is: {winner}")
-            player_order = player_order[winner:] + player_order[:winner]
+            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size == 313:
+                # TODO: set possible cards to invert of one_hot_hand
+                # normal player only sees their own hand
+                cards_in_hand = self.player1.get_hand()
+                for card in cards_in_hand:
+                    move = self.deck_dict[card]
+                    self.possible_cards_one[move] = 0
+                    self.possible_cards_two[move] = 0
+
+            if self.verbose >= 2:
+                print(f"player order before changing: {[p.player_name for p in player_order]}")
+            winner_index, player_order = self.play_trick(player_order, 4, 0)
+            if self.verbose >= 2:
+                print(f"player order after changing: {[p.player_name for p in player_order]}")
+                print(f"We made it HERE! Trick was played!, winner is: {winner_index}")
 
         self.update_scores()
 
@@ -178,28 +195,28 @@ class Game:
         self,
         player_order: list,
         requested_color: int,
-        player: int,
+        player_index: int,
         saved_info=None,
-    ) -> int:
+    ) -> tuple:
         """
         plays one entire trick (each player plays 1 card)
         :param player_order: order in which players play
         :param requested_color: the requested color that has to be played if possible
                                 (blue, yellow, red, green, None yet, None this round)
-        :param player: how manieth player it is in this particular trick
+        :param player_index: how manieth player it is in this particular trick
         :param saved_info: for finishing a terminal trick before adding a child
         :return: None
         """
-        winner = None
+        winner_index = None
         if self.verbose >= 3:
             print("\nPlaytrick called with card: ", saved_info)
-        while player != 3:
+        while player_index != 3:
             if self.verbose >= 3:
                 print(
                     "Trick iteration with player",
-                    player,
+                    player_index,
                     "Name: ",
-                    player_order[player].player_name,
+                    player_order[player_index].player_name,
                 )
                 print(
                     "The player order at this moment is: ",
@@ -207,11 +224,11 @@ class Game:
                 )
 
             playing_state = None
-            if player_order[player].player_type.startswith("learn"):
+            if player_order[player_index].player_type.startswith("learn"):
                 playing_state = self.playing_state_space(
-                    player_order, player_order[player], self.played_cards
+                    player_order, player_order[player_index], self.played_cards
                 )
-            card, legal_cards = player_order[player].play_card(
+            card, legal_cards = player_order[player_index].play_card(
                                     self.trump,
                                     requested_color,
                                     self.played_cards,
@@ -220,32 +237,35 @@ class Game:
                                     playing_state,
                                 )
             self.played_cards.append(card)
+            self.update_possible_hands(card, requested_color, player_order, player_index)
 
             if requested_color == 4:
 
                 # Wizard means no requested color this round
-                if self.played_cards[player][1] == 14:
+                if self.played_cards[player_index][1] == 14:
                     requested_color = 5
 
                 # Joker does not change requested color
-                elif self.played_cards[player][1] != 0:
-                    requested_color = self.played_cards[player][0]
+                elif self.played_cards[player_index][1] != 0:
+                    requested_color = self.played_cards[player_index][0]
 
-            if player_order[player].player_type == "learning":
+            if player_order[player_index].player_type == "learning":
                 if self.verbose:
-                    print(f"Learning player has the hand: {player_order[player].get_hand()}")
+                    print(f"Learning player has the hand: {player_order[player_index].get_hand()}")
                 # final trick, wrap up round
-                if len(player_order[player].get_hand()) == 0:
-                    if player == 2:
+                if len(player_order[player_index].get_hand()) == 0:
+                    if player_index == 2:
                         move = self.played_cards[-1]
-                        winner = self.wrap_up_trick(player_order)
+                        player = player_order[player_index]
+                        winner_index, player_order = self.wrap_up_trick(player_order)
                         playing_state = self.playing_state_space(
-                            player_order, player_order[player], self.played_cards
+                            player_order, player, self.played_cards
                         )
-                        key_state = player_order[player].play_agent.state_to_key(playing_state)
-                        if key_state in player_order[player].play_agent.nodes:
-                            player_order[player].play_agent.cntr[self.game_round-1] += 1
-                        player_order[player].play_agent.nodes[key_state] = 0
+                        key_state = state_to_key(playing_state)
+                        player.play_agent.full_cntr[self.game_round - 1] += 1
+                        if key_state in player.play_agent.nodes:
+                            player.play_agent.cntr[self.game_round-1] += 1
+                        player.play_agent.nodes[key_state] = 0
                         # player_order[player].play_agent.create_child(
                         #     move,
                         #     self.output_path,
@@ -256,21 +276,23 @@ class Game:
 
                     else:
                         # play on till end somehow
-                        saved_info = (player_order[player], self.played_cards[-1], legal_cards)
+                        saved_info = (player_order[player_index], self.played_cards[-1], legal_cards)
                         pass
 
                 # more tricks to follow, only wrap up if trick ended
                 else:
                     move = self.played_cards[-1]
-                    if player == 2:
-                        winner = self.wrap_up_trick(player_order)
+                    player = player_order[player_index]
+                    if player_index == 2:
+                        winner_index, player_order = self.wrap_up_trick(player_order)
                     playing_state = self.playing_state_space(
-                        player_order, player_order[player], self.played_cards
+                        player_order, player, self.played_cards
                     )
-                    key_state = player_order[player].play_agent.state_to_key(playing_state)
-                    if key_state in player_order[player].play_agent.nodes:
-                        player_order[player].play_agent.cntr[self.game_round-1] += 1
-                    player_order[player].play_agent.nodes[key_state] = 0
+                    key_state = state_to_key(playing_state)
+                    player.play_agent.full_cntr[self.game_round - 1] += 1
+                    if key_state in player.play_agent.nodes:
+                        player.play_agent.cntr[self.game_round-1] += 1
+                    player.play_agent.nodes[key_state] = 0
                     # player_order[player].play_agent.create_child(
                     #     move,
                     #     self.output_path,
@@ -278,21 +300,27 @@ class Game:
                     #     self.played_cards,
                     #     legal_cards)
 
-            player += 1
+            player_index += 1
             if self.verbose >= 2:
                 print("finished one iteration of playtrick")
 
-        if self.verbose >= 3:
-            print("Done with while loop ", player)
+            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size == 313:
+                move = self.deck_dict[card]
+                self.possible_cards_one[move] = 0
+                self.possible_cards_two[move] = 0
 
-        if winner is None:
-            winner = self.wrap_up_trick(player_order)
+        if self.verbose >= 3:
+            print("Done with while loop ", player_index)
+
+        if winner_index is None:
+            winner_index, player_order = self.wrap_up_trick(player_order)
         if saved_info is not None:
             # finished terminal trick, add child
             playing_state = self.playing_state_space(
                 player_order, saved_info[0], self.played_cards
             )
-            key_state = saved_info[0].play_agent.state_to_key(playing_state)
+            key_state = state_to_key(playing_state)
+            saved_info[0].play_agent.full_cntr[self.game_round - 1] += 1
             if key_state in saved_info[0].play_agent.nodes:
                 saved_info[0].play_agent.cntr[self.game_round-1] += 1
             else:
@@ -304,40 +332,20 @@ class Game:
             #     self.played_cards,
             #     saved_info[2],
             #     terminal_node=True)
-        return winner
+        return winner_index, player_order
 
-    @staticmethod
-    def trick_winner(played_cards: list, trump: int) -> int:
-        """
-        Determine the winner of a trick
-        :param played_cards: cards played in the trick
-        :param trump: trump-suit, used to determine the winner
-        :return: index of the winning card
-        """
-        strongest_card = 0
-        if played_cards[0][1] == 14:  # If first player played a wizard
-            return 0
-
-        for i in range(1, 3):
-
-            if played_cards[i][1] == 14:  # If i-th player played a wizard
-                return i
-
-            # if i-th card is trump and strongest card is not
-            if played_cards[i][0] == trump and played_cards[strongest_card][0] != trump:
-                if played_cards[i][1] > 0:  # joker does not count as trump card
-                    strongest_card = i
-
-            # if cards are the same suit
-            if played_cards[i][0] == played_cards[strongest_card][0]:
-                if played_cards[i][1] > played_cards[strongest_card][1]:
-                    strongest_card = i
-
-            # if strongest card is a joker and i-th card is not
-            if played_cards[strongest_card][1] == 0 and played_cards[i][1] != 0:
-                strongest_card = i
-
-        return strongest_card
+    def update_possible_hands(self, card, requested_color, player_order, player):
+        # card is not a white card, yet it is not requested color either
+        if 0 < card[1] < 14 and requested_color < 4 and requested_color != card[0]:
+            if self.verbose >= 2:
+                print(
+                    f"{player} did not follow suit, they played {card} while requested color was {requested_color}")
+                print(f"Player order is {[p.player_name for p in player_order]}")
+            for i in range(1 + 15 * requested_color, 15 * (requested_color + 1) - 1):
+                if player_order[player].player_name == "player2":
+                    self.possible_cards_one[i] = 0
+                elif player_order[player].player_name == "player3":
+                    self.possible_cards_two[i] = 0
 
     def hand_state_space(self, player_order: list, player: Player, called: str) -> list:
         """
@@ -443,7 +451,7 @@ class Game:
 
         if self.verbose >= 2:
             print("Creating gamespace, players are in the following order: ")
-            print([p.player_name for p in self.players], player.player_name)
+            print([p.player_name for p in player_order], player.player_name)
         for other_player in self.players:
             # print(
             #     f"Player {other_player.player_name}, "
@@ -466,8 +474,8 @@ class Game:
             # played trick is ordered in order of play
             played_this_trick = 120 * [0]
 
-            if inp_size % 100 == 93:
-                players_turn = self.players.index(player)
+            if inp_size % 100 == 93 or inp_size % 100 == 13:
+                players_turn = player_order.index(player)
                 state += [players_turn]
             elif inp_size % 100 == 95:
                 order_names = [int(p.player_name[-1]) for p in player_order]
@@ -490,8 +498,13 @@ class Game:
                     played_this_round[one_hot + turn * 60 + trick * 180] = 1
             state += played_this_round
 
+        if inp_size == 313:
+            # TODO: add 60 for each other player to determine which cards they might have
+            state += self.possible_cards_one + self.possible_cards_two
+
         state_space = np.array(state, dtype=int)
         if len(state) != inp_size:
+            print(f"Len state is {len(state)}, len inp is {inp_size}")
             print("Input size is wrong")
             exit()
         return state_space
@@ -551,17 +564,25 @@ class Game:
     def get_output_path(self) -> str:
         return self.output_path
 
-    def wrap_up_trick(self, player_order: list) -> int:
+    def wrap_up_trick(self, player_order: list) -> tuple:
         """
         helper function for when a trick finished
         :param player_order: list of players in turn order
         :return: winner of wrapped up trick
         """
-        winner = self.trick_winner(self.played_cards, self.trump)
+        winner_index = trick_winner(self.played_cards, self.trump)
         self.played_round.append(self.played_cards)
-        player_order[winner].trick_wins += 1
+        player_order[winner_index].trick_wins += 1
+        if self.verbose >= 2:
+            print(
+                f"Order: {[player.player_name for player in player_order]}, "
+                f"\nPlayed: {self.played_cards}"
+                f"\n{self.trump}, "
+                f"\nWinner: {winner_index}"
+            )
         self.played_cards = []
-        return winner
+        player_order = player_order[winner_index:] + player_order[:winner_index]
+        return winner_index, player_order
 
     # def play_till_player(self, player_order: list, player_limit: int):
     #     winner = self.wrap_up_trick(player_order)

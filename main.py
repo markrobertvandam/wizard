@@ -131,7 +131,7 @@ def avg_n_games(
     dueling: bool
 ) -> None:
     input_size_guess = 69
-    input_size_play = 3793
+    input_size_play = 193
 
     name = None
     if save_folder != "":
@@ -261,7 +261,8 @@ def avg_n_games(
                     )
 
             if game_instance % 100 == 0:
-                print(f"Re-occured states: {playing_agent.cntr}")
+                print(f"total states: {playing_agent.full_cntr}, {sum(playing_agent.full_cntr)}")
+                print(f"Re-occured states: {playing_agent.cntr}, {sum(playing_agent.cntr)}")
 
             if game_instance - last_max > 10000:
                 if save_bool.startswith("y"):
