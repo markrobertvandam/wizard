@@ -1,7 +1,7 @@
 from math import floor
 
 from player import Player
-from utility_fuctions import trick_winner, str_to_card, card_to_str
+from utility_functions import trick_winner, str_to_card, card_to_str
 import numpy as np
 
 

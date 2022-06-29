@@ -142,7 +142,7 @@ def avg_n_games(
         plot_path = os.path.join("plots", save_folder)
         if "_" in save_folder:
             name = save_folder.split("_")[1]
-        if save_bool:
+        if save_bool.startswith("y"):
             if not os.path.exists(models_path):
                 os.mkdir(models_path)
             if not os.path.exists(plot_path):
@@ -152,7 +152,7 @@ def avg_n_games(
     
     print(f"Inp_size guess: {input_size_guess} and Inp_size play: {input_size_play}")
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
-    playing_agent = PlayingAgent(input_size=input_size_play, name=name,
+    playing_agent = PlayingAgent(input_size=input_size_play, save_bool=(save_bool.startswith("y")), name=name,
                                  verbose=verbose, mask=mask, dueling=dueling, double=double)
     if guess_type == "learned" or (guess_type == "learning" and model_path is not None):
         print(f"Loading saved model {model_path}")
@@ -249,7 +249,7 @@ def avg_n_games(
                     online_model = playing_agent.network_policy.model
                     target_model.set_weights(online_model.get_weights())
 
-            if game_instance % 1000 == 0:
+            if game_instance % 1000 == 0 and game_instance > iters_done:
                 if save_bool.startswith("y"):
                     plot_accuracy(
                         accuracy_history, game_instance, save_folder, iters_done

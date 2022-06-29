@@ -1,6 +1,6 @@
 from math import floor
 from player import Player
-from utility_fuctions import trick_winner
+from utility_functions import trick_winner
 
 import copy
 import random

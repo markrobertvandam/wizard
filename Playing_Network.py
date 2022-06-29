@@ -8,7 +8,7 @@ from keras.layers import Input, Dense
 from keras.optimizers import adam_v2
 
 from tensorflow import math
-from utility_fuctions import key_to_state
+from utility_functions import key_to_state
 
 import matplotlib.pyplot as plt
 import random
@@ -21,9 +21,10 @@ DISCOUNT = 0.7
 
 # Agent class
 class PlayingNetwork:
-    def __init__(self, input_size, name, masking: bool, dueling: bool, double: bool):
+    def __init__(self, input_size, save_bool: bool, name: str, masking: bool, dueling: bool, double: bool):
 
         self.input_size = input_size
+        self.save_bool = save_bool
         self.name = name
         self.masking = masking
         self.dueling = dueling
@@ -177,7 +178,7 @@ class PlayingNetwork:
                        verbose=0,
                        shuffle=False)
 
-        if self.q_memory_counter % 21000 == 0:
+        if self.save_bool and self.q_memory_counter % 21000 == 0:
             save_name = "DDDQN_small"
             print("Saving q_mem...")
             f = open(f"plots/q_plots/values_{save_name}", "w")

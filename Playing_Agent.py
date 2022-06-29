@@ -2,7 +2,7 @@ import numpy as np
 import random
 
 from Playing_Network import PlayingNetwork
-from utility_fuctions import state_to_key, key_to_state
+from utility_functions import state_to_key, key_to_state
 
 
 class Node:
@@ -32,7 +32,7 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, type_
     :param play_state: actual playing state
     :param output_path: path to textfile
     :param input_size: input size of the playing model
-    :param actual: simulated node or actual node reached in play
+    :param type_node: type of node reached in play
     :return:
     """
     f = open(f"{output_path}.txt", "a")
@@ -118,12 +118,12 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, type_
 
 # Agent class
 class PlayingAgent:
-    def __init__(self, input_size: int, name=None, verbose=0, mask=False, dueling=False, double=False):
+    def __init__(self, input_size: int, save_bool: bool, name=None, verbose=0, mask=False, dueling=False, double=False):
 
         self.game = None
         self.input_size = input_size
         self.nodes = dict()
-        self.network_policy = PlayingNetwork(input_size, name, masking=mask, dueling=dueling, double=double)
+        self.network_policy = PlayingNetwork(input_size, save_bool, name, masking=mask, dueling=dueling, double=double)
         self.verbose = verbose
         self.counter = 0
         self.parent_node = None
