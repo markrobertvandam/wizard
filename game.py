@@ -142,7 +142,20 @@ class Game:
 
         if self.game_round < 20:
             # Trump card becomes top card after hands are dealt
-            self.trump = self.deck.pop()[0]
+            trump_card = self.deck.pop()
+            if trump_card[1] == 0:
+                # trump is a joker, no trump this round
+                self.trump = 4
+            elif trump_card[1] == 14:
+                # trump is a wizard, starting player decides
+                self.trump = trump_card[0]
+            else:
+                # trump is regular card
+                self.trump = trump_card[0]
+            if self.verbose >= 2:
+                print(f"Trump card: {trump_card}")
+            self.possible_cards_one[self.deck_dict[trump_card]] = 1
+            self.possible_cards_two[self.deck_dict[trump_card]] = 1
         else:
             # No trump card in final round
             self.trump = 4
