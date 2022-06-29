@@ -105,12 +105,12 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, type_
     if input_size == 313:
         f.write(
             "possible cards player2: "
-            + str(np.nonzero(play_state[current_pos:current_pos+60])[0].tolist())
+            + str(np.nonzero(~(play_state[current_pos:current_pos+60] != 0))[0].tolist())
             + "\n"
         )
         f.write(
             "possible cards player3: "
-            + str(np.nonzero(play_state[current_pos+60:])[0].tolist())
+            + str(np.nonzero(~(play_state[current_pos+60:] != 0))[0].tolist())
             + "\n"
         )
     f.close()

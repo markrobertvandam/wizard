@@ -51,8 +51,8 @@ class Game:
         self.guesses = []
 
         # for playing state
-        self.possible_cards_one = [1] * 60
-        self.possible_cards_two = [1] * 60
+        self.possible_cards_one = [0] * 60
+        self.possible_cards_two = [0] * 60
 
     def play_game(self) -> None:
         """
@@ -62,8 +62,8 @@ class Game:
         for game_round in range(20):
             self.played_round = []
             self.play_round()
-            self.possible_cards_one = [1] * 60
-            self.possible_cards_two = [1] * 60
+            self.possible_cards_one = [0] * 60
+            self.possible_cards_two = [0] * 60
             self.game_round += 1
             self.players = self.players[1:] + self.players[:1]  # Rotate player order
             for player in self.players:  # reset trick wins
@@ -88,6 +88,10 @@ class Game:
         converted_hand.sort(key=lambda x: (x[0], x[1]))
         print(f"Player hand: {converted_hand}")
         self.player1.hand = converted_hand
+        for card in converted_hand:
+            move = self.deck_dict[card]
+            self.possible_cards_one[move] = 1
+            self.possible_cards_two[move] = 1
 
         if self.game_round < 20:
             # Trump card becomes top card after hands are dealt
@@ -183,8 +187,8 @@ class Game:
 
             if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size == 313:
                 move = self.deck_dict[card]
-                self.possible_cards_one[move] = 0
-                self.possible_cards_two[move] = 0
+                self.possible_cards_one[move] = 1
+                self.possible_cards_two[move] = 1
 
         winner_index, player_order = self.wrap_up_trick(player_order)
         return winner_index, player_order
@@ -194,9 +198,9 @@ class Game:
         if 0 < card[1] < 14 and requested_color < 4 and requested_color != card[0]:
             for i in range(1 + 15 * requested_color, 15 * (requested_color + 1) - 1):
                 if player_order[player].player_name == "player2":
-                    self.possible_cards_one[i] = 0
+                    self.possible_cards_one[i] = 1
                 elif player_order[player].player_name == "player3":
-                    self.possible_cards_two[i] = 0
+                    self.possible_cards_two[i] = 1
 
     def hand_state_space(self, player_order: list, player: Player, called: str) -> list:
         """
