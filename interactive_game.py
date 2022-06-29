@@ -101,7 +101,15 @@ class Game:
                 self.trump = 4
             elif trump_card[1] == 14:
                 # trump is a wizard, starting player decides
-                self.trump = trump_card[0]
+                if self.players[0].player_name == "player1":
+                    self.trump = trump_card[0]
+                else:
+                    trump_suit = input("What is the trump suit?: ")
+                    suits = {"blue": 0, "yellow": 1, "red": 2, "green": 3, "b": 0, "y": 1, "r": 2, "g": 3}
+                    if trump_suit not in suits:
+                        while trump_suit not in suits:
+                            print(f"Suit needs to be b(lue), y(ellow) r(ed) or g(reen)")
+                            trump_suit = input("What is the trump suit?: ")
             else:
                 # trump is regular card
                 self.trump = trump_card[0]

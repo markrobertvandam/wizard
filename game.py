@@ -147,7 +147,7 @@ class Game:
                 # trump is a joker, no trump this round
                 self.trump = 4
             elif trump_card[1] == 14:
-                # trump is a wizard, starting player decides
+                # trump is a wizard, starting player decides (pick trump of wizard)
                 self.trump = trump_card[0]
             else:
                 # trump is regular card
