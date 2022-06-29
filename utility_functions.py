@@ -64,16 +64,20 @@ def state_to_key(state_space: np.ndarray) -> tuple:
     return key_state
 
 
-def str_to_card(card: str) -> tuple:
+def str_to_card(card: str, hand=None) -> tuple:
     # cards are suit {0-3} (blue, yellow, red, green), value {0-14} (0 == joker, 14 == wizard)
     suit, value = card.split("_")
     suits = {"blue": 0, "yellow": 1, "red": 2, "green": 3, "b": 0, "y": 1, "r": 2, "g": 3}
     if suit not in suits:
         while suit not in suits:
+            if hand is not None:
+                print(f"Hand so far: {hand}, wrong card: {card}")
             print(f"Suit needs to be b(lue), y(ellow) r(ed) or g(reen)")
             suit, value = input(f"What card: ").split("_")
     if value not in [str(i) for i in range(15)]:
         while value not in [str(i) for i in range(15)]:
+            if hand is not None:
+                print(f"Hand so far: {hand}, wrong card: {card}")
             print(f"Card value needs to be somewhere from 0-14")
             suit, value = input(f"What card: ").split("_")
 

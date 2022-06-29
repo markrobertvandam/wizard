@@ -28,6 +28,11 @@ def parse_args() -> argparse.Namespace:
         type=int,
     )
     parser.add_argument(
+        "game_round",
+        help="argument to set what around to start at",
+        type=int,
+    )
+    parser.add_argument(
         "shuffled_players",
         nargs="+",
         help="argument to set player order",
@@ -44,6 +49,7 @@ def int_game(
     playing_model: str,
     guess_inp_size: int,
     player_inp_size: int,
+    game_round: int,
     shuffled_players: list,
     dueling: bool,
 ) -> None:
@@ -92,6 +98,7 @@ def int_game(
         deck_dict,
         guess_type=guess_type,
         player_type=player_type,
+        game_round=game_round,
         shuffled_players=shuffled_players,
         guess_agent=guess_agent,
         playing_agent=playing_agent,
@@ -108,6 +115,7 @@ if __name__ == "__main__":
         args.player,
         args.guesser_input,
         args.player_input,
+        args.game_round,
         args.shuffled_players,
         args.dueling,
     )

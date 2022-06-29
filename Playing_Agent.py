@@ -118,7 +118,7 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, type_
 
 # Agent class
 class PlayingAgent:
-    def __init__(self, input_size: int, save_bool: bool, name=None, verbose=0, mask=False, dueling=False, double=False):
+    def __init__(self, input_size: int, save_bool=False, name=None, verbose=0, mask=False, dueling=False, double=False):
 
         self.game = None
         self.input_size = input_size

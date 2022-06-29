@@ -11,6 +11,7 @@ class Game:
         deck_dict: dict,
         guess_type: str,
         player_type: str,
+        game_round: int,
         shuffled_players=None,
         guess_agent=None,
         playing_agent=None,
@@ -19,7 +20,7 @@ class Game:
         self.deck_dict = deck_dict
         self.deck = None
         self.trump = 4  # placeholder trump, only 0-3 exist
-        self.game_round = 1
+        self.game_round = game_round
         self.player1 = Player(
             "player1",
             deck_dict,
@@ -76,23 +77,25 @@ class Game:
         """
         print(f"\nPlaying round {self.game_round}, order: {[p.player_name for p in self.players]}")
         # Player hand
-        hand = input("Cards in hand? (seperated by space): ").split()
+        hand = set(input("Cards in hand? (seperated by space): ").split())
         if len(hand) != self.game_round:
             while len(hand) != self.game_round:
                 print(f"Hand needs to have {self.game_round} cards")
                 hand = input("Cards in hand? (seperated by space): ").split()
-        converted_hand = [str_to_card(card) for card in hand]
+        converted_hand = []
+        for card in hand:
+            converted_hand.append(str_to_card(card, converted_hand))
         converted_hand.sort(key=lambda x: (x[0], x[1]))
         print(f"Player hand: {converted_hand}")
         self.player1.hand = converted_hand
 
         if self.game_round < 20:
             # Trump card becomes top card after hands are dealt
-            suits = {"blue": 0, "yellow": 1, "red": 2, "green": 3, "b": 0, "y": 1, "r": 2, "g": 3}
+            suits = {"none": 4, "blue": 0, "yellow": 1, "red": 2, "green": 3, "b": 0, "y": 1, "r": 2, "g": 3, "n": 4}
             trump = input("What is the trump suit?: ")
             if trump not in suits:
                 while trump not in suits:
-                    print(f"Trump needs to be b(lue), y(ellow) r(ed) or g(reen)")
+                    print(f"Trump needs to be b(lue), y(ellow) r(ed), g(reen) or n(one)")
                     trump = input("What is the trump suit?: ")
             self.trump = suits[trump]
         else:
@@ -102,10 +105,13 @@ class Game:
         # Guessing phase
         self.guesses = []  # reset guesses every round
         for player in self.players:
+            guess_state = None
             if player.player_name == "player1":
+                if player.guess_type.startswith("learn"):
+                    guess_state = self.guessing_state_space(player)
                 self.guesses.append(
                     player.guess_wins(
-                        self.game_round, self.trump, self.guessing_state_space(player)
+                        self.game_round, self.trump, guess_state
                     )
                 )
                 print(f"Learning player guessed: {self.guesses[-1]}")
@@ -141,10 +147,12 @@ class Game:
         :return: None
         """
         while player_index != 3:
-            if player_order[player_index].player_type.startswith("learn"):
-                playing_state = self.playing_state_space(
-                    player_order, player_order[player_index], self.played_cards
-                )
+            if player_order[player_index].player_name == "player1":
+                playing_state = None
+                if self.player1.player_type.startswith("learn"):
+                    playing_state = self.playing_state_space(
+                        player_order, player_order[player_index], self.played_cards
+                    )
                 card, legal_cards = player_order[player_index].play_card(
                                         self.trump,
                                         requested_color,

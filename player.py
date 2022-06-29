@@ -245,7 +245,7 @@ class Player:
             elif self.guess_type == "learned":
                 self.current_state = state_space
                 self.player_guesses = np.argmax(self.guess_agent.get_qs(state_space))
-            else:
+            elif self.guess_type == "heuristic":
                 guesses = 0
                 for card in self.hand:
 
@@ -270,6 +270,9 @@ class Player:
                         self.win_cards.append(card)
 
                 self.player_guesses = guesses
+            else:
+                print("unknown guessing type")
+                exit()
             if self.verbose >= 2:
                 print("\nGuessed: ", self.player_guesses)
                 print("Hand: ", self.get_hand(), "Trump: ", trump)
