@@ -131,7 +131,7 @@ def avg_n_games(
     dueling: bool
 ) -> None:
     input_size_guess = 69
-    input_size_play = 193
+    input_size_play = 313
 
     name = None
     if save_folder != "":

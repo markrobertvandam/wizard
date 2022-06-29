@@ -40,11 +40,6 @@ class PlayingNetwork:
         # An array with last n steps for training
         self.replay_memory = deque(maxlen=REPLAY_MEMORY_SIZE)
 
-        # Array for plotting how avg q changes
-        self.avg_q_memory = []
-        self.ptp_q_memory = []
-        self.x_q_mem = []
-
     @staticmethod
     def dense_layer(num_units):
         return Dense(num_units, activation="relu")
@@ -119,8 +114,6 @@ class PlayingNetwork:
         X = []
         y = []
 
-        ptp_q_memory = []
-        avg_q_memory = []
         # Now we need to enumerate our batches
         for index, (_, action, reward, _, illegal_moves, done) in enumerate(minibatch):
             current_state = current_states[index]
@@ -145,50 +138,15 @@ class PlayingNetwork:
                 for move in illegal_moves:
                     current_qs[move] = -1000
 
-            # Every 10 games add to memory, start after 50 games
-            if self.q_memory_counter % 2100 == 0 and self.q_memory_counter >= 10500:
-                avg_q_memory.append(np.average(current_qs))
-                ptp_q_memory.append(np.ptp(current_qs))
-
             # And append to our training data
             X.append(current_state)
             y.append(current_qs)
 
-        if len(avg_q_memory) > 0 and len(ptp_q_memory) > 0:
-            # average over the 32 batches
-            avg = round(np.average(avg_q_memory), 2)
-            ptp = round(np.average(ptp_q_memory), 2)
-
-            self.avg_q_memory.append(avg)
-            self.ptp_q_memory.append(ptp)
-            self.x_q_mem.append(self.q_memory_counter//210)
-
         # Fit on all samples as one batch, log only on terminal state
-
         self.model.fit(np.array(X), np.array(y),
                        batch_size=MINIBATCH_SIZE,
                        verbose=0,
                        shuffle=False)
-
-        if self.q_memory_counter % 21000 == 0:
-            save_name = "DDDQN_small"
-            print("Saving q_mem...")
-            f = open(f"plots/q_plots/values_{save_name}", "w")
-            f.write(f"{self.avg_q_memory}\n")
-            f.write(f"{self.ptp_q_memory}\n")
-            f.close()
-
-            plt.plot(self.x_q_mem, self.ptp_q_memory)
-            plt.xlabel("Games (n)", fontsize=10)
-            plt.ylabel("PTP of q-values", fontsize=10)
-            plt.savefig(f"plots/q_plots/ptp_plot_{save_name}")
-            plt.close()
-
-            plt.plot(self.x_q_mem, self.avg_q_memory)
-            plt.xlabel("Games (n)", fontsize=10)
-            plt.ylabel("AVG of q-values", fontsize=10)
-            plt.savefig(f"plots/q_plots/avg_plot_{save_name}")
-            plt.close()
 
     # Queries main network for Q values given current observation space (environment state)
     def get_qs(self, state):
