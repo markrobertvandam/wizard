@@ -534,14 +534,14 @@ class Game:
             if off_mark == 0:
                 self.scores[player] += 20 + 10 * player.get_guesses()
                 if player.guess_type == "learning":
-                    player.update_agent(100)
+                    player.update_agent()
                 if player.player_type == "learning":
                     player.play_agent.backpropagate(
                         player.play_agent.last_terminal_node, self.deck_dict, 1
                     )
             else:
                 if player.guess_type == "learning":
-                    player.update_agent(0)
+                    player.update_agent()
                 if player.player_type == "learning":
                     player.play_agent.backpropagate(
                         player.play_agent.last_terminal_node, self.deck_dict, 0

@@ -32,7 +32,6 @@ class Player:
         self.player_type = player_type
         if self.guess_type.startswith("learn"):
             self.guess_agent = guess_agent
-            self.guess_agent.avg_reward = 0
             self.current_state = None
             self.epsilon = epsilon
 
@@ -279,13 +278,12 @@ class Player:
 
         return self.player_guesses
 
-    def update_agent(self, reward):
+    def update_agent(self):
         # safety catch
         if self.guess_type == "learning":
             self.guess_agent.update_replay_memory(
                 (self.current_state, self.trick_wins)
             )
-            self.guess_agent.avg_reward += reward / self.guess_agent.guess_max
             self.guess_agent.train()
 
     def get_hand(self):
