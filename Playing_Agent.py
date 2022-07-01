@@ -1,10 +1,9 @@
-import copy
-import game
 import numpy as np
 import random
 
-from Playing_Network import PlayingNetwork
-from utility_functions import key_to_state, state_to_key
+import Playing_Network
+from utility_functions import key_to_state, state_to_key, temp_game
+
 
 class Node:
     """
@@ -119,12 +118,13 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
 
 # Agent class
 class PlayingAgent:
-    def __init__(self, input_size: int, name=None, verbose=0):
+    def __init__(self, input_size: int, name=None, verbose=0, interactive=False):
 
         self.game = None
         self.input_size = input_size
+        self.interactive = interactive
         self.nodes = dict()
-        self.network_policy = PlayingNetwork(input_size, name)
+        self.network_policy = Playing_Network.PlayingNetwork(input_size, name)
         self.verbose = verbose
         self.counter = 0
         self.parent_node = None
@@ -277,14 +277,14 @@ class PlayingAgent:
         parent = self.parent_node
 
         # make temporary copy of the game
-        temp_game = self.temp_game(game_instance, played_cards)
+        temp_instance = temp_game(game_instance, played_cards, interactive=self.interactive)
 
         player_index = len(played_cards)
         player_order_names = [p.player_name for p in player_order]
         new_player_dict = {
-            "player1": temp_game.player1,
-            "player2": temp_game.player2,
-            "player3": temp_game.player3,
+            "player1": temp_instance.player1,
+            "player2": temp_instance.player2,
+            "player3": temp_instance.player3,
         }
         new_player_order = [new_player_dict[p] for p in player_order_names]
         game_class_players_order = [p.player_name for p in game_instance.players]
@@ -292,10 +292,10 @@ class PlayingAgent:
 
         # game players are in some random order, temp_game players is still ordered
         for i in game_class_players_order:
-            for p in temp_game.players:
+            for p in temp_instance.players:
                 if p.player_name == i:
                     shuffle_seed.append(p)
-        temp_game.players = shuffle_seed
+        temp_instance.players = shuffle_seed
 
         if self.verbose >= 3:
             print("Temporary player order: ", [p.player_name for p in new_player_order])
@@ -303,10 +303,10 @@ class PlayingAgent:
 
         player = new_player_order[player_index]
         # if theres more tricks to follow, children state is after move
-        if not terminal_node:
+        if not terminal_node or self.interactive:
             if player_index == 2:
                 # simulate the play with selected move (final move of trick)
-                _, new_player_order = temp_game.play_trick(
+                _, new_player_order = temp_instance.play_trick(
                     new_player_order,
                     requested_color,
                     player_index,
@@ -316,7 +316,7 @@ class PlayingAgent:
                 )
             else:
                 # simulate play with selected non-final move
-                temp_game.play_trick(
+                temp_instance.play_trick(
                     new_player_order,
                     requested_color,
                     player_index,
@@ -325,15 +325,15 @@ class PlayingAgent:
                     temp=True
                 )
 
-        # else, terminal node, wrap up the round
+        # else, terminal node, wrap up the round (no more choices by the agent left)
         else:
-            _, new_player_order = temp_game.play_trick(new_player_order, requested_color,
-                                                       player_index, card=move, temp=True)
+            _, new_player_order = temp_instance.play_trick(new_player_order, requested_color,
+                                                           player_index, card=move, temp=True)
 
-        play_state = temp_game.playing_state_space(
+        play_state = temp_instance.playing_state_space(
             new_player_order,
             player,
-            temp_game.played_cards,
+            temp_instance.played_cards,
             temp=True,
         )
 
@@ -349,67 +349,3 @@ class PlayingAgent:
 
         if terminal_node and run_type == "learning":
             self.last_terminal_node = self.nodes[key_state]
-
-    @staticmethod
-    def temp_game(game_instance, played_cards):
-        """
-        returns a temporary copy of game_instance to simulate different plays
-        :param game_instance: the game to copy
-        :param played_cards: cards played in trick so far
-        :return:
-        """
-        old_guess_agent = None
-        old_epsilon = None
-
-        old_play_agent = None
-        old_play_epsilon = None
-
-        if game_instance.player1.guess_type.startswith("learn"):
-            old_guess_agent = game_instance.player1.guess_agent
-            old_epsilon = game_instance.player1.epsilon
-        if game_instance.player1.player_type.startswith("learn"):
-            old_play_agent = game_instance.player1.play_agent
-            old_play_epsilon = game_instance.player1.player_epsilon
-
-        temp_game = game.Game(
-            full_deck=copy.deepcopy(game_instance.full_deck),
-            deck_dict=copy.deepcopy(game_instance.deck_dict),
-            guess_type=copy.deepcopy(game_instance.player1.guess_type),
-            player_type=copy.deepcopy(game_instance.player1.player_type),
-            guess_agent=copy.copy(old_guess_agent),
-            playing_agent=copy.copy(old_play_agent),
-            epsilon=copy.deepcopy(old_epsilon),
-            player_epsilon=copy.deepcopy(old_play_epsilon),
-            verbose=copy.deepcopy(game_instance.player1.verbose),
-            use_agent=copy.deepcopy(game_instance.use_agent),
-        )
-        temp_game.deck = copy.deepcopy(game_instance.deck)
-        temp_game.trump = copy.deepcopy(game_instance.trump)
-        temp_game.game_round = copy.deepcopy(game_instance.game_round)
-        temp_game.played_cards = copy.deepcopy(played_cards)
-        temp_game.played_round = copy.deepcopy(game_instance.played_round)
-        temp_game.guesses = copy.deepcopy(game_instance.guesses)
-        temp_game.output_path = copy.deepcopy(game_instance.output_path)
-
-        temp_game.player1.hand = copy.deepcopy(game_instance.player1.hand)
-        temp_game.player2.hand = copy.deepcopy(game_instance.player2.hand)
-        temp_game.player3.hand = copy.deepcopy(game_instance.player3.hand)
-
-        temp_game.player1.player_guesses = copy.deepcopy(
-            game_instance.player1.player_guesses
-        )
-        temp_game.player2.player_guesses = copy.deepcopy(
-            game_instance.player2.player_guesses
-        )
-        temp_game.player3.player_guesses = copy.deepcopy(
-            game_instance.player3.player_guesses
-        )
-
-        temp_game.player1.trick_wins = copy.deepcopy(game_instance.player1.trick_wins)
-        temp_game.player2.trick_wins = copy.deepcopy(game_instance.player2.trick_wins)
-        temp_game.player3.trick_wins = copy.deepcopy(game_instance.player3.trick_wins)
-
-        temp_game.possible_cards_one = copy.deepcopy(game_instance.possible_cards_one)
-        temp_game.possible_cards_two = copy.deepcopy(game_instance.possible_cards_two)
-
-        return temp_game

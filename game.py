@@ -1,10 +1,10 @@
 from math import floor
-from player import Player
-from utility_functions import trick_winner
 
 import copy
+import player as player_class
 import random
 import numpy as np
+import utility_functions as util
 
 
 class Game:
@@ -32,7 +32,7 @@ class Game:
         self.output_path = output_path
         self.trump = 4  # placeholder trump, only 0-3 exist
         self.game_round = 1
-        self.player1 = Player(
+        self.player1 = player_class.Player(
             "player1",
             guess_type,
             player_type,
@@ -46,15 +46,15 @@ class Game:
         if use_agent:
             guess_agent_fixed = copy.copy(guess_agent)
             playing_agent_fixed = copy.copy(playing_agent)
-            self.player2 = Player(
+            self.player2 = player_class.Player(
                 "player2", "learned", "learned", guess_agent_fixed, playing_agent_fixed
             )
-            self.player3 = Player(
+            self.player3 = player_class.Player(
                 "player3", "learned", "learned", guess_agent_fixed, playing_agent_fixed
             )
         else:
-            self.player2 = Player("player2", "heuristic", "heuristic")
-            self.player3 = Player("player3", "heuristic", "heuristic")
+            self.player2 = player_class.Player("player2", "heuristic", "heuristic")
+            self.player3 = player_class.Player("player3", "heuristic", "heuristic")
 
         self.players = [
             self.player1,
@@ -312,7 +312,7 @@ class Game:
                 elif player_order[player_index].player_name == "player3":
                     self.possible_cards_two[i] = 0
 
-    def hand_state_space(self, player_order: list, player: Player, called: str) -> list:
+    def hand_state_space(self, player_order: list, player, called: str) -> list:
         """
         returns state space representing the hand(s) of players
         :param player_order: list with the players in turn order
@@ -352,7 +352,7 @@ class Game:
 
             return one_hot_hand
 
-    def guessing_state_space(self, player: Player) -> np.ndarray:
+    def guessing_state_space(self, player) -> np.ndarray:
         # TODO: maybe add player order?
         """
         Obtain the state space used to predict during the guessing phase
@@ -383,7 +383,7 @@ class Game:
         return state_space
 
     def playing_state_space(
-        self, player_order: list, player: Player, played_trick: list, temp=False
+        self, player_order: list, player, played_trick: list, temp=False
     ) -> np.ndarray:
         """
         Obtain the state space used by the playing agent to make a move
@@ -536,7 +536,7 @@ class Game:
         :param player_order: list of players in turn order
         :return: winner of wrapped up trick
         """
-        winner_index = trick_winner(self.played_cards, self.trump)
+        winner_index = util.trick_winner(self.played_cards, self.trump)
         self.played_round.append(self.played_cards)
         player_order[winner_index].trick_wins += 1
         if self.verbose >= 1:

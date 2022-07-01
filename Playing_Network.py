@@ -4,9 +4,9 @@ from collections import deque
 from keras.models import Model
 from keras.layers import Input, Dense
 from keras.optimizers import adam_v2
-from utility_functions import key_to_state
 
 import random
+import utility_functions as util
 
 REPLAY_MEMORY_SIZE = 42000  # How many of last   to keep for model training, 42000 means remember last ~200 games
 MIN_REPLAY_MEMORY_SIZE = 4200  # Minimum number of tricks in memory to start training, 10500 means at least ~20 games
@@ -80,7 +80,7 @@ class PlayingNetwork:
         # Get states (x) and rewards (y) from minibatch
         states = np.array(
             [
-                key_to_state(self.input_size, transition[0])
+                util.key_to_state(self.input_size, transition[0])
                 for transition in minibatch
             ]
         )

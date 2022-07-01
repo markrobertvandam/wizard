@@ -49,7 +49,6 @@ def int_game(
     player_inp_size: int,
     game_round: int,
     shuffled_players: list,
-    dueling: bool,
 ) -> None:
 
     # Make the deck
@@ -65,7 +64,7 @@ def int_game(
 
     print("Pair: ", guessing_model, playing_model)
     guess_agent = GuessingAgent(input_size=guess_inp_size, guess_max=21)
-    playing_agent = PlayingAgent(input_size=player_inp_size)
+    playing_agent = PlayingAgent(input_size=player_inp_size, interactive=True)
 
     if guessing_model == "heuristic" or guessing_model == "random":
         guess_type = guessing_model
@@ -106,7 +105,6 @@ def int_game(
 
 if __name__ == "__main__":
     args = parse_args()
-    print(f"Dueling: {args.dueling}")
     print(f"Shuffled players: {args.shuffled_players}")
     int_game(
         args.guesser,

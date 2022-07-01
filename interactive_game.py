@@ -1,8 +1,9 @@
+import random
 from math import floor
 
-from player import Player
-from utility_functions import trick_winner, str_to_card, card_to_str
 import numpy as np
+import player as player_class
+import utility_functions as util
 
 
 class Game:
@@ -21,17 +22,16 @@ class Game:
         self.deck = None
         self.trump = 4  # placeholder trump, only 0-3 exist
         self.game_round = game_round
-        self.player1 = Player(
+        self.player1 = player_class.Player(
             "player1",
-            deck_dict,
             guess_type,
             player_type,
             guess_agent,
             playing_agent,
         )
 
-        self.player2 = Player("player2", deck_dict, "real", "real")
-        self.player3 = Player("player3", deck_dict, "real", "real")
+        self.player2 = player_class.Player("player2", "real", "real")
+        self.player3 = player_class.Player("player3", "real", "real")
 
         self.players = [
             self.player1,
@@ -39,11 +39,14 @@ class Game:
             self.player3,
         ]
         temp_players = []
-        for player_name in shuffled_players:
-            for player in self.players:
-                if player_name == player.player_name:
-                    temp_players.append(player)
-        self.players = temp_players
+        if shuffled_players:
+            for player_name in shuffled_players:
+                for player in self.players:
+                    if player_name == player.player_name:
+                        temp_players.append(player)
+            self.players = temp_players
+        else:
+            random.shuffle(self.players)
 
         # for info per round/trick
         self.played_round = []
@@ -84,7 +87,7 @@ class Game:
                 hand = input("Cards in hand? (seperated by space): ").split()
         converted_hand = []
         for card in hand:
-            converted_hand.append(str_to_card(card, converted_hand))
+            converted_hand.append(util.str_to_card(card, converted_hand))
         converted_hand.sort(key=lambda x: (x[0], x[1]))
         print(f"Player hand: {converted_hand}")
         self.player1.hand = converted_hand
@@ -95,7 +98,7 @@ class Game:
 
         if self.game_round < 20:
             # Trump card becomes top card after hands are dealt
-            trump_card = str_to_card(input("What is the trump card?: "))
+            trump_card = util.str_to_card(input("What is the trump card?: "))
             if trump_card[1] == 0:
                 # trump is a joker, no trump this round
                 self.trump = 4
@@ -154,6 +157,9 @@ class Game:
         player_order: list,
         requested_color: int,
         player_index: int,
+        card=None,
+        player_limit=None,
+        temp=False,
     ) -> tuple:
         """
         plays one entire trick (each player plays 1 card)
@@ -164,25 +170,39 @@ class Game:
         :return: None
         """
         while player_index != 3:
+            if player_limit and (3 > player_limit == player_index):
+                return None, None
+
             if player_order[player_index].player_name == "player1":
-                playing_state = None
-                if self.player1.player_type.startswith("learn"):
-                    playing_state = self.playing_state_space(
-                        player_order, player_order[player_index], self.played_cards
-                    )
-                card, legal_cards = player_order[player_index].play_card(
-                                        self.trump,
-                                        requested_color,
-                                        self.played_cards,
-                                        player_order,
-                                        self,
-                                        playing_state,
-                                    )
-                self.played_cards.append(card)
-                print(f"Learning player plays: {card_to_str(card)}")
+                if card is None:
+                        playing_state = None
+                        if self.player1.player_type.startswith("learn"):
+                            playing_state = self.playing_state_space(
+                                player_order, player_order[player_index], self.played_cards
+                            )
+                        card = player_order[player_index].play_card(
+                                                self.trump,
+                                                requested_color,
+                                                self.played_cards,
+                                                player_order,
+                                                self,
+                                                playing_state,
+                                            )
+                        self.played_cards.append(card)
+                        print(f"Learning player plays: {util.card_to_str(card)}")
+
+                else:
+                    print(f"this is a simulated call. Temp is {temp}, "
+                          f"player_index is {player_index} and order is {player_order}")
+                    # play the passed card to simulate that child-node
+                    assert card in player_order[player_index].get_hand(), f"Card {card} is not in hand " \
+                                                                          f"{player_order[player_index].get_hand()}."
+                    player_order[player_index].hand.remove(card)
+                    self.played_cards.append(card)
+
             else:
                 card = input(f"What card is played by {player_order[player_index].player_name}: ")
-                card = str_to_card(card)
+                card = util.str_to_card(card)
                 self.played_cards.append(card)
 
             self.update_possible_hands(card, requested_color, player_order, player_index)
@@ -197,6 +217,7 @@ class Game:
                     requested_color = self.played_cards[player_index][0]
 
             player_index += 1
+            card = None
 
             if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size in [313, 315]:
                 move = self.deck_dict[card]
@@ -215,7 +236,7 @@ class Game:
                 elif player_order[player].player_name == "player3":
                     self.possible_cards_two[i] = 0
 
-    def hand_state_space(self, player_order: list, player: Player, called: str) -> list:
+    def hand_state_space(self, player_order: list, player, called: str) -> list:
         """
         returns state space representing the hand(s) of players
         :param player_order: list with the players in turn order
@@ -256,8 +277,7 @@ class Game:
 
             return one_hot_hand
 
-    def guessing_state_space(self, player: Player) -> np.ndarray:
-        # TODO: maybe add player order?
+    def guessing_state_space(self, player) -> np.ndarray:
         """
         Obtain the state space used to predict during the guessing phase
         :param player: Player that needs the state space to make a guess
@@ -287,7 +307,7 @@ class Game:
         return state_space
 
     def playing_state_space(
-        self, player_order: list, player: Player, played_trick: list, temp=False
+        self, player_order: list, player, played_trick: list, temp=False
     ) -> np.ndarray:
         """
         Obtain the state space used by the playing agent to make a move
@@ -316,6 +336,8 @@ class Game:
         tricks_needed = [player.get_guesses() - player.get_trick_wins()]
         tricks_needed_others = []
 
+        print(self.players)
+        print([p.player_name for p in self.players])
         for other_player in self.players:
             # print(
             #     f"Player {other_player.player_name}, "
@@ -328,6 +350,7 @@ class Game:
                 previous_guesses.append(other_player.get_guesses())
 
         state += previous_guesses + round_number + tricks_needed + tricks_needed_others
+        print(len(state), len(previous_guesses), len(round_number), len(tricks_needed), len(tricks_needed_others))
         if inp_size % 100 == 31:
             # old system, played_trick is unordered
             played_this_trick = 60 * [0]
@@ -379,7 +402,7 @@ class Game:
         :param player_order: list of players in turn order
         :return: winner of wrapped up trick
         """
-        winner_index = trick_winner(self.played_cards, self.trump)
+        winner_index = util.trick_winner(self.played_cards, self.trump)
         self.played_round.append(self.played_cards)
         player_order[winner_index].trick_wins += 1
 

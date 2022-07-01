@@ -1,8 +1,8 @@
 import numpy as np
 import random
 
-from Playing_Agent import Node
-from utility_functions import state_to_key, trick_winner
+import Playing_Agent
+import utility_functions as util
 
 #
 # TODO: MAKE HAND SORTED ONCE AT START
@@ -100,7 +100,7 @@ class Player:
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
                 if (
-                    state_to_key(state_space)
+                    util.state_to_key(state_space)
                     not in self.play_agent.nodes.keys()
                 ):
                     self.play_agent.unseen_state(state_space)
@@ -142,10 +142,10 @@ class Player:
                     card = self.play_agent.rollout_policy()
 
         elif self.player_type == "learned":
-            key_state = state_to_key(state_space)
+            key_state = util.state_to_key(state_space)
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
-                self.play_agent.parent_node = Node(key_state, root=1)
+                self.play_agent.parent_node = Playing_Agent.Node(key_state, root=1)
 
             self.play_agent.expand(
                 legal_cards,
@@ -171,7 +171,7 @@ class Player:
             if self.player_guesses <= self.trick_wins:
                 sorted_legal = sorted(legal_cards, key=lambda x: x[1], reverse=True)
                 for card_option in sorted_legal:
-                    if trick_winner(
+                    if util.trick_winner(
                         played_cards
                         + [card_option]
                         + [(0, 0)] * (2 - len(played_cards)),
@@ -187,7 +187,7 @@ class Player:
                 if len(played_cards) == 2:
                     for card_option in reversed_sort_legal:
                         if (
-                            trick_winner(played_cards + [card_option], trump)
+                            util.trick_winner(played_cards + [card_option], trump)
                             == 2
                         ):
                             card = card_option
@@ -222,6 +222,8 @@ class Player:
 
         else:
             del self.hand[self.idx_dict[card]]
+
+        assert type(card) == tuple, f"tuple card expected, got: {card}, which is type {type(card)}"
         return card
 
     def guess_wins(self, max_guesses: int, trump: int, state_space=None) -> int:
