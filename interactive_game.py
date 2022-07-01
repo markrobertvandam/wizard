@@ -192,8 +192,6 @@ class Game:
                         print(f"Learning player plays: {util.card_to_str(card)}")
 
                 else:
-                    print(f"this is a simulated call. Temp is {temp}, "
-                          f"player_index is {player_index} and order is {player_order}")
                     # play the passed card to simulate that child-node
                     assert card in player_order[player_index].get_hand(), f"Card {card} is not in hand " \
                                                                           f"{player_order[player_index].get_hand()}."
@@ -336,8 +334,6 @@ class Game:
         tricks_needed = [player.get_guesses() - player.get_trick_wins()]
         tricks_needed_others = []
 
-        print(self.players)
-        print([p.player_name for p in self.players])
         for other_player in self.players:
             # print(
             #     f"Player {other_player.player_name}, "
@@ -350,7 +346,6 @@ class Game:
                 previous_guesses.append(other_player.get_guesses())
 
         state += previous_guesses + round_number + tricks_needed + tricks_needed_others
-        print(len(state), len(previous_guesses), len(round_number), len(tricks_needed), len(tricks_needed_others))
         if inp_size % 100 == 31:
             # old system, played_trick is unordered
             played_this_trick = 60 * [0]
