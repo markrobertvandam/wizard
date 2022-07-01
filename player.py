@@ -2,7 +2,7 @@ import numpy as np
 import random
 
 from Playing_Agent import Node
-import game
+from utility_functions import state_to_key, trick_winner
 
 #
 # TODO: MAKE HAND SORTED ONCE AT START
@@ -100,7 +100,7 @@ class Player:
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
                 if (
-                    self.play_agent.state_to_key(state_space)
+                    state_to_key(state_space)
                     not in self.play_agent.nodes.keys()
                 ):
                     self.play_agent.unseen_state(state_space)
@@ -142,7 +142,7 @@ class Player:
                     card = self.play_agent.rollout_policy()
 
         elif self.player_type == "learned":
-            key_state = self.play_agent.state_to_key(state_space)
+            key_state = state_to_key(state_space)
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
                 self.play_agent.parent_node = Node(key_state, root=1)
@@ -171,7 +171,7 @@ class Player:
             if self.player_guesses <= self.trick_wins:
                 sorted_legal = sorted(legal_cards, key=lambda x: x[1], reverse=True)
                 for card_option in sorted_legal:
-                    if game.Game.trick_winner(
+                    if trick_winner(
                         played_cards
                         + [card_option]
                         + [(0, 0)] * (2 - len(played_cards)),
@@ -187,7 +187,7 @@ class Player:
                 if len(played_cards) == 2:
                     for card_option in reversed_sort_legal:
                         if (
-                            game.Game.trick_winner(played_cards + [card_option], trump)
+                            trick_winner(played_cards + [card_option], trump)
                             == 2
                         ):
                             card = card_option

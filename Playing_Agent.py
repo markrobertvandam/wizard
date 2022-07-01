@@ -4,8 +4,7 @@ import numpy as np
 import random
 
 from Playing_Network import PlayingNetwork
-from scipy.sparse import coo_matrix
-
+from utility_functions import key_to_state, state_to_key
 
 class Node:
     """
@@ -135,36 +134,8 @@ class PlayingAgent:
         """"
         get node from node dictionary using key_state
         """
-        key_state = self.state_to_key(state_space)
+        key_state = state_to_key(state_space)
         return self.nodes[key_state]
-
-    @staticmethod
-    def state_to_key(state_space: np.ndarray) -> tuple:
-        compressed_state = coo_matrix(state_space)
-        key_state = tuple(
-            np.concatenate(
-                (compressed_state.data, compressed_state.row, compressed_state.col)
-            )
-        )
-        return key_state
-
-    @staticmethod
-    def key_to_state(input_size: int, node_state: tuple) -> np.ndarray:
-        split = int(len(node_state) / 3)
-        sparse_state = (
-            coo_matrix(
-                (
-                    node_state[:split],
-                    (node_state[split: split * 2], node_state[split * 2:]),
-                )
-            )
-            .toarray()[0]
-            .astype("float32")
-        )
-        sparse_state = np.pad(
-            sparse_state, (0, input_size - len(sparse_state)), "constant"
-        )
-        return sparse_state
 
     # function for randomly selecting a child node
     def rollout_policy(self) -> tuple:
@@ -208,7 +179,7 @@ class PlayingAgent:
         return best_child.card
 
     def evaluate_state(self, node: Node) -> float:
-        sparse_state = self.key_to_state(self.input_size, node.state)
+        sparse_state = key_to_state(self.input_size, node.state)
         return self.network_policy.predict(sparse_state)
 
     def predict(self) -> tuple:
@@ -227,7 +198,7 @@ class PlayingAgent:
         """
         if self.verbose >= 2:
             print("Adding unseen root node..")
-        key_state = self.state_to_key(play_state)
+        key_state = state_to_key(play_state)
         root_node = Node(key_state, root=1)
         if self.verbose:
             write_state(play_state, "state_err1", self.input_size, True)
@@ -369,7 +340,7 @@ class PlayingAgent:
         if self.verbose:
             write_state(play_state, game_instance.output_path, self.input_size)
 
-        key_state = self.state_to_key(play_state)
+        key_state = state_to_key(play_state)
 
         node = Node(key_state, card=move, parent=parent)
         parent.children.append(node)
