@@ -198,7 +198,7 @@ class Game:
 
             player_index += 1
 
-            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size == 313:
+            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size in [313, 315]:
                 move = self.deck_dict[card]
                 self.possible_cards_one[move] = 0
                 self.possible_cards_two[move] = 0
@@ -358,7 +358,7 @@ class Game:
                     played_this_round[one_hot + turn * 60 + trick * 180] = 1
             state += played_this_round
 
-        if inp_size == 313:
+        if inp_size in [313, 315]:
             # TODO: add 60 for each other player to determine which cards they might have
             state += self.possible_cards_one + self.possible_cards_two
 

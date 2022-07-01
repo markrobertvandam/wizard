@@ -186,7 +186,7 @@ class Game:
                     [p.player_name for p in player_order],
                 )
             self.played_cards = []
-            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size == 313:
+            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size in [313, 315]:
                 # TODO: set possible cards to invert of one_hot_hand
                 # normal player only sees their own hand
                 cards_in_hand = self.player1.get_hand()
@@ -315,7 +315,7 @@ class Game:
             if self.verbose >= 2:
                 print("finished one iteration of playtrick")
 
-            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size == 313:
+            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size in [313, 315]:
                 move = self.deck_dict[card]
                 self.possible_cards_one[move] = 0
                 self.possible_cards_two[move] = 0
@@ -505,7 +505,7 @@ class Game:
                     played_this_round[one_hot + turn * 60 + trick * 180] = 1
             state += played_this_round
 
-        if inp_size == 313:
+        if inp_size in [313, 315]:
             # TODO: add 60 for each other player to determine which cards they might have
             state += self.possible_cards_one + self.possible_cards_two
 
