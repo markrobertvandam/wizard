@@ -68,7 +68,7 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
     current_pos += 2
 
     # if not olds
-    if input_size % 100 == 93 or input_size % 100 == 13:
+    if input_size % 100 == 93 or input_size == 313:
         f.write("Order: " + str(play_state[current_pos]) + "\n")
         f.write(
             "played trick: "
@@ -78,7 +78,7 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
             + "\n"
         )
         current_pos += 121
-    elif input_size % 100 == 95:
+    elif input_size % 100 == 95 or input_size == 315:
         f.write("Order: " + str(play_state[current_pos: current_pos + 3]) + "\n")
         f.write(
             "played trick: "
@@ -104,7 +104,7 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
             + "\n"
         )
 
-    if input_size == 313:
+    if input_size in [313, 315]:
         f.write(
             "possible cards player2: "
             + str(np.nonzero(~(play_state[current_pos:current_pos+60] != 0))[0].tolist())

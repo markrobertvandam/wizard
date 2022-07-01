@@ -184,7 +184,7 @@ class Game:
                 )
             self.played_cards = []
 
-            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size == 313:
+            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size in [313, 315]:
                 # TODO: set possible cards to invert of one_hot_hand
                 # normal player only sees their own hand
                 cards_in_hand = self.player1.get_hand()
@@ -256,7 +256,7 @@ class Game:
                         playing_state,
                     )
                 )
-                if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size == 313:
+                if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size in [313, 315]:
                     move = self.deck_dict[self.played_cards[-1]]
                     self.possible_cards_one[move] = 0
                     self.possible_cards_two[move] = 0
@@ -408,6 +408,10 @@ class Game:
             players_turn = self.players.index(player)
             state += [players_turn]
 
+        if player.guess_agent.input_size == 71:
+            order_names = [int(p.player_name[-1]) for p in self.players]
+            state += order_names
+
         state_space = np.array(state, dtype=int)
         return state_space
 
@@ -474,7 +478,7 @@ class Game:
             if inp_size % 100 == 93 or inp_size == 313:
                 players_turn = player_order.index(player)
                 state += [players_turn]
-            elif inp_size % 100 == 95:
+            elif inp_size % 100 == 95 or inp_size == 315:
                 order_names = [int(p.player_name[-1]) for p in player_order]
                 state += order_names
 
@@ -495,7 +499,7 @@ class Game:
                     played_this_round[one_hot + turn * 60 + trick * 180] = 1
             state += played_this_round
 
-        if inp_size == 313:
+        if inp_size in [313, 315]:
             state += self.possible_cards_one + self.possible_cards_two
 
         state_space = np.array(state, dtype=int)
