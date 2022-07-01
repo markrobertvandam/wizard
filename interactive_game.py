@@ -338,10 +338,10 @@ class Game:
             # played trick is ordered in order of play
             played_this_trick = 120 * [0]
 
-            if inp_size % 100 == 93 or inp_size % 100 == 13:
+            if inp_size % 100 == 93 or inp_size == 313:
                 players_turn = player_order.index(player)
                 state += [players_turn]
-            elif inp_size % 100 == 95:
+            elif inp_size % 100 == 95 or inp_size == 315:
                 order_names = [int(p.player_name[-1]) for p in player_order]
                 state += order_names
 
