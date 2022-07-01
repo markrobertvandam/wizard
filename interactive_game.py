@@ -279,6 +279,10 @@ class Game:
             players_turn = self.players.index(player)
             state += [players_turn]
 
+        if player.guess_agent.input_size == 71:
+            order_names = [int(p.player_name[-1]) for p in self.players]
+            state += order_names
+
         state_space = np.array(state, dtype=int)
         return state_space
 
