@@ -353,8 +353,7 @@ class Game:
         :return:
         """
         if (called == "guess" and player.guess_agent.input_size == 188) or \
-           (called == "play" and (player.play_agent.input_size == 3915 or
-                                  player.play_agent.input_size == 315)):
+           (called == "play" and False):
             # Cheating player sees all three hands
             one_hot_hand = 60 * [0]
             one_hot_hand2 = 60 * [0]
