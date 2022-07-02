@@ -87,7 +87,7 @@ if __name__ == "__main__":
                                 rel_score.append(round(score[-1][0] - max(score[-1]), 2))
                                 my_score.append(score[-1][0])
                         iters = lines[2][7:]
-                        accuracy = total_corr / 20000
+                        accuracy = total_corr / 200
 
                         x.append(iters)
                         y.append(accuracy)
