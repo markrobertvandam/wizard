@@ -119,9 +119,11 @@ class Player:
                 if np.random.random() > self.player_epsilon:
                     # evaluate the best state
                     card = self.play_agent.predict()
+                    print(f"A: card is updated to {card}")
                 else:
                     # rollout till end of game
                     card = self.play_agent.rollout_policy()
+                    print(f"B: card is updated to {card}")
 
             # its a child, either terminal or not
             else:
@@ -137,9 +139,11 @@ class Player:
                 if np.random.random() > self.player_epsilon:
                     # evaluate the best state
                     card = self.play_agent.predict()
+                    print(f"C: card is updated to {card}")
                 else:
                     # rollout till end of game
                     card = self.play_agent.rollout_policy()
+                    print(f"D: card is updated to {card}")
 
         elif self.player_type == "learned":
             key_state = util.state_to_key(state_space)
@@ -158,13 +162,17 @@ class Player:
             )
             # get action from network
             card = self.play_agent.predict()
+            print(f"E: card is updated to {card}")
 
         # Play the only legal card if theres only one
         elif len(legal_cards) == 1:
             card = legal_cards[0]
+            print(f"F: card is updated to {card}")
 
         elif self.player_type == "random":
             card = random.choice(legal_cards)
+            print(f"G: card is updated to {card}")
+
 
         elif self.player_type == "heuristic":
             # dodge win as high as possible if I am already at my goal
@@ -178,6 +186,7 @@ class Player:
                         trump,
                     ) != len(played_cards):
                         card = card_option
+                        print(f"H: card is updated to {card}")
                         break
 
             # Still need wins
@@ -191,10 +200,12 @@ class Player:
                             == 2
                         ):
                             card = card_option
+                            print(f"I: card is updated to {card}")
                             break
 
                     if card is None:
                         card = reversed_sort_legal[0]
+                        print(f"J: card is updated to {card}")
                         # Throw away lowest non-trump (if there is one), unless card is much higher than trump
                         if card[0] == trump:
                             for card_option in reversed_sort_legal[1:]:
@@ -203,10 +214,12 @@ class Player:
                                     and card_option[1] - card[1] < 10
                                 ):
                                     card = card_option
+                                    print(f"K: card is updated to {card}")
                                     break
 
         if card is None:
             card = legal_cards[0]
+            print(f"L: card is updated to {card}")
             # card = random.choice(legal_cards)
 
         if self.verbose >= 3:
@@ -214,7 +227,7 @@ class Player:
 
         if card not in self.idx_dict.keys():
             print("Card not in hand? error..")
-            print(legal_cards, card, self.idx_dict)
+            print(legal_cards, card, self.idx_dict, self.hand)
 
         elif card != self.hand[self.idx_dict[card]]:
             print("Oh no! it went wrong!, card is not at that index?")
