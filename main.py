@@ -242,11 +242,6 @@ def avg_n_games(
         )
         scores, offs = wizard.play_game()
 
-        if use_agent:
-            # reset dicts of fixed opponents
-            wizard.player2.play_agent.nodes = dict()
-            wizard.player3.play_agent.nodes = dict()
-
         # For command-line output while training
         last_ten_performance += wizard.get_game_performance()
         for player in range(3):
