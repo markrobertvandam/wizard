@@ -121,6 +121,16 @@ def temp_game(game_instance, played_cards, interactive=False):
         old_play_agent = game_instance.player1.play_agent
         old_play_epsilon = game_instance.player1.player_epsilon
 
+    old_guess_agent2 = None
+    old_play_agent2 = None
+    old_guess_agent3 = None
+    old_play_agent3 = None
+    if game_instance.use_agent:
+        old_guess_agent2 = game_instance.player2.guess_agent
+        old_play_agent2 = game_instance.player2.play_agent
+        old_guess_agent3 = game_instance.player3.guess_agent
+        old_play_agent3 = game_instance.player3.play_agent
+
     if not interactive:
         temp_instance = game.Game(
             full_deck=copy.deepcopy(game_instance.full_deck),
@@ -133,6 +143,10 @@ def temp_game(game_instance, played_cards, interactive=False):
             player_epsilon=copy.deepcopy(old_play_epsilon),
             verbose=copy.deepcopy(game_instance.player1.verbose),
             use_agent=copy.deepcopy(game_instance.use_agent),
+            guess_agent2=copy.copy(old_guess_agent2),
+            playing_agent2=copy.copy(old_play_agent2),
+            guess_agent3=copy.copy(old_guess_agent3),
+            playing_agent3=copy.copy(old_play_agent3),
         )
         temp_instance.output_path = copy.deepcopy(game_instance.output_path)
         temp_instance.game_round = copy.deepcopy(game_instance.game_round)

@@ -166,7 +166,6 @@ class PlayingAgent:
     def best_child(self, node: Node) -> tuple:
         best_child = node.children[0]
         max_value = self.evaluate_state(best_child)
-        print([child.card for child in node.children])
         for child in node.children[1:]:
             value = self.evaluate_state(child)
             if value > max_value:

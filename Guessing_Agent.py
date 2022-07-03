@@ -18,7 +18,6 @@ class GuessingAgent:
 
         self.input_size = input_size
         self.guess_max = guess_max
-        self.avg_reward = 0  # stores avg reward every game
         self.accuracy = 0.02
 
         # Main model

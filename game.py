@@ -23,6 +23,10 @@ class Game:
         player_epsilon=None,
         verbose=False,
         use_agent=False,
+        guess_agent2=None,
+        playing_agent2=None,
+        guess_agent3=None,
+        playing_agent3=None,
     ) -> None:
         self.verbose = verbose
         self.full_deck = full_deck
@@ -44,13 +48,11 @@ class Game:
         )
         self.use_agent = use_agent
         if use_agent:
-            guess_agent_fixed = copy.copy(guess_agent)
-            playing_agent_fixed = copy.copy(playing_agent)
             self.player2 = player_class.Player(
-                "player2", "learned", "learned", guess_agent_fixed, playing_agent_fixed
+                "player2", "learned", "learned", guess_agent2, playing_agent2
             )
             self.player3 = player_class.Player(
-                "player3", "learned", "learned", guess_agent_fixed, playing_agent_fixed
+                "player3", "learned", "learned", guess_agent3, playing_agent3
             )
         else:
             self.player2 = player_class.Player("player2", "heuristic", "heuristic")

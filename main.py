@@ -139,14 +139,49 @@ def avg_n_games(
 
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
     playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
+    guess_agent2 = None
+    playing_agent2 = None
+    guess_agent3 = None
+    playing_agent3 = None
+
+    print(f"Use agent is still {use_agent}")
+    if use_agent:
+        print("Creating fixed agents for opponents..")
+        guess_agent2 = GuessingAgent(input_size=input_size_guess, guess_max=21)
+        playing_agent2 = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
+        guess_agent3 = GuessingAgent(input_size=input_size_guess, guess_max=21)
+        playing_agent3 = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
+
+        if model_path is None:
+            print("No guessing agent passed to load to fixed opponents")
+        else:
+            print(f"Loading saved guessing model {model_path} to fixed opponents")
+            guess_agent2.model = tf.keras.models.load_model(
+                os.path.join("models", model_path)
+            )
+            guess_agent3.model = tf.keras.models.load_model(
+                os.path.join("models", model_path)
+            )
+
+        if player_model is None:
+            print("No playing agent passed to load to fixed opponents")
+        else:
+            print(f"Loading saved playing model {player_model} to fixed opponents")
+            playing_agent2.network_policy.model = tf.keras.models.load_model(
+                os.path.join("models", player_model)
+            )
+            playing_agent3.network_policy.model = tf.keras.models.load_model(
+                os.path.join("models", player_model)
+            )
+
     if guess_type == "learned" or (guess_type == "learning" and model_path is not None):
-        print(f"Loading saved model {model_path}")
+        print(f"Loading saved guessing model {model_path}")
         guess_agent.model = tf.keras.models.load_model(
             os.path.join("models", model_path)
         )
 
     if player_type == "learned" or (player_type == "learning" and player_model is not None):
-        print(f"Loading saved model {player_model}")
+        print(f"Loading saved playing model {player_model}")
         playing_agent.network_policy.model = tf.keras.models.load_model(
             os.path.join("models", player_model)
         )
@@ -184,9 +219,10 @@ def avg_n_games(
     max_acc = 0
     output_path = "state_err1"
     print("Guess type: ", guess_type, "Player type: ", player_type)
+    if use_agent:
+        print(f"Fixed agents: {guess_agent2}, {playing_agent2}, {guess_agent3}, {playing_agent3}")
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
-        if verbose:
-            print("\nGame instance: ", game_instance)
+        print("\nGame instance: ", game_instance)
         wizard = game.Game(
             full_deck,
             deck_dict,
@@ -199,8 +235,20 @@ def avg_n_games(
             player_epsilon=player_epsilon,
             verbose=verbose,
             use_agent=use_agent,
+            guess_agent2=guess_agent2,
+            playing_agent2=playing_agent2,
+            guess_agent3=guess_agent3,
+            playing_agent3=playing_agent3,
         )
         scores, offs = wizard.play_game()
+
+        if use_agent:
+            # for learned agent,
+            print(f"Resetting other players dict, "
+                  f"{len(wizard.player2.play_agent.nodes)} and {len(wizard.player3.play_agent.nodes)}")
+            # reset dicts of fixed opponents
+            wizard.player2.play_agent.nodes = dict()
+            wizard.player3.play_agent.nodes = dict()
 
         # For command-line output while training
         last_ten_performance += wizard.get_game_performance()
@@ -281,6 +329,7 @@ def avg_n_games(
 
 if __name__ == "__main__":
     args = parse_args()
+    print(f"Use agent: {args.use_agent}")
     avg_n_games(
         args.games,
         args.guesstype,
