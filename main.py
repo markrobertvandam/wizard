@@ -144,7 +144,6 @@ def avg_n_games(
     guess_agent3 = None
     playing_agent3 = None
 
-    print(f"Use agent is still {use_agent}")
     if use_agent:
         print("Creating fixed agents for opponents..")
         guess_agent2 = GuessingAgent(input_size=input_size_guess, guess_max=21)
@@ -222,7 +221,8 @@ def avg_n_games(
     if use_agent:
         print(f"Fixed agents: {guess_agent2}, {playing_agent2}, {guess_agent3}, {playing_agent3}")
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
-        print("\nGame instance: ", game_instance)
+        if verbose:
+            print("\nGame instance: ", game_instance)
         wizard = game.Game(
             full_deck,
             deck_dict,
@@ -243,9 +243,6 @@ def avg_n_games(
         scores, offs = wizard.play_game()
 
         if use_agent:
-            # for learned agent,
-            print(f"Resetting other players dict, "
-                  f"{len(wizard.player2.play_agent.nodes)} and {len(wizard.player3.play_agent.nodes)}")
             # reset dicts of fixed opponents
             wizard.player2.play_agent.nodes = dict()
             wizard.player3.play_agent.nodes = dict()
