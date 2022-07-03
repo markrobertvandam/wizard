@@ -53,7 +53,7 @@ def parse_args() -> argparse.Namespace:
         help="optional argument to load in the weights of a saved player model",
     )
     parser.add_argument("--use_agent", action="store_true",
-                        help="mask illegal moves")
+                        help="use starting agents for opponents")
     parser.add_argument(
         "--epsilon",
         help="optional argument to set starting epsilon",
