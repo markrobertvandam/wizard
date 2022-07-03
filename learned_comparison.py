@@ -36,12 +36,8 @@ def parse_args() -> argparse.Namespace:
         default=0,
         type=int,
     )
-    parser.add_argument(
-        "--use_agent",
-        help="optional argument to set whether opponents should be fixed agents",
-        default=0,
-        type=bool,
-    )
+    parser.add_argument("--use_agent", action="store_true",
+                        help="use starting agents for opponents")
 
     return parser.parse_args()
 
