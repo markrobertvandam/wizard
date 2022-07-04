@@ -78,6 +78,8 @@ def parse_args() -> argparse.Namespace:
                         help="mask illegal moves")
     parser.add_argument("--dueling", action="store_true",
                         help="use dueling DQN")
+    parser.add_argument("--priority", action="store_true",
+                        help="use prioritized experience replay")
 
     return parser.parse_args()
 
@@ -131,7 +133,8 @@ def avg_n_games(
     iters_done: int,
     double: bool,
     mask: bool,
-    dueling: bool
+    dueling: bool,
+    priority: bool,
 ) -> None:
     input_size_guess = 69
     input_size_play = 313
@@ -153,7 +156,41 @@ def avg_n_games(
     print(f"Inp_size guess: {input_size_guess} and Inp_size play: {input_size_play}")
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
     playing_agent = PlayingAgent(input_size=input_size_play, save_bool=(save_bool.startswith("y")), name=name,
-                                 verbose=verbose, mask=mask, dueling=dueling, double=double)
+                                 verbose=verbose, mask=mask, dueling=dueling, double=double, priority=priority)
+    guess_agent2 = None
+    playing_agent2 = None
+    guess_agent3 = None
+    playing_agent3 = None
+
+    if use_agent:
+        print("Creating fixed agents for opponents..")
+        guess_agent2 = GuessingAgent(input_size=input_size_guess, guess_max=21)
+        playing_agent2 = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
+        guess_agent3 = GuessingAgent(input_size=input_size_guess, guess_max=21)
+        playing_agent3 = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
+
+        if model_path is None:
+            print("No guessing agent passed to load to fixed opponents")
+        else:
+            print(f"Loading saved guessing model {model_path} to fixed opponents")
+            guess_agent2.model = tf.keras.models.load_model(
+                os.path.join("models", model_path)
+            )
+            guess_agent3.model = tf.keras.models.load_model(
+                os.path.join("models", model_path)
+            )
+
+        if player_model is None:
+            print("No playing agent passed to load to fixed opponents")
+        else:
+            print(f"Loading saved playing model {player_model} to fixed opponents")
+            playing_agent2.network_policy.model = tf.keras.models.load_model(
+                os.path.join("models", player_model)
+            )
+            playing_agent3.network_policy.model = tf.keras.models.load_model(
+                os.path.join("models", player_model)
+            )
+
     if guess_type == "learned" or (guess_type == "learning" and model_path is not None):
         print(f"Loading saved model {model_path}")
         guess_agent.model = tf.keras.models.load_model(
@@ -200,6 +237,8 @@ def avg_n_games(
     max_acc = 0
     output_path = "state_err1"
     print("Guess type: ", guess_type, "Player type: ", player_type)
+    if use_agent:
+        print(f"Fixed agents: {guess_agent2}, {playing_agent2}, {guess_agent3}, {playing_agent3}")
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
         #print("\nGame instance: ", game_instance)
         wizard = game.Game(
@@ -214,6 +253,10 @@ def avg_n_games(
             player_epsilon=player_epsilon,
             verbose=verbose,
             use_agent=use_agent,
+            guess_agent2=guess_agent2,
+            playing_agent2=playing_agent2,
+            guess_agent3=guess_agent3,
+            playing_agent3=playing_agent3,
         )
         scores, offs = wizard.play_game()
 
@@ -300,6 +343,7 @@ if __name__ == "__main__":
     print(f"Double: {args.double}")
     print(f"Masking: {args.mask}")
     print(f"Dueling: {args.dueling}")
+    print(f"Prioritized Experience Replay: {args.priority}")
     avg_n_games(
         args.games,
         args.guesstype,
@@ -315,5 +359,6 @@ if __name__ == "__main__":
         args.iters_done,
         args.double,
         args.mask,
-        args.dueling
+        args.dueling,
+        args.priority
     )

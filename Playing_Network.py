@@ -21,7 +21,8 @@ DISCOUNT = 0.7
 
 # Agent class
 class PlayingNetwork:
-    def __init__(self, input_size, save_bool: bool, name: str, masking: bool, dueling: bool, double: bool):
+    def __init__(self, input_size, save_bool: bool, name: str,
+                 masking: bool, dueling: bool, double: bool, priority: bool):
 
         self.input_size = input_size
         self.save_bool = save_bool
@@ -29,6 +30,7 @@ class PlayingNetwork:
         self.masking = masking
         self.dueling = dueling
         self.double = double
+        self.priority = priority
 
         # Main model
         self.model = self.create_model()
