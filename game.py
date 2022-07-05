@@ -1,6 +1,5 @@
 from math import floor
 
-import copy
 import player as player_class
 import random
 import numpy as np
@@ -483,7 +482,7 @@ class Game:
         :return: None
         """
         for player in self.players:
-            #  print(player.player_name, player.trick_wins, player.guesses)
+            #  get the difference between tricks won and tricks guessed
             off_mark = abs(player.get_trick_wins() - player.get_guesses())
             if player.player_name == "player1":
                 self.actual_distribution[player.get_trick_wins()] += 1
@@ -505,7 +504,7 @@ class Game:
                     player.update_agent()
                 if player.player_type == "learning":
                     player.play_agent.backpropagate(
-                        player.play_agent.last_terminal_node, 0
+                        player.play_agent.last_terminal_node, 1 - off_mark
                     )
 
                 self.scores[player] -= 10 * off_mark

@@ -49,7 +49,9 @@ def parse_args() -> argparse.Namespace:
         help="optional argument to load in the weights of a saved player model",
     )
     parser.add_argument("--use_agent", action="store_true",
-                        help="use starting agents for opponents")
+                        help="optional argument to use starting agents for opponents")
+    parser.add_argument("--punish", action="store_true",
+                        help="optional argument to punish play depending on difference with goal trick wins")
     parser.add_argument(
         "--epsilon",
         help="optional argument to set starting epsilon",
@@ -116,6 +118,7 @@ def avg_n_games(
     player_model: str,
     verbose: int,
     use_agent: bool,
+    punish: bool,
     epsilon: float,
     player_epsilon: float,
     iters_done: int,
@@ -138,7 +141,7 @@ def avg_n_games(
         name = player_model.split("/")[0].split("_")[1]
 
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
-    playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
+    playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose, punish=punish)
     guess_agent2 = None
     playing_agent2 = None
     guess_agent3 = None
@@ -322,6 +325,7 @@ def avg_n_games(
 if __name__ == "__main__":
     args = parse_args()
     print(f"Use agent: {args.use_agent}")
+    print(f"Punish based on distance from goal: {args.punish}")
     avg_n_games(
         args.games,
         args.guesstype,
@@ -332,6 +336,7 @@ if __name__ == "__main__":
         args.play_model,
         args.verbose,
         args.use_agent,
+        args.punish,
         args.epsilon,
         args.player_epsilon,
         args.iters_done,

@@ -118,7 +118,7 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
 
 # Agent class
 class PlayingAgent:
-    def __init__(self, input_size: int, name=None, verbose=0, interactive=False):
+    def __init__(self, input_size: int, name=None, verbose=0, interactive=False, punish=False):
 
         self.game = None
         self.input_size = input_size
@@ -126,6 +126,7 @@ class PlayingAgent:
         self.nodes = dict()
         self.network_policy = Playing_Network.PlayingNetwork(input_size, name)
         self.verbose = verbose
+        self.punish = punish
         self.counter = 0
         self.parent_node = None
         self.last_terminal_node = None
@@ -159,7 +160,15 @@ class PlayingAgent:
         node.wins += result / 100
         if self.verbose >= 3:
             print("Node card: ", node.card)
-        self.network_policy.update_replay_memory([node.state, result])
+        if self.punish:
+            # use (1 - difference between tricks won and tricks guessed) as result
+            self.network_policy.update_replay_memory([node.state, result])
+        else:
+            # use 1 for correct guess, 0 for wrong guess
+            if result != 1:
+                result = 0
+            self.network_policy.update_replay_memory([node.state, result])
+
         self.network_policy.train()
         self.backpropagate(node.parent, result)
 
