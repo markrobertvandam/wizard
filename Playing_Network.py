@@ -1,20 +1,18 @@
 import numpy as np
 
-from collections import deque
-
 from keras.metrics import mean_squared_error as mse
 from keras.models import Model
 from keras.layers import Input, Dense
 from keras.optimizers import adam_v2
 
 from tensorflow import math
+
+import replay_buffer
 from utility_functions import key_to_state
 
 import matplotlib.pyplot as plt
-import random
 
 REPLAY_MEMORY_SIZE = 42000  # How many of last   to keep for model training, 42000 means remember last ~200 games
-MIN_REPLAY_MEMORY_SIZE = 4200  # Minimum number of tricks in memory to start training, 10500 means at least ~20 games
 MINIBATCH_SIZE = 32  # How many steps (samples) to use for training
 UPDATE_TARGET_EVERY = 20  # Terminal states (end of episodes)
 DISCOUNT = 0.7
@@ -42,7 +40,7 @@ class PlayingNetwork:
         self.q_memory_counter = 0
 
         # An array with last n steps for training
-        self.replay_memory = deque(maxlen=REPLAY_MEMORY_SIZE)
+        self.replay_memory = replay_buffer.Memory(size=REPLAY_MEMORY_SIZE)
 
         # Array for plotting how avg q changes
         self.avg_q_memory = []
@@ -94,18 +92,18 @@ class PlayingNetwork:
 
     # Adds data to a memory replay array
     # (state, reward)
-    def update_replay_memory(self, transition):
-        self.replay_memory.append(transition)
+    def update_replay_memory(self, transition: list, priority=None):
+        """
+        Add new experience to replay memory, with max priority default (No TD known yet)
+        """
+        if priority is None:
+            priority = self.replay_memory.max_priority
+        self.replay_memory.append(transition, priority)
 
     # Trains main network every step during episode
-    def train(self):
-        self.q_memory_counter += 1
-        # Start training only if certain number of samples is already saved
-        if len(self.replay_memory) < MIN_REPLAY_MEMORY_SIZE:
-            return
-
+    def train(self) -> float:
         # Get a minibatch of random samples from memory replay table
-        minibatch = random.sample(self.replay_memory, MINIBATCH_SIZE)
+        minibatch, sampled_idxs, is_weights = self.replay_memory.sample(MINIBATCH_SIZE)
 
         # Get current states from minibatch, then query NN model for Q values
         current_states = np.array([key_to_state(self.input_size, transition[0])
@@ -122,6 +120,7 @@ class PlayingNetwork:
 
         X = []
         y = []
+        errors = []
 
         ptp_q_memory = []
         avg_q_memory = []
@@ -147,8 +146,13 @@ class PlayingNetwork:
             else:
                 new_q = reward
 
-            # Update Q value for given state
             current_qs = current_qs_list[index]
+
+            if self.priority:
+                # save error for priority calculation
+                errors.append(mse(new_q, current_qs[action]))
+
+            # Update Q value for given state
             current_qs[action] = new_q
 
             if self.masking:
@@ -174,11 +178,11 @@ class PlayingNetwork:
             self.x_q_mem.append(self.q_memory_counter//210)
 
         # Fit on all samples as one batch, log only on terminal state
-
-        self.model.fit(np.array(X), np.array(y),
-                       batch_size=MINIBATCH_SIZE,
-                       verbose=0,
-                       shuffle=False)
+        if self.priority:
+            # update priorities of sampled experiences
+            for i in range(len(sampled_idxs)):
+                self.replay_memory.update(sampled_idxs[i], errors[i])
+        loss = self.model.train_on_batch(np.array(X), np.array(y), is_weights)
 
         if self.save_bool and self.q_memory_counter % 21000 == 0:
             save_name = "DDDQN_small"
@@ -199,6 +203,8 @@ class PlayingNetwork:
             plt.ylabel("AVG of q-values", fontsize=10)
             plt.savefig(f"plots/q_plots/avg_plot_{save_name}")
             plt.close()
+
+        return loss
 
     # Queries main network for Q values given current observation space (environment state)
     def get_qs(self, state):

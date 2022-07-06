@@ -4,6 +4,7 @@ import random
 from Playing_Network import PlayingNetwork
 from utility_functions import state_to_key, key_to_state
 
+MIN_REPLAY_MEMORY_SIZE = 4200  # Minimum number of tricks in memory to start training, 10500 means at least ~20 games
 
 class Node:
     """
@@ -181,8 +182,14 @@ class PlayingAgent:
                 f.write("\n\n")
                 f.close()
 
-            self.network_policy.update_replay_memory([node.state, action, result, node.child.state, illegal_moves, done])
-            self.network_policy.train()
+            # Initial priority is defaulted to max for new experiences
+            self.network_policy.update_replay_memory([node.state, action,
+                                                      result, node.child.state,
+                                                      illegal_moves, done])
+
+            self.network_policy.q_memory_counter += 1
+            if len(self.network_policy.replay_memory.buffer) >= MIN_REPLAY_MEMORY_SIZE:
+                self.network_policy.train()
 
             # Only add (S, a, S'), go next if current node is S'
             if node.root:
