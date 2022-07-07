@@ -84,8 +84,7 @@ class PlayingNetwork:
 
         model.compile(
             loss="mse",
-            optimizer=adam_v2.Adam(learning_rate=0.0001, clipvalue=0.5),
-            metrics=[mse]
+            optimizer=adam_v2.Adam(learning_rate=0.0001, clipvalue=0.5)
         )
         # print(model.summary())
         return model
@@ -150,7 +149,8 @@ class PlayingNetwork:
 
             if self.priority:
                 # save error for priority calculation
-                errors.append(mse(new_q, current_qs[action]))
+                error = mse([new_q], [current_qs[action]])
+                errors.append(error.numpy())
 
             # Update Q value for given state
             current_qs[action] = new_q

@@ -111,7 +111,7 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, type_
         )
         f.write(
             "possible cards player3: "
-            + str(np.nonzero(~(play_state[current_pos+60:] != 0))[0].tolist())
+            + str(np.nonzero(play_state[current_pos+60:])[0].tolist())
             + "\n"
         )
     f.close()
@@ -159,7 +159,7 @@ class PlayingAgent:
         return move
 
     # function for backpropagation
-    def backpropagate(self, node: Node, deck_dict: dict, result: int, done=True) -> None:
+    def backpropagate(self, node: Node, deck_dict: dict, result: int, done=True, loss=0.0) -> float:
         self.counter += 1
         if self.counter % 2000 == 0:
             print(self.counter)
@@ -189,15 +189,15 @@ class PlayingAgent:
 
             self.network_policy.q_memory_counter += 1
             if len(self.network_policy.replay_memory.buffer) >= MIN_REPLAY_MEMORY_SIZE:
-                self.network_policy.train()
+                loss += self.network_policy.train()
 
             # Only add (S, a, S'), go next if current node is S'
             if node.root:
                 # done propagating entire game, nodes can be reset
                 self.nodes = dict()
-                return
+                return loss
 
-        self.backpropagate(node.parent, deck_dict, result, False)
+        return self.backpropagate(node.parent, deck_dict, result, False, loss)
 
     def best_child(self,
                    state,

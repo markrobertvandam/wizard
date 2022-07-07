@@ -21,7 +21,10 @@ class Memory(object):
         self.max_priority = 1
 
     def append(self, experience: list, priority: float):
-        self.buffer[self.curr_write_idx] = experience
+        if self.curr_write_idx >= len(self.buffer):
+            self.buffer.append(experience)
+        else:
+            self.buffer[self.curr_write_idx] = experience
         self.update(self.curr_write_idx, priority)
         self.curr_write_idx += 1
         # reset the current writer position index if creater than the allowed size

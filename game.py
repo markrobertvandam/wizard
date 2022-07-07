@@ -2,7 +2,6 @@ from math import floor
 from player import Player
 from utility_functions import trick_winner
 
-import copy
 import random
 import numpy as np
 
@@ -85,6 +84,7 @@ class Game:
         self.off_game = np.zeros(21, dtype=int)
         self.guess_distribution = np.zeros(21, dtype=int)
         self.actual_distribution = np.zeros(21, dtype=int)
+        self.total_loss = 0.0
 
         # for info per round/trick
         self.played_round = []
@@ -125,6 +125,7 @@ class Game:
             self.player1.play_agent.pred_counter = 0
 
         return (
+            self.total_loss,
             [
                 self.scores[self.player1],
                 self.scores[self.player2],
@@ -542,14 +543,14 @@ class Game:
                 if player.guess_type == "learning":
                     player.update_agent()
                 if player.player_type == "learning":
-                    player.play_agent.backpropagate(
+                    self.total_loss += player.play_agent.backpropagate(
                         player.play_agent.last_terminal_node, self.deck_dict, 1
                     )
             else:
                 if player.guess_type == "learning":
                     player.update_agent()
                 if player.player_type == "learning":
-                    player.play_agent.backpropagate(
+                    self.total_loss += player.play_agent.backpropagate(
                         player.play_agent.last_terminal_node, self.deck_dict, 0
                     )
 
@@ -566,6 +567,7 @@ class Game:
                         self.offs[0] += 1
                     else:
                         self.offs[1] += 1
+
         #  print("\n\n")
 
     def get_game_performance(self) -> np.ndarray:
