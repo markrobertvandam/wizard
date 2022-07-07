@@ -200,9 +200,7 @@ class PlayingAgent:
                                                          illegal_moves, done])
 
 
-            self.network_policy.q_memory_counter += 1
-            if len(self.network_policy.replay_memory.buffer) >= MIN_REPLAY_MEMORY_SIZE:
-                loss += self.network_policy.train()
+            self.network_policy.train()
 
             # Only add (S, a, S'), go next if current node is S'
             if node.root:
