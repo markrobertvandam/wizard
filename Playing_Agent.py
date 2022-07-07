@@ -179,6 +179,7 @@ class PlayingAgent:
                 f.close()
                 write_state(key_to_state(self.input_size, node.child.state), "sas", self.input_size, type_node="after play")
                 f = open("sas.txt", "a")
+                f.write(f"Done: {done}")
                 f.write("\n\n")
                 f.close()
 
@@ -197,7 +198,9 @@ class PlayingAgent:
                 self.nodes = dict()
                 return loss
 
-        return self.backpropagate(node.parent, deck_dict, result, False, loss)
+            done = False
+
+        return self.backpropagate(node.parent, deck_dict, result, done, loss)
 
     def best_child(self,
                    state,

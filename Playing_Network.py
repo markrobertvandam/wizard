@@ -97,6 +97,16 @@ class PlayingNetwork:
         """
         if priority is None:
             priority = self.replay_memory.max_priority
+        # (current_state, action, reward, new_state, illegal_moves, done) = transition
+        # print(f"Curr state: {key_to_state(self.input_size, current_state)}\n\n"
+        #       f"Action: {action}\n\n"
+        #       f"Reward: {reward}\n"
+        #       f"New state: {key_to_state(self.input_size, new_state)}\n\n"
+        #       f"Illegal_moves: {illegal_moves}\n"
+        #       f"Done: {done}\n"
+        #       f"Priority: {priority}\n"
+        #       f"Max-prior: {self.replay_memory.max_priority}")
+        # exit()
         self.replay_memory.append(transition, priority)
 
     # Trains main network every step during episode
