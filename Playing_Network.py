@@ -113,6 +113,9 @@ class PlayingNetwork:
     def train(self) -> float:
         # Get a minibatch of random samples from memory replay table
         minibatch, sampled_idxs, is_weights = self.replay_memory.sample(MINIBATCH_SIZE)
+        if len(minibatch) != 32:
+            print(f"MINIBATCH IS NOT 32 length")
+            exit()
 
         # Get current states from minibatch, then query NN model for Q values
         current_states = np.array([key_to_state(self.input_size, transition[0])
@@ -159,8 +162,9 @@ class PlayingNetwork:
 
             if self.priority:
                 # save error for priority calculation
-                error = mse([new_q], [current_qs[action]])
-                errors.append(error.numpy())
+                # error = mse([new_q], [current_qs[action]])
+                # errors.append(error.numpy())
+                errors.append(0.2)
 
             # Update Q value for given state
             current_qs[action] = new_q

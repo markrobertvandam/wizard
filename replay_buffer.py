@@ -71,4 +71,9 @@ class Memory(object):
         # transition: (current_state, action, reward, new_state, illegal_moves, done)
         transitions = [self.buffer[idx] for idx in sampled_idxs]
 
+        if len(transitions) != 32 or len(sampled_idxs) != 32 or len(is_weights) != 32:
+            print("FUCK, BATCH IS WRONG!")
+            exit()
+
+        print(f"len is correct, there are {len(transitions)} transitions returned from sample.")
         return transitions, sampled_idxs, is_weights
