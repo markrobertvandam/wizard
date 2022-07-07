@@ -80,6 +80,8 @@ def parse_args() -> argparse.Namespace:
                         help="use dueling DQN")
     parser.add_argument("--priority", action="store_true",
                         help="use prioritized experience replay")
+    parser.add_argument("--punish", action="store_true",
+                        help="optional argument to punish play depending on difference with goal trick wins")
 
     return parser.parse_args()
 
@@ -135,9 +137,10 @@ def avg_n_games(
     mask: bool,
     dueling: bool,
     priority: bool,
+    punish: bool,
 ) -> None:
     input_size_guess = 69
-    input_size_play = 313
+    input_size_play = 193
 
     name = None
     if save_folder != "":
@@ -155,8 +158,9 @@ def avg_n_games(
     
     print(f"Inp_size guess: {input_size_guess} and Inp_size play: {input_size_play}")
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
-    playing_agent = PlayingAgent(input_size=input_size_play, save_bool=(save_bool.startswith("y")), name=name,
-                                 verbose=verbose, mask=mask, dueling=dueling, double=double, priority=priority)
+    playing_agent = PlayingAgent(input_size=input_size_play, save_bool=(save_bool.startswith("y")),
+                                 name=name, verbose=verbose, mask=mask, dueling=dueling, double=double,
+                                 priority=priority, punish=punish)
     guess_agent2 = None
     playing_agent2 = None
     guess_agent3 = None
@@ -352,6 +356,7 @@ if __name__ == "__main__":
     print(f"Masking: {args.mask}")
     print(f"Dueling: {args.dueling}")
     print(f"Prioritized Experience Replay: {args.priority}")
+    print(f"Punish based on distance from goal: {args.punish}")
     avg_n_games(
         args.games,
         args.guesstype,
@@ -368,5 +373,6 @@ if __name__ == "__main__":
         args.double,
         args.mask,
         args.dueling,
-        args.priority
+        args.priority,
+        args.punish,
     )

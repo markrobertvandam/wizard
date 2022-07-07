@@ -120,7 +120,7 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, type_
 # Agent class
 class PlayingAgent:
     def __init__(self, input_size: int, save_bool=False, name=None,
-                 verbose=0, mask=False, dueling=False, double=False, priority=False):
+                 verbose=0, mask=False, dueling=False, double=False, priority=False, punish=False):
 
         self.game = None
         self.input_size = input_size
@@ -128,6 +128,7 @@ class PlayingAgent:
         self.network_policy = PlayingNetwork(input_size, save_bool, name, masking=mask,
                                              dueling=dueling, double=double, priority=priority)
         self.verbose = verbose
+        self.punish = punish
         self.counter = 0
         self.parent_node = None
         self.last_terminal_node = None
@@ -183,10 +184,21 @@ class PlayingAgent:
                 f.write("\n\n")
                 f.close()
 
-            # Initial priority is defaulted to max for new experiences
-            self.network_policy.update_replay_memory([node.state, action,
-                                                      result, node.child.state,
-                                                      illegal_moves, done])
+            if self.punish:
+                # use (1 - difference between tricks won and tricks guessed) as result
+                # Initial priority is defaulted to max for new experiences
+                self.network_policy.update_replay_memory([node.state, action,
+                                                         result, node.child.state,
+                                                         illegal_moves, done])
+            else:
+                # use 1 as result for correct guess, 0 for wrong guess
+                if result != 1:
+                    result = 0
+                # Initial priority is defaulted to max for new experiences
+                self.network_policy.update_replay_memory([node.state, action,
+                                                         result, node.child.state,
+                                                         illegal_moves, done])
+
 
             self.network_policy.q_memory_counter += 1
             if len(self.network_policy.replay_memory.buffer) >= MIN_REPLAY_MEMORY_SIZE:

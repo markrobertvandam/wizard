@@ -551,7 +551,7 @@ class Game:
                     player.update_agent()
                 if player.player_type == "learning":
                     self.total_loss += player.play_agent.backpropagate(
-                        player.play_agent.last_terminal_node, self.deck_dict, 0
+                        player.play_agent.last_terminal_node, self.deck_dict, 1 - off_mark
                     )
 
                 self.scores[player] -= 10 * off_mark
