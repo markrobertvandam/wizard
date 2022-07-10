@@ -64,6 +64,7 @@ if __name__ == "__main__":
         rel_score = []
         my_score = []
         if not directory.startswith("."):
+            print(f"\nDIR: {directory}")
             folder_path = os.path.join(args.dir, directory)
             log_files = [file for file in os.listdir(folder_path) if file.endswith(".log")]
             if len(log_files) > 0:
@@ -77,10 +78,15 @@ if __name__ == "__main__":
 
                         for line in lines:
                             if line.startswith("Agents"):
-                                distribution = line.split("[")[1].split("]")[0].split()
+                                distribution = line.split("[")[1].split("]")[0].split(", ")
                                 corr = distribution[0]
                                 total_corr += int(corr)
 
+                                for i in range(21):
+                                    if len(distribution) < 21:
+                                        print(distribution, filename)
+                                        exit()
+                                    avg_distribution[i] += float(distribution[i]) / 100
 
                             if line.startswith("Wins: "):
                                 win_dir.append(int(line[8:].split(",")[0]))
@@ -96,10 +102,8 @@ if __name__ == "__main__":
                         x.append(iters)
                         y.append(accuracy)
 
-                        for i in range(21):
-                            avg_distribution[i] += distribution[i]/100
-                        avg_distribution = [int(float(i)) for i in avg_distribution]
-                        print(f"Average distribution for file {filename}: {avg_distribution}")
+                    avg_distribution = [int(i) for i in avg_distribution]
+                    print(f"Average distribution for file {filename}: {avg_distribution}")
 
                 x_values.append(x)
                 y_values.append(y)
