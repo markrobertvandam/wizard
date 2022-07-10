@@ -97,8 +97,8 @@ if __name__ == "__main__":
                         y.append(accuracy)
 
                         for i in range(21):
-                            avg_distribution[i] += distribution[i]/100
-                        avg_distribution = [int(float(i)) for i in avg_distribution]
+                            avg_distribution[i] += float(distribution[i])/100
+                        avg_distribution = [int(i) for i in avg_distribution]
                         print(f"Average distribution for file {filename}: {avg_distribution}")
 
                 x_values.append(x)
