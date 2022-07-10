@@ -78,11 +78,14 @@ if __name__ == "__main__":
 
                         for line in lines:
                             if line.startswith("Agents"):
-                                distribution = line.split("[")[1].split("]")[0].split()
+                                distribution = line.split("[")[1].split("]")[0].split(", ")
                                 corr = distribution[0]
                                 total_corr += int(corr)
 
                                 for i in range(21):
+                                    if len(distribution) < 21:
+                                        print(distribution, filename)
+                                        exit()
                                     avg_distribution[i] += float(distribution[i]) / 100
 
                             if line.startswith("Wins: "):
