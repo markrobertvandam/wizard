@@ -69,6 +69,7 @@ if __name__ == "__main__":
             if len(log_files) > 0:
                 names.append(directory)
                 for filename in sorted(os.listdir(folder_path)):
+                    avg_distribution = [0] * 21
                     total_corr = 0
                     if filename.endswith(".log"):
                         f = open(os.path.join(folder_path, filename), "r")
@@ -76,21 +77,29 @@ if __name__ == "__main__":
 
                         for line in lines:
                             if line.startswith("Agents"):
-                                corr = line.split("[")[1].split()[0]
+                                distribution = line.split("[")[1].split("]")[0].split()
+                                corr = distribution[0]
                                 total_corr += int(corr)
+
+
                             if line.startswith("Wins: "):
                                 win_dir.append(int(line[8:].split(",")[0]))
                             if line.startswith("Scores: "):
                                 score.append(
                                     [round(float(x), 2) for x in line[10:-2].split(",")]
                                 )
-                                rel_score.append(round(score[-1][0] - max(score[-1]), 2))
+                                rel_score.append(round(score[-1][0] - max(score[-1][1:]), 2))
                                 my_score.append(score[-1][0])
                         iters = lines[2][7:]
                         accuracy = total_corr / 200
 
                         x.append(iters)
                         y.append(accuracy)
+
+                        for i in range(21):
+                            avg_distribution[i] += distribution[i]/100
+                        avg_distribution = [int(float(i)) for i in avg_distribution]
+                        print(f"Average distribution for file {filename}: {avg_distribution}")
 
                 x_values.append(x)
                 y_values.append(y)
