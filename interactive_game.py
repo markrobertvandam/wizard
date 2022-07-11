@@ -57,6 +57,8 @@ class Game:
         self.possible_cards_one = [1] * 60
         self.possible_cards_two = [1] * 60
 
+        self.use_agent = False
+
     def play_game(self) -> None:
         """
         Plays a single game of wizard

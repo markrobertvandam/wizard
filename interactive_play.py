@@ -75,6 +75,7 @@ def int_game(
                 os.path.join("models", guessing_model)
             )
         guess_type = "learned"
+        print(f"Loaded model {guessing_model}, guess_type: {guess_type}")
 
     if playing_model == "heuristic" or playing_model == "random":
         player_type = playing_model
@@ -85,6 +86,7 @@ def int_game(
                 os.path.join("models", playing_model)
             )
         player_type = "learned"
+        print(f"Loaded model {playing_model}, player_type: {player_type}")
 
     print(guess_agent.model.summary())
     print(f"Guesser loss-function: ", guess_agent.model.loss)
