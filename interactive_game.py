@@ -50,10 +50,6 @@ class Game:
         self.played_cards = []
         self.guesses = []
 
-        # for playing state
-        self.possible_cards_one = [1] * 60
-        self.possible_cards_two = [1] * 60
-
     def play_game(self) -> None:
         """
         Plays a single game of wizard
@@ -62,8 +58,8 @@ class Game:
         for game_round in range(20):
             self.played_round = []
             self.play_round()
-            self.possible_cards_one = [1] * 60
-            self.possible_cards_two = [1] * 60
+            self.player1.possible_cards_one = [1] * 60
+            self.player1.possible_cards_two = [1] * 60
             self.game_round += 1
             self.players = self.players[1:] + self.players[:1]  # Rotate player order
             for player in self.players:  # reset trick wins
@@ -90,8 +86,8 @@ class Game:
         self.player1.hand = converted_hand
         for card in converted_hand:
             move = self.deck_dict[card]
-            self.possible_cards_one[move] = 0
-            self.possible_cards_two[move] = 0
+            self.player1.possible_cards_one[move] = 0
+            self.player1.possible_cards_two[move] = 0
 
         if self.game_round < 20:
             # Trump card becomes top card after hands are dealt
@@ -113,8 +109,8 @@ class Game:
             else:
                 # trump is regular card
                 self.trump = trump_card[0]
-            self.possible_cards_one[self.deck_dict[trump_card]] = 0
-            self.possible_cards_two[self.deck_dict[trump_card]] = 0
+            self.player1.possible_cards_one[self.deck_dict[trump_card]] = 0
+            self.player1.possible_cards_two[self.deck_dict[trump_card]] = 0
         else:
             # No trump card in final round
             self.trump = 4
@@ -200,8 +196,8 @@ class Game:
 
             if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size in [313, 315]:
                 move = self.deck_dict[card]
-                self.possible_cards_one[move] = 0
-                self.possible_cards_two[move] = 0
+                self.player1.possible_cards_one[move] = 0
+                self.player1.possible_cards_two[move] = 0
 
         winner_index, player_order = self.wrap_up_trick(player_order)
         return winner_index, player_order
@@ -211,9 +207,9 @@ class Game:
         if 0 < card[1] < 14 and requested_color < 4 and requested_color != card[0]:
             for i in range(1 + 15 * requested_color, 15 * (requested_color + 1) - 1):
                 if player_order[player].player_name == "player2":
-                    self.possible_cards_one[i] = 0
+                    self.player1.possible_cards_one[i] = 0
                 elif player_order[player].player_name == "player3":
-                    self.possible_cards_two[i] = 0
+                    self.player1.possible_cards_two[i] = 0
 
     def hand_state_space(self, player_order: list, player: Player, called: str) -> list:
         """
@@ -364,7 +360,7 @@ class Game:
 
         if inp_size in [313, 315]:
             # TODO: add 60 for each other player to determine which cards they might have
-            state += self.possible_cards_one + self.possible_cards_two
+            state += self.player1.possible_cards_one + self.player1.possible_cards_two
 
         state_space = np.array(state, dtype=int)
         if len(state) != inp_size:
