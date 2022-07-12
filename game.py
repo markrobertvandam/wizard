@@ -21,7 +21,8 @@ class Game:
         epsilon=None,
         player_epsilon=None,
         verbose=False,
-        use_agent=False,
+        opp_guesstype="heuristic",
+        opp_playertype="heuristic",
         guess_agent2=None,
         playing_agent2=None,
         guess_agent3=None,
@@ -46,17 +47,30 @@ class Game:
             player_epsilon,
             verbose,
         )
-        self.use_agent = use_agent
-        if use_agent:
-            self.player2 = Player(
-                "player2", deck_dict, "learned", "learned", guess_agent2, playing_agent2
-            )
-            self.player3 = Player(
-                "player3", deck_dict, "learned", "learned", guess_agent3, playing_agent3
-            )
-        else:
-            self.player2 = Player("player2", deck_dict, "heuristic", "heuristic", verbose=verbose)
-            self.player3 = Player("player3", deck_dict, "heuristic", "heuristic", verbose=verbose)
+        self.opp_guesstype = opp_guesstype
+        self.opp_playertype = opp_playertype
+        self.player2 = Player(
+            "player2",
+            deck_dict,
+            opp_guesstype,
+            opp_playertype,
+            guess_agent2,
+            playing_agent2,
+            epsilon,
+            player_epsilon,
+            verbose,
+        )
+        self.player3 = Player(
+            "player3",
+            deck_dict,
+            opp_guesstype,
+            opp_playertype,
+            guess_agent3,
+            playing_agent3,
+            epsilon,
+            player_epsilon,
+            verbose,
+        )
 
         self.players = [
             self.player1,
@@ -189,14 +203,16 @@ class Game:
                     [p.player_name for p in player_order],
                 )
             self.played_cards = []
-            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size in [313, 315]:
-                # TODO: set possible cards to invert of one_hot_hand
-                # normal player only sees their own hand
-                cards_in_hand = self.player1.get_hand()
-                for card in cards_in_hand:
-                    move = self.deck_dict[card]
-                    self.possible_cards_one[move] = 0
-                    self.possible_cards_two[move] = 0
+
+            for player in self.players:
+                if player.player_type.startswith("learn") and player.play_agent.input_size in [313, 315]:
+                    # normal player only sees their own hand
+                    cards_in_hand = player.get_hand()
+                    for card in cards_in_hand:
+                        move = self.deck_dict[card]
+                        self.possible_cards_one[move] = 0
+                        self.possible_cards_two[move] = 0
+                    break
 
             if self.verbose >= 2:
                 print(f"player order before changing: {[p.player_name for p in player_order]}")
@@ -224,6 +240,8 @@ class Game:
         :return: None
         """
         winner_index = None
+        if saved_info is None:
+            saved_info = []
         if self.verbose >= 3:
             print("\nPlaytrick called with card: ", saved_info)
         while player_index != 3:
@@ -290,7 +308,12 @@ class Game:
 
                     else:
                         # final round but others still need to play
-                        saved_info = (player_order[player_index], self.played_cards[-1], legal_cards)
+                        if len(saved_info) < 2:
+                            saved_info.append((player_order[player_index], self.played_cards[-1], legal_cards))
+                        else:
+                            print("wtf, why is it longer than 2?")
+                            print([p.player_name for p in self.players], [p.player_name for p in player_order], saved_info, player_index)
+                            exit()
 
                 # more tricks to follow, only wrap up if trick ended
                 else:
@@ -318,10 +341,12 @@ class Game:
             if self.verbose >= 2:
                 print("finished one iteration of playtrick")
 
-            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size in [313, 315]:
-                move = self.deck_dict[card]
-                self.possible_cards_one[move] = 0
-                self.possible_cards_two[move] = 0
+            for player in self.players:
+                if player.player_type.startswith("learn") and player.play_agent.input_size in [313, 315]:
+                    move = self.deck_dict[card]
+                    self.possible_cards_one[move] = 0
+                    self.possible_cards_two[move] = 0
+                    break
 
         if self.verbose >= 3:
             print("Done with while loop ", player_index)
@@ -329,19 +354,20 @@ class Game:
         if winner_index is None:
             # winner_index is none means no learning player as final player of trick
             winner_index, player_order = self.wrap_up_trick(player_order)
-        if saved_info is not None:
-            # finished terminal trick, add child
-            playing_state = self.playing_state_space(
-                player_order, saved_info[0], self.played_cards
-            )
-            # create child for state after play
-            saved_info[0].play_agent.create_child(
-                saved_info[1],
-                self.output_path,
-                playing_state,
-                self.played_cards,
-                saved_info[2],
-                terminal_node=True)
+        if saved_info:
+            for saved_tuple in saved_info:
+                # finished terminal trick, add child
+                playing_state = self.playing_state_space(
+                    player_order, saved_tuple[0], self.played_cards
+                )
+                # create child for state after play
+                saved_tuple[0].play_agent.create_child(
+                    saved_tuple[1],
+                    self.output_path,
+                    playing_state,
+                    self.played_cards,
+                    saved_tuple[2],
+                    terminal_node=True)
 
         return winner_index, player_order
 

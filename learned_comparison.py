@@ -40,8 +40,40 @@ def parse_args() -> argparse.Namespace:
         default=0,
         type=int,
     )
-    parser.add_argument("--use_agent", action="store_true",
-                        help="use dueling DQN")
+    parser.add_argument(
+        "--opp_guesstype",
+        help="type of guessing agent for opponents (random, heuristic, learning, learned)",
+        default="heuristic",
+    )
+    parser.add_argument(
+        "--opp_playertype",
+        help="type of playing agent for opponents (random, heuristic, learning, learned)",
+        default="heuristic",
+    )
+    parser.add_argument(
+        "--opp_model",
+        help="Opponent guessing agents",
+        default="",
+        type=str,
+    )
+    parser.add_argument(
+        "--opp_playmodel",
+        help="Opponent playing agents",
+        default="",
+        type=str,
+    )
+    parser.add_argument(
+        "--opp_size",
+        help="argument to set guess inp_size for opponents",
+        type=int,
+        default=0,
+    )
+    parser.add_argument(
+        "--opp_playersize",
+        help="argument to set player inp_size",
+        type=int,
+        default=0,
+    )
     parser.add_argument("--dueling", action="store_true",
                         help="use dueling DQN")
 
@@ -63,7 +95,12 @@ def learned_n_games(
     guess_inp_size: int,
     player_inp_size: int,
     verbose: int,
-    use_agent: bool,
+    opp_guesstype: str,
+    opp_playertype: str,
+    opp_model: str,
+    opp_playmodel: str,
+    opp_size: int,
+    opp_play_size: int,
     dueling: bool
 ) -> None:
 
@@ -106,6 +143,46 @@ def learned_n_games(
             )
         player_type = "learned"
 
+    guess_agent2 = None
+    playing_agent2 = None
+    guess_agent3 = None
+    playing_agent3 = None
+
+    if opp_guesstype == "learned":
+        print("Creating guess agents for opponents..")
+        if opp_size == 0:
+            opp_size = guess_inp_size
+        guess_agent2 = GuessingAgent(input_size=opp_size, guess_max=21)
+        guess_agent3 = GuessingAgent(input_size=opp_size, guess_max=21)
+
+        if opp_model == "":
+            print("No guessing agent passed to load to opponents")
+        else:
+            print(f"Loading saved guessing model {opp_model} to opponents")
+            guess_agent2.model = tf.keras.models.load_model(
+                os.path.join("models", opp_model)
+            )
+            guess_agent3.model = tf.keras.models.load_model(
+                os.path.join("models", opp_model)
+            )
+
+    if opp_playertype == "learned":
+        if opp_play_size == 0:
+            opp_play_size = player_inp_size
+        playing_agent2 = PlayingAgent(input_size=opp_play_size, verbose=verbose)
+        playing_agent3 = PlayingAgent(input_size=opp_play_size, verbose=verbose)
+
+        if opp_playmodel == "":
+            print("No playing agent passed to load to opponents")
+        else:
+            print(f"Loading saved playing model {opp_playmodel} to opponents")
+            playing_agent2.network_policy.model = tf.keras.models.load_model(
+                os.path.join("models", opp_playmodel)
+            )
+            playing_agent3.network_policy.model = tf.keras.models.load_model(
+                os.path.join("models", opp_playmodel)
+            )
+
     print(guess_agent.model.summary())
     print(f"Guesser loss-function: ", guess_agent.model.loss)
     print(playing_agent.network_policy.model.summary())
@@ -133,7 +210,12 @@ def learned_n_games(
             guess_agent,
             playing_agent,
             verbose,
-            use_agent,
+            opp_guesstype=opp_guesstype,
+            opp_playertype=opp_playertype,
+            guess_agent2=guess_agent2,
+            playing_agent2=playing_agent2,
+            guess_agent3=guess_agent3,
+            playing_agent3=playing_agent3,
         )
         total_distribution = np.add(total_distribution, guess_distribution)
         total_actual = np.add(total_actual, actual_distribution)
@@ -175,7 +257,12 @@ def play_game(
     guess_agent,
     play_agent,
     verbose,
-    use_agent,
+    opp_guesstype: str,
+    opp_playertype: str,
+    guess_agent2,
+    playing_agent2,
+    guess_agent3,
+    playing_agent3,
 ):
 
     wizard = game.Game(
@@ -189,7 +276,12 @@ def play_game(
         guess_agent=guess_agent,
         playing_agent=play_agent,
         verbose=verbose,
-        use_agent=use_agent,
+        opp_guesstype=opp_guesstype,
+        opp_playertype=opp_playertype,
+        guess_agent2=guess_agent2,
+        playing_agent2=playing_agent2,
+        guess_agent3=guess_agent3,
+        playing_agent3=playing_agent3,
     )
     _, scores, offs = wizard.play_game()
     off_game = wizard.get_game_performance()
@@ -199,8 +291,8 @@ def play_game(
 
 if __name__ == "__main__":
     args = parse_args()
-    print(f"Use agent: {args.use_agent}")
     print(f"Dueling: {args.dueling}")
+
     learned_n_games(
         args.games,
         args.games_folder,
@@ -209,6 +301,11 @@ if __name__ == "__main__":
         args.guesser_input,
         args.player_input,
         args.verbose,
-        args.use_agent,
+        args.opp_guesstype,
+        args.opp_playertype,
+        args.opp_model,
+        args.opp_playmodel,
+        args.opp_size,
+        args.opp_playsize,
         args.dueling
     )

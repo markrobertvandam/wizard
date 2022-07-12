@@ -52,8 +52,28 @@ def parse_args() -> argparse.Namespace:
         "--play_model",
         help="optional argument to load in the weights of a saved player model",
     )
-    parser.add_argument("--use_agent", action="store_true",
-                        help="use starting agents for opponents")
+    parser.add_argument(
+        "--opp_guesstype",
+        help="type of guessing agent for opponents (random, heuristic, learning, learned)",
+        default="heuristic",
+    )
+    parser.add_argument(
+        "--opp_playertype",
+        help="type of playing agent for opponents (random, heuristic, learning, learned)",
+        default="heuristic",
+    )
+    parser.add_argument(
+        "--opp_model",
+        help="Opponent guessing agents",
+        default="",
+        type=str,
+    )
+    parser.add_argument(
+        "--opp_playmodel",
+        help="Opponent playing agents",
+        default="",
+        type=str,
+    )
     parser.add_argument(
         "--epsilon",
         help="optional argument to set starting epsilon",
@@ -76,6 +96,8 @@ def parse_args() -> argparse.Namespace:
                         help="use double DQN")
     parser.add_argument("--mask", action="store_true",
                         help="mask illegal moves")
+    parser.add_argument("--cardcount", action="store_true",
+                        help="explicit card counting for play_agent")
     parser.add_argument("--dueling", action="store_true",
                         help="use dueling DQN")
     parser.add_argument("--priority", action="store_true",
@@ -110,19 +132,20 @@ def save_models(
     input_size_play: int,
     accuracy: float,
     game_instance: int,
+    name_nr="",
 ) -> None:
     time_label = str(int(time.time() / 3600))[-3:]
     guess_agent.model.save(
         f"models/{save_folder}/guessing{input_size_guess}_"
         f"{time_label}_"
         f"{accuracy}_"
-        f"{game_instance}.model"
+        f"{game_instance}{name_nr}.model"
     )
     playing_agent.network_policy.model.save(
         f"models/{save_folder}/playing{input_size_play}_"
         f"{time_label}_"
         f"{accuracy}_"
-        f"{game_instance}.model"
+        f"{game_instance}{name_nr}.model"
     )
 
 
@@ -135,7 +158,10 @@ def avg_n_games(
     model_path: str,
     player_model: str,
     verbose: int,
-    use_agent: bool,
+    opp_guesstype: str,
+    opp_playertype: str,
+    opp_model: str,
+    opp_playmodel: str,
     epsilon: float,
     player_epsilon: float,
     iters_done: int,
@@ -146,7 +172,9 @@ def avg_n_games(
     punish: bool,
 ) -> None:
     input_size_guess = 69
-    input_size_play = 193
+    input_size_play = 313
+    opp_size = 69
+    opp_play_size = 313
 
     name = None
     if save_folder != "":
@@ -172,33 +200,35 @@ def avg_n_games(
     guess_agent3 = None
     playing_agent3 = None
 
-    if use_agent:
-        print("Creating fixed agents for opponents..")
-        guess_agent2 = GuessingAgent(input_size=input_size_guess, guess_max=21)
-        playing_agent2 = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
-        guess_agent3 = GuessingAgent(input_size=input_size_guess, guess_max=21)
-        playing_agent3 = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose)
+    if opp_guesstype.startswith("learn"):
+        print("Creating guess agents for opponents..")
+        guess_agent2 = GuessingAgent(input_size=opp_size, guess_max=21)
+        guess_agent3 = GuessingAgent(input_size=opp_size, guess_max=21)
 
-        if model_path is None:
-            print("No guessing agent passed to load to fixed opponents")
+        if opp_model == "":
+            print("No guessing agent passed to fixed opponents")
         else:
-            print(f"Loading saved guessing model {model_path} to fixed opponents")
+            print(f"Loading saved guessing model {opp_model} to opponents")
             guess_agent2.model = tf.keras.models.load_model(
-                os.path.join("models", model_path)
+                os.path.join("models", opp_model)
             )
             guess_agent3.model = tf.keras.models.load_model(
-                os.path.join("models", model_path)
+                os.path.join("models", opp_model)
             )
 
-        if player_model is None:
-            print("No playing agent passed to load to fixed opponents")
+    if opp_playertype.startswith("learn"):
+        playing_agent2 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose)
+        playing_agent3 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose)
+
+        if opp_playmodel == "":
+            print("No playing agent passed to load to opponents")
         else:
-            print(f"Loading saved playing model {player_model} to fixed opponents")
+            print(f"Loading saved playing model {opp_playmodel} to opponents")
             playing_agent2.network_policy.model = tf.keras.models.load_model(
-                os.path.join("models", player_model)
+                os.path.join("models", opp_playmodel)
             )
             playing_agent3.network_policy.model = tf.keras.models.load_model(
-                os.path.join("models", player_model)
+                os.path.join("models", opp_playmodel)
             )
 
     if guess_type == "learned" or (guess_type == "learning" and model_path is not None):
@@ -250,8 +280,8 @@ def avg_n_games(
     max_acc = 0
     output_path = "state_err1"
     print("Guess type: ", guess_type, "Player type: ", player_type)
-    if use_agent:
-        print(f"Fixed agents: {guess_agent2}, {playing_agent2}, {guess_agent3}, {playing_agent3}")
+    if opp_guesstype.startswith("learn") or opp_playertype.startswith("learn"):
+        print(f"Opposing agents: {guess_agent2}, {playing_agent2}, {guess_agent3}, {playing_agent3}")
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
         #print("\nGame instance: ", game_instance)
         wizard = game.Game(
@@ -265,7 +295,8 @@ def avg_n_games(
             epsilon=epsilon,
             player_epsilon=player_epsilon,
             verbose=verbose,
-            use_agent=use_agent,
+            opp_guesstype=opp_guesstype,
+            opp_playertype=opp_playertype,
             guess_agent2=guess_agent2,
             playing_agent2=playing_agent2,
             guess_agent3=guess_agent3,
@@ -327,6 +358,28 @@ def avg_n_games(
                         accuracy,
                         game_instance,
                     )
+                if save_bool == "yes-all":
+                    save_models(
+                        guess_agent2,
+                        playing_agent2,
+                        save_folder,
+                        input_size_guess,
+                        input_size_play,
+                        accuracy,
+                        game_instance,
+                        name_nr="(2)"
+                    )
+                    save_models(
+                        guess_agent3,
+                        playing_agent3,
+                        save_folder,
+                        input_size_guess,
+                        input_size_play,
+                        accuracy,
+                        game_instance,
+                        name_nr="(3)",
+                    )
+
 
             if game_instance - last_max > 10000:
                 if save_bool.startswith("y"):
@@ -363,12 +416,22 @@ def avg_n_games(
 
 if __name__ == "__main__":
     args = parse_args()
-    print(f"Use agent: {args.use_agent}")
+    print(f"Opponent guesstype: {args.opp_guesstype}")
+    print(f"Opponent playertype: {args.opp_playertype}")
+    print(f"Opponent model: {args.opp_model}")
+    print(f"Opponent playermodel: {args.opp_playmodel}")
     print(f"Double: {args.double}")
     print(f"Masking: {args.mask}")
     print(f"Dueling: {args.dueling}")
     print(f"Prioritized Experience Replay: {args.priority}")
     print(f"Punish based on distance from goal: {args.punish}")
+
+    if not args.opp_guesstype.startswith("learn") and args.opp_model:
+        print("Guessing agent given but not used")
+
+    if not args.opp_playertype.startswith("learn") and args.opp_playmodel:
+        print("Playing agent given but not used")
+
     avg_n_games(
         args.games,
         args.guesstype,
@@ -378,7 +441,10 @@ if __name__ == "__main__":
         args.model,
         args.play_model,
         args.verbose,
-        args.use_agent,
+        args.opp_guesstype,
+        args.opp_playertype,
+        args.opp_model,
+        args.opp_playmodel,
         args.epsilon,
         args.player_epsilon,
         args.iters_done,

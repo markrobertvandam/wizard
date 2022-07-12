@@ -1,8 +1,7 @@
 import numpy as np
-import Playing_Agent
 import random
 
-from utility_functions import trick_winner, state_to_key
+from utility_functions import trick_winner
 #
 # TODO: MAKE HAND SORTED ONCE AT START
 
