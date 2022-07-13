@@ -21,7 +21,8 @@ class Game:
         epsilon=None,
         player_epsilon=None,
         verbose=False,
-        use_agent=False,
+        opp_guesstype="heuristic",
+        opp_playertype="heuristic",
         guess_agent2=None,
         playing_agent2=None,
         guess_agent3=None,
@@ -45,17 +46,28 @@ class Game:
             player_epsilon,
             verbose,
         )
-        self.use_agent = use_agent
-        if use_agent:
-            self.player2 = player_class.Player(
-                "player2", "learned", "learned", guess_agent2, playing_agent2
-            )
-            self.player3 = player_class.Player(
-                "player3", "learned", "learned", guess_agent3, playing_agent3
-            )
-        else:
-            self.player2 = player_class.Player("player2", "heuristic", "heuristic")
-            self.player3 = player_class.Player("player3", "heuristic", "heuristic")
+        self.opp_guesstype = opp_guesstype
+        self.opp_playertype = opp_playertype
+        self.player2 = player_class.Player(
+            "player2",
+            opp_guesstype,
+            opp_playertype,
+            guess_agent2,
+            playing_agent2,
+            epsilon,
+            player_epsilon,
+            verbose,
+        )
+        self.player3 = player_class.Player(
+            "player3",
+            opp_guesstype,
+            opp_playertype,
+            guess_agent3,
+            playing_agent3,
+            epsilon,
+            player_epsilon,
+            verbose,
+        )
 
         self.players = [
             self.player1,
@@ -89,10 +101,6 @@ class Game:
         self.played_cards = []
         self.guesses = []
 
-        # for playing state
-        self.possible_cards_one = [1] * 60
-        self.possible_cards_two = [1] * 60
-
     def play_game(self) -> tuple:
         """
         Plays a single game of wizard
@@ -113,8 +121,10 @@ class Game:
             if self.verbose >= 2:
                 print("Round over.. \n\n")
 
-            self.possible_cards_one = [1] * 60
-            self.possible_cards_two = [1] * 60
+            for player in self.players:
+                player.possible_cards_one = [1] * 60
+                player.possible_cards_two = [1] * 60
+
             self.game_round += 1
             self.players = self.players[1:] + self.players[:1]  # Rotate player order
 
@@ -154,8 +164,9 @@ class Game:
                 self.trump = trump_card[0]
             if self.verbose >= 2:
                 print(f"Trump card: {trump_card}")
-            self.possible_cards_one[self.deck_dict[trump_card]] = 0
-            self.possible_cards_two[self.deck_dict[trump_card]] = 0
+            for player in self.players:
+                player.possible_cards_one[self.deck_dict[trump_card]] = 0
+                player.possible_cards_two[self.deck_dict[trump_card]] = 0
         else:
             # No trump card in final round
             self.trump = 4
@@ -186,14 +197,15 @@ class Game:
                 )
             self.played_cards = []
 
-            if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size in [313, 315]:
-                # TODO: set possible cards to invert of one_hot_hand
-                # normal player only sees their own hand
-                cards_in_hand = self.player1.get_hand()
-                for card in cards_in_hand:
-                    move = self.deck_dict[card]
-                    self.possible_cards_one[move] = 0
-                    self.possible_cards_two[move] = 0
+            for player in self.players:
+                if player.player_type.startswith("learn") and player.play_agent.input_size in [313, 315]:
+                    # TODO: set possible cards to invert of one_hot_hand
+                    # normal player only sees their own hand
+                    cards_in_hand = player.get_hand()
+                    for card in cards_in_hand:
+                        move = self.deck_dict[card]
+                        player.possible_cards_one[move] = 0
+                        player.possible_cards_two[move] = 0
 
             if self.verbose >= 2:
                 print(f"player order before changing: {[p.player_name for p in player_order]}")
@@ -258,11 +270,14 @@ class Game:
                         playing_state,
                     )
                 )
-                if self.player1.player_type.startswith("learn") and self.player1.play_agent.input_size in [313, 315]:
-                    move = self.deck_dict[self.played_cards[-1]]
-                    self.possible_cards_one[move] = 0
-                    self.possible_cards_two[move] = 0
-                    self.update_possible_hands(self.played_cards[-1], requested_color, player_order, player_index)
+                self.update_possible_hands(self.played_cards[-1], requested_color, player_order, player_index)
+                for player in self.players:
+                    if player.player_type.startswith("learn") and player.play_agent.input_size in [313, 315]:
+                        # TODO: set possible cards to invert of one_hot_hand
+                        # normal player only sees their own hand
+                        move = self.deck_dict[self.played_cards[-1]]
+                        player.possible_cards_one[move] = 0
+                        player.possible_cards_two[move] = 0
             else:
                 # play the passed card to simulate that child-node
                 if self.verbose >= 3:
@@ -300,18 +315,25 @@ class Game:
 
         return self.wrap_up_trick(player_order, temp=temp)
 
-    def update_possible_hands(self, card: tuple, requested_color: int, player_order: list, player_index: int) -> None:
+    def update_possible_hands(self, card, requested_color, player_order, player):
         # card is not a white card, yet it is not requested color either
         if 0 < card[1] < 14 and requested_color < 4 and requested_color != card[0]:
             if self.verbose >= 2:
-                print(f"{player_index} did not follow suit, they played {card} "
-                      f"while requested color was {requested_color}")
+                print(f"{player} did not follow suit, they played {card} while requested color was {requested_color}")
                 print(f"Player order is {[p.player_name for p in player_order]}")
             for i in range(1 + 15 * requested_color, 15 * (requested_color + 1) - 1):
-                if player_order[player_index].player_name == "player2":
-                    self.possible_cards_one[i] = 0
-                elif player_order[player_index].player_name == "player3":
-                    self.possible_cards_two[i] = 0
+                if player_order[player].player_name == "player1":
+                    # update player2 and player3 knowledge on player1
+                    self.player2.possible_cards_one[i] = 0
+                    self.player3.possible_cards_one[i] = 0
+                elif player_order[player].player_name == "player2":
+                    # update player1 and player3 knowledge about player2
+                    self.player1.possible_cards_one[i] = 0
+                    self.player3.possible_cards_two[i] = 0
+                elif player_order[player].player_name == "player3":
+                    # update player1 and player2 knowledge about player3
+                    self.player1.possible_cards_two[i] = 0
+                    self.player2.possible_cards_two[i] = 0
 
     def hand_state_space(self, player_order: list, player, called: str) -> list:
         """
@@ -468,7 +490,7 @@ class Game:
             state += played_this_round
 
         if inp_size in [313, 315]:
-            state += self.possible_cards_one + self.possible_cards_two
+            state += player.possible_cards_one + player.possible_cards_two
 
         state_space = np.array(state, dtype=int)
         if len(state) != inp_size:

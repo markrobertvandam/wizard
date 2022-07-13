@@ -125,10 +125,12 @@ def temp_game(game_instance, played_cards, interactive=False):
     old_play_agent2 = None
     old_guess_agent3 = None
     old_play_agent3 = None
-    if game_instance.use_agent:
+
+    if game_instance.opp_guesstype.startswith("learn"):
         old_guess_agent2 = game_instance.player2.guess_agent
-        old_play_agent2 = game_instance.player2.play_agent
         old_guess_agent3 = game_instance.player3.guess_agent
+    if game_instance.opp_playertype.startswith("learn"):
+        old_play_agent2 = game_instance.player2.play_agent
         old_play_agent3 = game_instance.player3.play_agent
 
     if not interactive:
@@ -142,7 +144,8 @@ def temp_game(game_instance, played_cards, interactive=False):
             epsilon=copy.deepcopy(old_epsilon),
             player_epsilon=copy.deepcopy(old_play_epsilon),
             verbose=copy.deepcopy(game_instance.player1.verbose),
-            use_agent=copy.deepcopy(game_instance.use_agent),
+            opp_guesstype=copy.deepcopy(game_instance.opp_guesstype),
+            opp_playertype=copy.deepcopy(game_instance.opp_playertype),
             guess_agent2=copy.copy(old_guess_agent2),
             playing_agent2=copy.copy(old_play_agent2),
             guess_agent3=copy.copy(old_guess_agent3),
@@ -180,11 +183,15 @@ def temp_game(game_instance, played_cards, interactive=False):
         game_instance.player3.player_guesses
     )
 
-    temp_instance.player1.trick_wins = copy.deepcopy(game_instance.player1.trick_wins)
+    temp_instance.player1.trick_wins = copy.deepcopy(game_instance.player1 .trick_wins)
     temp_instance.player2.trick_wins = copy.deepcopy(game_instance.player2.trick_wins)
     temp_instance.player3.trick_wins = copy.deepcopy(game_instance.player3.trick_wins)
 
-    temp_instance.possible_cards_one = copy.deepcopy(game_instance.possible_cards_one)
-    temp_instance.possible_cards_two = copy.deepcopy(game_instance.possible_cards_two)
+    temp_instance.player1.possible_cards_one = copy.deepcopy(game_instance.player1.possible_cards_one)
+    temp_instance.player1.possible_cards_two = copy.deepcopy(game_instance.player1.possible_cards_two)
+    temp_instance.player2.possible_cards_one = copy.deepcopy(game_instance.player1.possible_cards_one)
+    temp_instance.player2.possible_cards_two = copy.deepcopy(game_instance.player1.possible_cards_two)
+    temp_instance.player3.possible_cards_one = copy.deepcopy(game_instance.player1.possible_cards_one)
+    temp_instance.player3.possible_cards_two = copy.deepcopy(game_instance.player1.possible_cards_two)
 
     return temp_instance

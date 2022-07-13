@@ -38,6 +38,10 @@ class Player:
             self.play_agent = play_agent
             self.player_epsilon = player_epsilon
 
+        # for playing state
+        self.possible_cards_one = [1] * 60
+        self.possible_cards_two = [1] * 60
+
     def draw_cards(self, amount: int, deck: list) -> list:
         """
         :param amount: How many cards should be drawn
