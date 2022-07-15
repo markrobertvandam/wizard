@@ -165,7 +165,7 @@ def learned_n_games(
         playing_agent2 = PlayingAgent(input_size=opp_play_size, verbose=verbose)
         playing_agent3 = PlayingAgent(input_size=opp_play_size, verbose=verbose)
         print("\n")
-        playing_agent2.network_policy.summary()
+        playing_agent2.network_policy.model.summary()
 
         if opp_playmodel == "":
             print("No playing agent passed to load to opponents")
