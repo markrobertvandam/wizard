@@ -154,6 +154,8 @@ def learned_n_games(
             opp_size = guess_inp_size
         guess_agent2 = GuessingAgent(input_size=opp_size, guess_max=21)
         guess_agent3 = GuessingAgent(input_size=opp_size, guess_max=21)
+        print("\n")
+        guess_agent2.model.summary()
 
         if opp_model == "":
             print("No guessing agent passed to load to opponents")
@@ -169,8 +171,10 @@ def learned_n_games(
     if opp_playertype == "learned":
         if opp_play_size == 0:
             opp_play_size = player_inp_size
-        playing_agent2 = PlayingAgent(input_size=opp_play_size, verbose=verbose)
-        playing_agent3 = PlayingAgent(input_size=opp_play_size, verbose=verbose)
+        playing_agent2 = PlayingAgent(input_size=opp_play_size, verbose=verbose, dueling=dueling)
+        playing_agent3 = PlayingAgent(input_size=opp_play_size, verbose=verbose, dueling=dueling)
+        print("\n")
+        playing_agent2.network_policy.summary()
 
         if opp_playmodel == "":
             print("No playing agent passed to load to opponents")

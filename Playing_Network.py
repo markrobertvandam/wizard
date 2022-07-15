@@ -76,8 +76,10 @@ class PlayingNetwork:
             v = self.dense_layer(64)(x)
             v = Dense(1, activation="linear")(v)  # evaluation of state
 
-            mean = math.reduce_mean(q, axis=1, keepdims=True)
-            new_q = v + (q - mean)
+            # TODO: Calculate A
+            a = q - v
+            mean = math.reduce_mean(a, axis=1, keepdims=True)
+            new_q = v + (a - mean)
             model = Model(inputs=input1, outputs=new_q)
         else:
             model = Model(inputs=input1, outputs=q)
@@ -159,9 +161,8 @@ class PlayingNetwork:
 
             if self.priority:
                 # save error for priority calculation
-                # error = mse([new_q], [current_qs[action]])
-                # errors.append(error.numpy())
-                errors.append(0.2)
+                error = mse([new_q], [current_qs[action]])
+                errors.append(error.numpy())
 
             # Update Q value for given state
             current_qs[action] = new_q
