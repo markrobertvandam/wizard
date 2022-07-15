@@ -148,9 +148,9 @@ def avg_n_games(
     iters_done: int,
 ) -> None:
     input_size_guess = 68
-    input_size_play = 195
+    input_size_play = 192
     opp_size = 68
-    opp_play_size = 195
+    opp_play_size = 192
 
     name = None
     if save_folder != "":
@@ -177,6 +177,8 @@ def avg_n_games(
         print("Creating guess agents for opponents..")
         guess_agent2 = GuessingAgent(input_size=opp_size, guess_max=21)
         guess_agent3 = GuessingAgent(input_size=opp_size, guess_max=21)
+        print("\n")
+        guess_agent2.model.summary()
 
         if opp_model == "":
             print("No guessing agent passed to fixed opponents")
@@ -190,8 +192,10 @@ def avg_n_games(
             )
 
     if opp_playertype.startswith("learn"):
-        playing_agent2 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose)
-        playing_agent3 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose)
+        playing_agent2 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose, punish=punish)
+        playing_agent3 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose, punish=punish)
+        print("\n")
+        playing_agent2.network_policy.summary()
 
         if opp_playmodel == "":
             print("No playing agent passed to load to opponents")
