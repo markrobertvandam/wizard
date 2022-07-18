@@ -226,7 +226,7 @@ def avg_n_games(
                                       mask=mask, dueling=dueling, double=double,
                                       priority=priority, punish=punish)
         print("\n")
-        playing_agent2.network_policy.summary()
+        playing_agent2.network_policy.model.summary()
 
         if opp_playmodel == "":
             print("No playing agent passed to load to opponents")

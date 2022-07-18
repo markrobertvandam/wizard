@@ -98,6 +98,7 @@ class Game:
         self.off_game = np.zeros(21, dtype=int)
         self.guess_distribution = np.zeros(21, dtype=int)
         self.actual_distribution = np.zeros(21, dtype=int)
+        self.overshoot = np.zeros(20, dtype=int)
         self.total_loss = 0.0
 
         # for info per round/trick
@@ -192,6 +193,13 @@ class Game:
 
             if player.player_name == "player1":
                 self.guess_distribution[player.get_guesses()] += 1
+
+                # keep track of guesses higher than possible, 0 if not impossible
+                overshot = max(0, player.get_guesses() - self.game_round)
+                self.overshoot[overshot] += 1
+                if self.verbose:
+                    if player.get_guesses() > self.game_round:
+                        print(f"Guess overshot, player guessed {player.get_guesses()} in round {self.game_round}")
             # print("Hand: ", player.hand)
             # print("Player guess: ", player.guesses, "\n")
 
@@ -611,6 +619,9 @@ class Game:
 
     def get_output_path(self) -> str:
         return self.output_path
+
+    def get_overshoot(self) -> np.ndarray:
+        return self.overshoot
 
     def wrap_up_trick(self, player_order: list) -> tuple:
         """
