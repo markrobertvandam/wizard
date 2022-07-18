@@ -126,10 +126,10 @@ def temp_game(game_instance, played_cards, interactive=False):
     old_guess_agent3 = None
     old_play_agent3 = None
 
-    if game_instance.opp_guesstype.startswith("learn"):
+    if not interactive and game_instance.opp_guesstype.startswith("learn"):
         old_guess_agent2 = game_instance.player2.guess_agent
         old_guess_agent3 = game_instance.player3.guess_agent
-    if game_instance.opp_playertype.startswith("learn"):
+    if not interactive and game_instance.opp_playertype.startswith("learn"):
         old_play_agent2 = game_instance.player2.play_agent
         old_play_agent3 = game_instance.player3.play_agent
 

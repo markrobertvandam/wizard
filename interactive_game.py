@@ -222,7 +222,7 @@ class Game:
                 self.player1.possible_cards_one[move] = 0
                 self.player1.possible_cards_two[move] = 0
 
-        winner_index, player_order = self.wrap_up_trick(player_order)
+        winner_index, player_order = self.wrap_up_trick(player_order, temp=temp)
         return winner_index, player_order
 
     def update_possible_hands(self, card, requested_color, player_order, player):
@@ -391,7 +391,7 @@ class Game:
             exit()
         return state_space
 
-    def wrap_up_trick(self, player_order: list) -> tuple:
+    def wrap_up_trick(self, player_order: list, temp: bool) -> tuple:
         """
         helper function for when a trick finished
         :param player_order: list of players in turn order
@@ -401,8 +401,9 @@ class Game:
         self.played_round.append(self.played_cards)
         player_order[winner_index].trick_wins += 1
 
-        print(f"Trick won by {winner_index}th player. Winner name: {player_order[winner_index].player_name}")
-        print(f"Tricks still needed by me: {self.player1.get_guesses() - self.player1.get_trick_wins()}")
+        if not temp:
+            print(f"Trick won by {winner_index}th player. Winner name: {player_order[winner_index].player_name}")
+            print(f"Tricks still needed by me: {self.player1.get_guesses() - self.player1.get_trick_wins()}")
 
         self.played_cards = []
         player_order = player_order[winner_index:] + player_order[:winner_index]
