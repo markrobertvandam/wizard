@@ -69,15 +69,15 @@ class PlayingNetwork:
         else:
             x = self.dense_layer(128)(input1)
 
-        feature_layer = self.dense_layer(64)(x)
+        feature_layer = self.dense_layer(64)(x)  # (128x64)
 
         # feature layer is the common feature layer of dim 64
         if self.dueling:
-            # separate x into value and advantage
-            value_layer = self.dense_layer(64)(x)  # (64x64)
+            # separate feature_layer into value and advantage
+            value_layer = self.dense_layer(64)(feature_layer)  # (64x64)
             v_stream = Dense(1, activation="linear")(value_layer)  # evaluation of state (64x1)
 
-            advantage_layer = self.dense_layer(64)(x)  # (64x64)
+            advantage_layer = self.dense_layer(64)(feature_layer)  # (64x64)
             advantage_stream = Dense(60, activation="linear")(advantage_layer)  # advantages of each action (64x60)
             mean_adv = math.reduce_mean(advantage_stream, axis=1, keepdims=True)
 
