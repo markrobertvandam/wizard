@@ -69,19 +69,22 @@ class PlayingNetwork:
         else:
             x = self.dense_layer(128)(input1)
 
-        q = self.dense_layer(64)(x)
-        q = Dense(60, activation="linear")(q)  # q-values for actions
+        feature_layer = self.dense_layer(64)(x)  # common feature layer
 
         if self.dueling:
-            v = self.dense_layer(64)(x)
-            v = Dense(1, activation="linear")(v)  # evaluation of state
+            value_layer = self.dense_layer(64)(feature_layer)
+            v = Dense(1, activation="linear")(value_layer)  # evaluation of state
 
-            # TODO: Calculate A
-            a = q - v
-            mean = math.reduce_mean(a, axis=1, keepdims=True)
-            new_q = v + (a - mean)
+            advantage_layer = Dense(60, activation="linear")(feature_layer)  # advantage layer
+            mean_adv = math.reduce_mean(advantage_layer, axis=1, keepdims=True)
+
+            # Advantage = Q - V -> Q = V + A
+            # V + A leads to identifiability issues, thus we use V + (A - mean(A)
+            new_q = v + (advantage_layer - mean_adv)
             model = Model(inputs=input1, outputs=new_q)
+
         else:
+            q = Dense(60, activation="linear")(feature_layer)  # q-values for actions
             model = Model(inputs=input1, outputs=q)
 
         model.compile(
