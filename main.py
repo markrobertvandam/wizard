@@ -92,6 +92,12 @@ def parse_args() -> argparse.Namespace:
         default=0,
         type=int,
     )
+    parser.add_argument(
+        "--n_step",
+        help="optional argument to use n_step q-learning, default of 1 leads to normal DQN",
+        default=1,
+        type=int,
+    )
     parser.add_argument("--double", action="store_true",
                         help="use double DQN")
     parser.add_argument("--mask", action="store_true",
@@ -170,6 +176,7 @@ def avg_n_games(
     dueling: bool,
     priority: bool,
     punish: bool,
+    n_step: int,
 ) -> None:
     input_size_guess = 68
     input_size_play = 192
@@ -194,7 +201,7 @@ def avg_n_games(
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
     playing_agent = PlayingAgent(input_size=input_size_play, save_bool=(save_bool.startswith("y")),
                                  name=name, verbose=verbose, mask=mask, dueling=dueling, double=double,
-                                 priority=priority, punish=punish)
+                                 priority=priority, punish=punish, n_step=n_step)
     guess_agent2 = None
     playing_agent2 = None
     guess_agent3 = None
@@ -221,10 +228,10 @@ def avg_n_games(
     if opp_playertype.startswith("learn"):
         playing_agent2 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose,
                                       mask=mask, dueling=dueling, double=double,
-                                      priority=priority, punish=punish)
+                                      priority=priority, punish=punish, n_step=n_step)
         playing_agent3 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose,
                                       mask=mask, dueling=dueling, double=double,
-                                      priority=priority, punish=punish)
+                                      priority=priority, punish=punish, n_step=n_step)
         print("\n")
         playing_agent2.network_policy.model.summary()
 
@@ -433,6 +440,7 @@ if __name__ == "__main__":
     print(f"Dueling: {args.dueling}")
     print(f"Prioritized Experience Replay: {args.priority}")
     print(f"Punish based on distance from goal: {args.punish}")
+    print(f"N-step: {args.n_step}")
 
     if not args.opp_guesstype.startswith("learn") and args.opp_model:
         print("Guessing agent given but not used")
@@ -461,4 +469,5 @@ if __name__ == "__main__":
         args.dueling,
         args.priority,
         args.punish,
+        args.n_step
     )

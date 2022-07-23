@@ -1,10 +1,12 @@
 import numpy as np
 import random
 
+from collections import deque
 from Playing_Network import PlayingNetwork
-from utility_functions import state_to_key, key_to_state
+from utility_functions import state_to_key, key_to_state, write_state
 
 MIN_REPLAY_MEMORY_SIZE = 4200  # Minimum number of tricks in memory to start training, 10500 means at least ~20 games
+DISCOUNT = 0.7
 
 class Node:
     """
@@ -26,109 +28,22 @@ class Node:
         # is it S or S' (before or after agents action)
         self.before_play = before_play
 
-
-def write_state(play_state: np.ndarray, output_path: str, input_size: int, type_node="After play") -> None:
-    """
-    Write playing state to text file for debugging
-    :param play_state: actual playing state
-    :param output_path: path to textfile
-    :param input_size: input size of the playing model
-    :param type_node: type of node reached in play
-    :return:
-    """
-    f = open(f"{output_path}.txt", "a")
-    f.write("\n\n\n")
-    np.set_printoptions(threshold=np.inf)
-    f.write(f"{type_node} node\n")
-    f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
-    current_pos = 60
-    # # if cheater
-    # if input_size % 100 == 15 or input_size % 100 == 13:
-    #     f.write("Hand2: " + str(np.nonzero(play_state[60:120])[0].tolist()) + "\n")
-    #     f.write("Hand3: " + str(np.nonzero(play_state[120:180])[0].tolist()) + "\n")
-    #     current_pos = 180
-    f.write("Trump: " + str(play_state[current_pos: current_pos + 5]) + "\n")
-    current_pos += 5
-
-    # if old
-    if input_size % 100 == 31:
-        f.write("Guesses: " + str(play_state[current_pos: current_pos + 2]) + "\n")
-        current_pos += 2
-    else:
-        f.write("Guesses: " + str(play_state[current_pos: current_pos + 3]) + "\n")
-        current_pos += 3
-    f.write("Round: " + str(play_state[current_pos]) + "\n")
-    f.write("Tricks needed: " + str(play_state[current_pos + 1]) + "\n")
-    current_pos += 2
-
-    f.write(
-        "Tricks needed others: " + str(play_state[current_pos: current_pos + 2]) + "\n"
-    )
-    current_pos += 2
-
-    # if not olds
-    if input_size % 100 == 93 or input_size == 313:
-        f.write("Order: " + str(play_state[current_pos]) + "\n")
-        f.write(
-            "played trick: "
-            + str(
-                np.nonzero(play_state[current_pos + 1: current_pos + 121])[0].tolist()
-            )
-            + "\n"
-        )
-        current_pos += 121
-    elif input_size % 100 == 95 or input_size == 315:
-        f.write("Order: " + str(play_state[current_pos: current_pos + 3]) + "\n")
-        f.write(
-            "played trick: "
-            + str(
-                np.nonzero(play_state[current_pos + 3: current_pos + 123])[0].tolist()
-            )
-            + "\n"
-        )
-        current_pos += 123
-    elif input_size % 100 == 31:
-        f.write(
-            "played trick: "
-            + str(np.nonzero(play_state[current_pos: current_pos + 60])[0].tolist())
-            + "\n"
-        )
-        current_pos += 60
-
-    # if not small
-    if input_size > 3600:
-        f.write(
-            "played round: "
-            + str(np.nonzero(play_state[current_pos:])[0].tolist())
-            + "\n"
-        )
-
-    if input_size in [313, 315]:
-        f.write(
-            "possible cards one: "
-            + str(np.nonzero(play_state[current_pos:current_pos+60])[0].tolist())
-            + "\n"
-        )
-        f.write(
-            "possible cards two: "
-            + str(np.nonzero(play_state[current_pos+60:])[0].tolist())
-            + "\n"
-        )
-    f.close()
-
-
 # Agent class
 class PlayingAgent:
-    def __init__(self, input_size: int, save_bool=False, name=None,
-                 verbose=0, mask=False, dueling=False, double=False, priority=False, punish=False):
+    def __init__(self, input_size: int, save_bool=False, name=None, verbose=0, mask=False,
+                 dueling=False, double=False, priority=False, punish=False, n_step=1):
 
         self.game = None
         self.input_size = input_size
         self.nodes = dict()
         self.network_policy = PlayingNetwork(input_size, save_bool, name, masking=mask,
-                                             dueling=dueling, double=double, priority=priority)
+                                             dueling=dueling, double=double, priority=priority, n_step=n_step)
         self.verbose = verbose
         self.punish = punish
+        self.n_step = n_step
+        self.n_step_buffer = deque(maxlen=n_step)
+        self.backprop_buffer = deque(maxlen=20)
+
         self.counter = 0
         self.parent_node = None
         self.last_terminal_node = None
@@ -159,6 +74,41 @@ class PlayingAgent:
             print("Move obtained randomly is: ", move)
         return move
 
+    def store_transitions(self):
+        if self.verbose >= 3:
+            print("Backprop buff len: ", len(self.backprop_buffer))
+        for transition in reversed(self.backprop_buffer):
+            state, action, result, new_state, illegal_moves, done = transition
+            if len(self.n_step_buffer) < self.n_step:
+                self.n_step_buffer.append(transition)
+            else:
+                # with n=2, rew = r_t + y * r_t+1 + y^2 * max Q(S_t+2, a)
+                transition_n_back = self.n_step_buffer[0]
+                t = 1
+                # result is always the same so, rew = r_t + y * r_t + y^2 * r_t ..., y^n-1 * r_t
+                while t < self.n_step:
+                    transition_n_back[2] += DISCOUNT ** t * self.n_step_buffer[t][2]
+                    t += 1
+                self.network_policy.update_replay_memory(transition_n_back, transition, self.n_step)
+                self.n_step_buffer.append(transition)
+            if done:
+                # up to t = Terminal - n_step is updated
+                # update t = Terminal - n_step +1 until t = Terminal
+                # with n=2, rew = r_t + y * r_t+1 and rew_terminal = r_t
+                # buffer = [(transition_n_back+1), (transition_n_back+2),.... (transition_terminal)]
+                transitions = list(self.n_step_buffer)
+                transitions.reverse()
+
+                while transitions:
+                    # Transition that needs to be updated but is not n_back
+                    transition_back = transitions[0]
+                    t = 1
+                    while t < len(transitions):
+                        transition_back[2] += DISCOUNT ** t * transitions[t][2]
+                        t += 1
+                    self.network_policy.update_replay_memory(transition_back, transition, self.n_step)
+                    transitions = transitions[1:]
+
     # function for backpropagation
     def backpropagate(self, node: Node, deck_dict: dict, result: int, done=True, loss=0.0) -> float:
         self.counter += 1
@@ -174,11 +124,13 @@ class PlayingAgent:
 
             if self.verbose >= 3:
                 # checking if the (S, a, S') pairs are correct
-                write_state(key_to_state(self.input_size, node.state), "sas", self.input_size, type_node="before play")
+                write_state(key_to_state(self.input_size, node.state), "sas",
+                            self.input_size, type_node="before play")
                 f = open("sas.txt", "a")
                 f.write(f"\nAction taken: {action}, result: {result}\n")
                 f.close()
-                write_state(key_to_state(self.input_size, node.child.state), "sas", self.input_size, type_node="after play")
+                write_state(key_to_state(self.input_size, node.child.state), "sas",
+                            self.input_size, type_node="after play")
                 f = open("sas.txt", "a")
                 f.write(f"Done: {done}")
                 f.write("\n\n")
@@ -187,18 +139,15 @@ class PlayingAgent:
             if self.punish:
                 # use (1 - difference between tricks won and tricks guessed) as result
                 # Initial priority is defaulted to max for new experiences
-                self.network_policy.update_replay_memory([node.state, action,
-                                                         result, node.child.state,
-                                                         illegal_moves, done])
+                transition = [node.state, action, result, node.child.state, illegal_moves, done]
             else:
                 # use 1 as result for correct guess, 0 for wrong guess
                 if result != 1:
                     result = 0
                 # Initial priority is defaulted to max for new experiences
-                self.network_policy.update_replay_memory([node.state, action,
-                                                         result, node.child.state,
-                                                         illegal_moves, done])
+                transition = [node.state, action, result, node.child.state, illegal_moves, done]
 
+            self.backprop_buffer.append(transition)
 
             self.network_policy.q_memory_counter += 1
             if len(self.network_policy.replay_memory.buffer) >= MIN_REPLAY_MEMORY_SIZE:
@@ -206,8 +155,15 @@ class PlayingAgent:
 
             # Only add (S, a, S'), go next if current node is S'
             if node.root:
-                # done propagating entire game, nodes can be reset
+                # done propagating entire round, nodes can be reset
                 self.nodes = dict()
+
+                self.store_transitions()
+
+                # clear deque after round
+                self.n_step_buffer.clear()
+                self.backprop_buffer.clear()
+
                 return loss
 
             done = False

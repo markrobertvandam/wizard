@@ -8,7 +8,7 @@ from keras.optimizers import adam_v2
 from tensorflow import math
 
 import replay_buffer
-from utility_functions import key_to_state
+from utility_functions import key_to_state, write_state
 
 import matplotlib.pyplot as plt
 
@@ -20,7 +20,7 @@ DISCOUNT = 0.7
 # Agent class
 class PlayingNetwork:
     def __init__(self, input_size, save_bool: bool, name: str,
-                 masking: bool, dueling: bool, double: bool, priority: bool):
+                 masking: bool, dueling: bool, double: bool, priority: bool, n_step: int):
 
         self.input_size = input_size
         self.save_bool = save_bool
@@ -29,6 +29,7 @@ class PlayingNetwork:
         self.dueling = dueling
         self.double = double
         self.priority = priority
+        self.n_step = n_step
 
         # Main model
         self.model = self.create_model()
@@ -99,15 +100,13 @@ class PlayingNetwork:
 
     # Adds data to a memory replay array
     # (state, reward)
-    def update_replay_memory(self, transition: list, priority=None):
+    def update_replay_memory(self, transition_n_back: list, transition: list, priority=None):
         """
         Add new experience to replay memory, with max priority default (No TD known yet)
         """
         if priority is None:
             priority = self.replay_memory.max_priority
-        # (current_state, action, reward, new_state, illegal_moves, done) = transition
-        # print(f"Curr state: {key_to_state(self.input_size, current_state)}\n\n"
-        #       f"Action: {action}\n\n"
+        # print(f"Action: {action}\n\n"
         #       f"Reward: {reward}\n"
         #       f"New state: {key_to_state(self.input_size, new_state)}\n\n"
         #       f"Illegal_moves: {illegal_moves}\n"
@@ -115,7 +114,20 @@ class PlayingNetwork:
         #       f"Priority: {priority}\n"
         #       f"Max-prior: {self.replay_memory.max_priority}")
         # exit()
-        self.replay_memory.append(transition, priority)
+
+        # n_back transition is the one to actually be added to memory, next state is set to current state for later
+        # calculation of future q_vals
+        state, action, reward, new_state, illegal_moves, done = transition
+        transition_n_back[3] = state
+        transition_n_back[-1] = done
+
+        state = key_to_state(self.input_size, transition_n_back[0])
+        new_state_sp = key_to_state(self.input_size, transition_n_back[3])
+
+        write_state(state, "test-nstep", self.input_size, "Before play")
+        write_state(new_state_sp, "test-nstep", self.input_size, "After play")
+
+        self.replay_memory.append(transition_n_back, priority)
 
     # Trains main network every step during episode
     def train(self) -> float:
@@ -145,10 +157,8 @@ class PlayingNetwork:
         for index, (_, action, reward, _, illegal_moves, done) in enumerate(minibatch):
             current_state = current_states[index]
 
-            # If not a terminal state, get new q from future states, otherwise set it to 0
-            # almost like with Q Learning, but we use just part of equation here
+            # If t+n is not a terminal state, get new q from future states
             if not done:
-
                 if self.double:
                     # best action predicted by online model
                     best_future_action = np.argmax(future_qs_list[index])
@@ -159,10 +169,9 @@ class PlayingNetwork:
                     # evaluation of best action chosen by target model
                     max_future_q = np.max(future_q_vals[index])
 
-                new_q = reward + DISCOUNT * max_future_q
+                new_q = reward + DISCOUNT**self.n_step * max_future_q
             else:
                 new_q = reward
-
             current_qs = current_qs_list[index]
 
             if self.priority:
@@ -193,7 +202,7 @@ class PlayingNetwork:
 
             self.avg_q_memory.append(avg)
             self.ptp_q_memory.append(ptp)
-            self.x_q_mem.append(self.q_memory_counter//210)
+            self.x_q_mem.append(self.q_memory_counter // 210)
 
         # Fit on all samples as one batch, log only on terminal state
         if self.priority:
