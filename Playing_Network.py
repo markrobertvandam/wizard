@@ -19,12 +19,14 @@ DISCOUNT = 0.7
 
 # Agent class
 class PlayingNetwork:
-    def __init__(self, input_size, save_bool: bool, name: str,
+    def __init__(self, input_size, save_bool: bool, name: str, verbose: int,
                  masking: bool, dueling: bool, double: bool, priority: bool, n_step: int):
 
         self.input_size = input_size
         self.save_bool = save_bool
         self.name = name
+        self.verbose = verbose
+
         self.masking = masking
         self.dueling = dueling
         self.double = double
@@ -124,8 +126,9 @@ class PlayingNetwork:
         state = key_to_state(self.input_size, transition_n_back[0])
         new_state_sp = key_to_state(self.input_size, transition_n_back[3])
 
-        write_state(state, "test-nstep", self.input_size, "Before play")
-        write_state(new_state_sp, "test-nstep", self.input_size, "After play")
+        if self.verbose >= 2:
+            write_state(state, "test-nstep", self.input_size, "Before play")
+            write_state(new_state_sp, "test-nstep", self.input_size, "After play")
 
         self.replay_memory.append(transition_n_back, priority)
 

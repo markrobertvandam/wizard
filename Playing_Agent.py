@@ -36,7 +36,7 @@ class PlayingAgent:
         self.game = None
         self.input_size = input_size
         self.nodes = dict()
-        self.network_policy = PlayingNetwork(input_size, save_bool, name, masking=mask,
+        self.network_policy = PlayingNetwork(input_size, save_bool, name=name, verbose=verbose, masking=mask,
                                              dueling=dueling, double=double, priority=priority, n_step=n_step)
         self.verbose = verbose
         self.punish = punish
