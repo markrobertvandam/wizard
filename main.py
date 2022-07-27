@@ -177,11 +177,12 @@ def avg_n_games(
         print("Creating guess agents for opponents..")
         guess_agent2 = GuessingAgent(input_size=opp_size, guess_max=21)
         guess_agent3 = GuessingAgent(input_size=opp_size, guess_max=21)
-        print("\n")
+        print("Opposing guess model:\n")
         guess_agent2.model.summary()
-
+        print(f"\nGuesser loss-function opponents: ", guess_agent2.model.loss)
+        
         if opp_model == "":
-            print("No guessing agent passed to fixed opponents")
+            print("No guessing agent passed to load to opponents\n")
         else:
             print(f"Loading saved guessing model {opp_model} to opponents")
             guess_agent2.model = tf.keras.models.load_model(
@@ -192,13 +193,15 @@ def avg_n_games(
             )
 
     if opp_playertype.startswith("learn"):
+        print("Creating play agents for opponents..")
         playing_agent2 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose, punish=punish)
         playing_agent3 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose, punish=punish)
-        print("\n")
+        print("Opposing play model:\n")
         playing_agent2.network_policy.model.summary()
+        print(f"\nPlayer loss-function opponents: ", playing_agent2.network_policy.model.loss)
 
         if opp_playmodel == "":
-            print("No playing agent passed to load to opponents")
+            print("No playing agent passed to load to opponents\n")
         else:
             print(f"Loading saved playing model {opp_playmodel} to opponents")
             playing_agent2.network_policy.model = tf.keras.models.load_model(
@@ -318,6 +321,27 @@ def avg_n_games(
                         accuracy,
                         game_instance,
                     )
+                if save_bool == "yes-all":
+                    save_models(
+                        guess_agent2,
+                        playing_agent2,
+                        save_folder,
+                        input_size_guess,
+                        input_size_play,
+                        accuracy,
+                        game_instance,
+                        name_nr="(2)"
+                    )
+                    save_models(
+                        guess_agent3,
+                        playing_agent3,
+                        save_folder,
+                        input_size_guess,
+                        input_size_play,
+                        accuracy,
+                        game_instance,
+                        name_nr="(3)",
+                    )
 
             if game_instance - last_max > 10000:
                 if save_bool.startswith("y"):
@@ -333,7 +357,7 @@ def avg_n_games(
                         accuracy,
                         game_instance,
                     )
-                    if save_bool == "yes-all":
+                    if save_bool.startswith("yes-all"):
                         save_models(
                             guess_agent2,
                             playing_agent2,
@@ -365,12 +389,13 @@ def avg_n_games(
             player_epsilon *= player_decay
             player_epsilon = max(0.25, player_epsilon)
 
-        if game_instance % 900 == 0:
+        if game_instance % 850 == 0:
             for player in wizard.players:
-                print(
-                    "Forgetting ", len(player.play_agent.nodes.keys()), " nodes.."
-                )
-                player.play_agent.nodes = dict()
+                if player.player_type.startswith("learn"):
+                    print(
+                        "Forgetting ", len(player.play_agent.nodes.keys()), " nodes.."
+                    )
+                    player.play_agent.nodes = dict()
 
     print("Scores: ", score_counter)
     print("Wins: ", win_counter)
@@ -379,6 +404,7 @@ def avg_n_games(
 
 if __name__ == "__main__":
     args = parse_args()
+    print(f"Save bool: '{args.save}'")
     print(f"Opponent guesstype: {args.opp_guesstype}")
     print(f"Opponent playertype: {args.opp_playertype}")
     print(f"Opponent model: {args.opp_model}")
