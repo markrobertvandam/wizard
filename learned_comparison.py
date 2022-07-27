@@ -291,6 +291,10 @@ def play_game(
 
 if __name__ == "__main__":
     args = parse_args()
+    print(f"Opponent guesstype: {args.opp_guesstype}")
+    print(f"Opponent playertype: {args.opp_playertype}")
+    print(f"Opponent model: {args.opp_model}")
+    print(f"Opponent playermodel: {args.opp_playmodel}")
     learned_n_games(
         args.games,
         args.games_folder,
