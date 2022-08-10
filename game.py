@@ -511,9 +511,23 @@ class Game:
         update scores and backpropagate for learning
         :return: None
         """
+        scores = []
+        offs = []
         for player in self.players:
             #  get the difference between tricks won and tricks guessed
             off_mark = abs(player.get_trick_wins() - player.get_guesses())
+            offs.append(off_mark)
+            if off_mark == 0:
+                scores.append(20 + 10 * player.get_guesses())
+            else:
+                scores.append(-10 * off_mark)
+
+        for player_index in range(3):
+            # TODO: get diff between learning players' score and other highest score and maximize that
+            player = self.players[player_index]
+            off_mark = offs[player_index]
+            score = scores[player_index]
+
             if player.player_name == "player1":
                 self.actual_distribution[player.get_trick_wins()] += 1
                 if off_mark > 19 or player.get_guesses() > 19:
@@ -521,36 +535,32 @@ class Game:
                         player.get_guesses(), player.get_trick_wins(), self.game_round
                     )
                 self.off_game[off_mark] += 1
-            if off_mark == 0:
-                self.scores[player] += 20 + 10 * player.get_guesses()
-                if player.guess_type == "learning":
-                    player.update_agent()
-                if player.player_type == "learning":
-                    player.play_agent.backpropagate(
-                        player.play_agent.last_terminal_node,  1
-                    )
-            else:
-                if player.guess_type == "learning":
-                    player.update_agent()
-                if player.player_type == "learning":
-                    player.play_agent.backpropagate(
-                        player.play_agent.last_terminal_node, 1 - off_mark
-                    )
 
-                self.scores[player] -= 10 * off_mark
-                if player.player_name == "player1":
-                    if self.verbose >= 2:
-                        print(
-                            "player_won: ",
-                            player.get_trick_wins(),
-                            "player_guessed",
-                            player.get_guesses(),
-                        )
-                    if player.get_guesses() > player.get_trick_wins():
-                        self.offs[0] += 1
-                    else:
-                        self.offs[1] += 1
-            #  print("\n\n")
+            # Update scores and memory of agents
+            self.scores[player] += score
+            if player.guess_type == "learning":
+                player.update_agent()
+            if player.player_type == "learning":
+                other_scores = scores[:player_index] + scores[player_index + 1:]
+                diff = score - max(other_scores)
+                player.play_agent.backpropagate(
+                    player.play_agent.last_terminal_node, result=score, diff=diff,
+                )
+
+            # For keeping track of mistakes
+            if player.player_name == "player1":
+                if self.verbose >= 2:
+                    print(
+                        "player_won: ",
+                        player.get_trick_wins(),
+                        "player_guessed",
+                        player.get_guesses(),
+                    )
+                if player.get_guesses() > player.get_trick_wins():
+                    self.offs[0] += 1
+                else:
+                    self.offs[1] += 1
+        #  print("\n\n")
 
     def get_game_performance(self) -> np.ndarray:
         return self.off_game

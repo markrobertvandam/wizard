@@ -72,6 +72,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--punish", action="store_true",
                         help="optional argument to punish play depending on difference with goal trick wins")
+    parser.add_argument("--score", action="store_true",
+                        help="optional argument to reward play based on relative point gains compared to opp")
     parser.add_argument(
         "--epsilon",
         help="optional argument to set starting epsilon",
@@ -143,6 +145,7 @@ def avg_n_games(
     opp_model: str,
     opp_playmodel: str,
     punish: bool,
+    score: bool,
     epsilon: float,
     player_epsilon: float,
     iters_done: int,
@@ -194,8 +197,8 @@ def avg_n_games(
 
     if opp_playertype.startswith("learn"):
         print("Creating play agents for opponents..")
-        playing_agent2 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose, punish=punish)
-        playing_agent3 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose, punish=punish)
+        playing_agent2 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose, punish=punish, score=score)
+        playing_agent3 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose, punish=punish, score=score)
         print("Opposing play model:\n")
         playing_agent2.network_policy.model.summary()
         print(f"\nPlayer loss-function opponents: ", playing_agent2.network_policy.model.loss)
@@ -410,6 +413,7 @@ if __name__ == "__main__":
     print(f"Opponent model: {args.opp_model}")
     print(f"Opponent playermodel: {args.opp_playmodel}")
     print(f"Punish based on distance from goal: {args.punish}")
+    print(f"reward based on differences in score: {args.score}")
 
     if not args.opp_guesstype.startswith("learn") and args.opp_model:
         print("Guessing agent given but not used")
@@ -431,6 +435,7 @@ if __name__ == "__main__":
         args.opp_model,
         args.opp_playmodel,
         args.punish,
+        args.score,
         args.epsilon,
         args.player_epsilon,
         args.iters_done,

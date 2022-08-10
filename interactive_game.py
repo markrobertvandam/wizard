@@ -103,8 +103,8 @@ class Game:
                 # trump is a joker, no trump this round
                 self.trump = 4
             elif trump_card[1] == 14:
-                # trump is a wizard, starting player decides
-                if self.players[0].player_name == "player1":
+                # trump is a wizard, dealer decides
+                if self.players[-1].player_name == "player1":
                     self.trump = trump_card[0]
                 else:
                     trump_suit = input("What is the trump suit?: ")
@@ -113,6 +113,7 @@ class Game:
                         while trump_suit not in suits:
                             print(f"Suit needs to be b(lue), y(ellow) r(ed) or g(reen)")
                             trump_suit = input("What is the trump suit?: ")
+                    self.trump = suits[trump_suit]
             else:
                 # trump is regular card
                 self.trump = trump_card[0]
