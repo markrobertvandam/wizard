@@ -92,16 +92,13 @@ class GuessingAgent:
         output = self.get_qs(state)
 
         if self.soft_guess:
-            print("Using soft guess..")
             probs = np.cumsum(output)
             rand = random.uniform(0, 1)
-            print(rand)
             for i in range(len(output)):
                 if rand < probs[i]:
                     break
             guess = i
         else:
-            print("Using argmax..")
             guess = np.argmax(output)
         return guess
 
