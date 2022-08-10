@@ -74,6 +74,8 @@ def parse_args() -> argparse.Namespace:
                         help="optional argument to punish play depending on difference with goal trick wins")
     parser.add_argument("--score", action="store_true",
                         help="optional argument to reward play based on relative point gains compared to opp")
+    parser.add_argument("--soft_guess", action="store_true",
+                        help="optional argument to sample guessing softmax curve instead of taking argmax")
     parser.add_argument(
         "--epsilon",
         help="optional argument to set starting epsilon",
@@ -146,6 +148,7 @@ def avg_n_games(
     opp_playmodel: str,
     punish: bool,
     score: bool,
+    soft_guess: bool,
     epsilon: float,
     player_epsilon: float,
     iters_done: int,
@@ -169,7 +172,7 @@ def avg_n_games(
     elif player_model is not None:
         name = player_model.split("/")[0].split("_")[1]
 
-    guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21)
+    guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21, soft_guess=soft_guess)
     playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose, punish=punish)
     guess_agent2 = None
     playing_agent2 = None
@@ -178,8 +181,8 @@ def avg_n_games(
 
     if opp_guesstype.startswith("learn"):
         print("Creating guess agents for opponents..")
-        guess_agent2 = GuessingAgent(input_size=opp_size, guess_max=21)
-        guess_agent3 = GuessingAgent(input_size=opp_size, guess_max=21)
+        guess_agent2 = GuessingAgent(input_size=opp_size, guess_max=21, soft_guess=soft_guess)
+        guess_agent3 = GuessingAgent(input_size=opp_size, guess_max=21, soft_guess=soft_guess)
         print("Opposing guess model:\n")
         guess_agent2.model.summary()
         print(f"\nGuesser loss-function opponents: ", guess_agent2.model.loss)
@@ -414,6 +417,7 @@ if __name__ == "__main__":
     print(f"Opponent playermodel: {args.opp_playmodel}")
     print(f"Punish based on distance from goal: {args.punish}")
     print(f"reward based on differences in score: {args.score}")
+    print(f"Guess based on softmax curve instead of argmax: {args.soft_guess}")
 
     if not args.opp_guesstype.startswith("learn") and args.opp_model:
         print("Guessing agent given but not used")
@@ -436,6 +440,7 @@ if __name__ == "__main__":
         args.opp_playmodel,
         args.punish,
         args.score,
+        args.soft_guess,
         args.epsilon,
         args.player_epsilon,
         args.iters_done,

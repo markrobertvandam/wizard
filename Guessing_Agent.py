@@ -14,11 +14,12 @@ MINIBATCH_SIZE = 32  # How many steps (samples) to use for training
 
 # Agent class
 class GuessingAgent:
-    def __init__(self, input_size, guess_max):
+    def __init__(self, input_size, guess_max, soft_guess=False):
 
         self.input_size = input_size
         self.guess_max = guess_max
         self.accuracy = 0.02
+        self.soft_guess = soft_guess
 
         # Main model
         self.model = self.create_model()
@@ -83,6 +84,26 @@ class GuessingAgent:
             verbose=0,
             shuffle=False,
         )
+
+    def get_guess(self, state) -> int:
+        """
+        Get guess using get_qs
+        """
+        output = self.get_qs(state)
+
+        if self.soft_guess:
+            print("Using soft guess..")
+            probs = np.cumsum(output)
+            rand = random.uniform(0, 1)
+            print(rand)
+            for i in range(len(output)):
+                if rand < probs[i]:
+                    break
+            guess = i
+        else:
+            print("Using argmax..")
+            guess = np.argmax(output)
+        return guess
 
     # Queries main network for Q values given current observation space (environment state)
     def get_qs(self, state):

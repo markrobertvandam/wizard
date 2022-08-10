@@ -174,7 +174,7 @@ class PlayingAgent:
             self.network_policy.update_replay_memory([node.state, result])
 
         self.network_policy.train()
-        self.backpropagate(node.parent, result)
+        self.backpropagate(node.parent, result, diff=diff)
 
     def best_child(self, node: Node) -> tuple:
         best_child = node.children[0]

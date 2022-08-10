@@ -19,6 +19,7 @@ class Player:
         epsilon=None,
         player_epsilon=None,
         verbose=False,
+        soft_guess=False,
     ) -> None:
         self.verbose = verbose
         self.player_name = player_name
@@ -37,6 +38,7 @@ class Player:
         if self.player_type.startswith("learn"):
             self.play_agent = play_agent
             self.player_epsilon = player_epsilon
+            self.soft_guess = soft_guess
 
         # for playing state
         self.possible_cards_one = [1] * 60
@@ -247,9 +249,7 @@ class Player:
                 self.current_state = state_space
                 if np.random.random() > self.epsilon:
                     # Get action from Q table
-                    self.player_guesses = np.argmax(
-                        self.guess_agent.get_qs(state_space)
-                    )
+                    self.player_guesses = self.guess_agent.get_guess(state_space)
                 else:
                     # Get random action
                     self.player_guesses = random.randrange(max_guesses + 1)
