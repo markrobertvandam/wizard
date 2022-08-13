@@ -117,10 +117,16 @@ def parse_args() -> argparse.Namespace:
 def plot_history(
     history: list, game_instance: int, save_folder: str, iters_done: int, y="Accuracy",
 ) -> None:
+
+    # first iterations not plotted in loss history because no learning yet
+    base = 10
+    if iters_done == 0:
+        base = 30
+
     if y == "Accuracy":
         x = list(range(iters_done + 10, game_instance + 1, 10))
     elif y == "Loss":
-        x = list(range(iters_done + 30, game_instance + 1, 10))
+        x = list(range(iters_done + base, game_instance + 1, 10))
     else:
         return
     plt.plot(x, history)
