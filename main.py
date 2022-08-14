@@ -343,7 +343,7 @@ def avg_n_games(
             if game_instance >= 30:
                 loss_history.append(avg_loss/10)
             print(
-                f"Game {game_instance}, Avg accuracy: {accuracy}, Avg loss: {avg_loss}, Epsilon: {round(epsilon,2)}, "
+                f"Game {game_instance}, Avg accuracy: {accuracy}, Avg loss: {avg_loss/10}, Epsilon: {round(epsilon,2)}, "
                 f"Epsilon P: {round(player_epsilon,2)}, "
                 f"Last10: {last_ten_performance}"
             )
