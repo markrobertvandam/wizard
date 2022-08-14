@@ -241,7 +241,7 @@ def learned_n_games(
             print(
                 f"Agents: {(guess_agent, playing_agent)}, "
                 f"Game {game_instance}, Avg accuracy: {accuracy}, "
-                f"Last10: {performance[3]}"
+                f"Last10: {list(performance[3])}"
             )
             performance[3] *= 0
 
