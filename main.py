@@ -98,13 +98,25 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def plot_accuracy(
-    accuracy_history: list, game_instance: int, save_folder: str, iters_done: int
+def plot_history(
+    history: list, game_instance: int, save_folder: str, iters_done: int, y="Accuracy",
 ) -> None:
-    plt.plot(list(range(iters_done + 10, game_instance + 1, 10)), accuracy_history)
+
+    # first iterations not plotted in loss history because no learning yet
+    base = 10
+    if iters_done == 0:
+        base = 30
+
+    if y == "Accuracy":
+        x = list(range(iters_done + 10, game_instance + 1, 10))
+    elif y == "Loss":
+        x = list(range(iters_done + base, game_instance + 1, 10))
+    else:
+        return
+    plt.plot(x, history)
     plt.xlabel("Games", fontsize=15)
-    plt.ylabel("Accuracy", fontsize=15)
-    plt.savefig(f"plots/{save_folder}/accuracy_plot")
+    plt.ylabel(y, fontsize=15)
+    plt.savefig(f"plots/{save_folder}/{y}_plot")
     plt.close()
 
 
@@ -258,6 +270,8 @@ def avg_n_games(
     # Run n-amount of games
     last_ten_performance = np.zeros(21, dtype=int)
     accuracy_history = []
+    loss_history = []
+    avg_loss = 0.0
     last_max = iters_done
     max_acc = 0
     output_path = "state_err1"
@@ -285,7 +299,8 @@ def avg_n_games(
             guess_agent3=guess_agent3,
             playing_agent3=playing_agent3,
         )
-        scores, offs = wizard.play_game()
+        game_loss, scores, offs = wizard.play_game()
+        avg_loss += game_loss
 
         # For command-line output while training
         last_ten_performance += wizard.get_game_performance()
@@ -300,11 +315,14 @@ def avg_n_games(
             accuracy = last_ten_performance[0] / 200
             guess_agent.accuracy = accuracy
             accuracy_history.append(accuracy)
+            if game_instance >= 30:
+                loss_history.append(avg_loss/10)
             print(
-                f"Game {game_instance}, accuracy: {accuracy}, Epsilon: {round(epsilon,2)}, "
+                f"Game {game_instance}, accuracy: {accuracy}, Avg loss: {avg_loss/10}, Epsilon: {round(epsilon,2)}, "
                 f"Epsilon P: {round(player_epsilon,2)}, "
                 f"Last10: {last_ten_performance}"
             )
+            avg_loss = 0.0
             last_ten_performance *= 0
 
             # for early stopping
@@ -315,8 +333,11 @@ def avg_n_games(
         if player_type == "learning" or guess_type == "learning":
             if game_instance % 1000 == 0:
                 if save_bool.startswith("y"):
-                    plot_accuracy(
+                    plot_history(
                         accuracy_history, game_instance, save_folder, iters_done
+                    )
+                    plot_history(
+                        loss_history, game_instance, save_folder, iters_done, y="Loss"
                     )
                     save_models(
                         guess_agent,
@@ -351,8 +372,11 @@ def avg_n_games(
 
             if game_instance - last_max > 10000:
                 if save_bool.startswith("y"):
-                    plot_accuracy(
+                    plot_history(
                         accuracy_history, game_instance, save_folder, iters_done
+                    )
+                    plot_history(
+                        loss_history, game_instance, save_folder, iters_done, y="Loss"
                     )
                     save_models(
                         guess_agent,

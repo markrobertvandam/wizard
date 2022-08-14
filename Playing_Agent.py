@@ -152,12 +152,13 @@ class PlayingAgent:
         return self.parent_node.card
 
     # function for backpropagation
-    def backpropagate(self, node: Node, result: int, diff: int) -> None:
+    def backpropagate(self, node: Node, result: int, diff: int, loss=0.0) -> float:
         self.counter += 1
         if self.counter % 2000 == 0:
             print(self.counter)
         if node.root:
-            return
+            return loss
+
         node.wins += result / 100
         if self.verbose >= 3:
             print("Node card: ", node.card)
@@ -173,8 +174,8 @@ class PlayingAgent:
                 result = 0
             self.network_policy.update_replay_memory([node.state, result])
 
-        self.network_policy.train()
-        self.backpropagate(node.parent, result, diff=diff)
+        loss += self.network_policy.train()
+        return self.backpropagate(node.parent, result, diff=diff, loss=loss)
 
     def best_child(self, node: Node) -> tuple:
         best_child = node.children[0]

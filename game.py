@@ -96,6 +96,7 @@ class Game:
         self.guess_distribution = np.zeros(21, dtype=int)
         self.actual_distribution = np.zeros(21, dtype=int)
         self.overshoot = np.zeros(20, dtype=int)
+        self.total_loss = 0
 
         # for info per round/trick
         self.played_round = []
@@ -134,6 +135,7 @@ class Game:
                 player.win_cards = []
 
         return (
+            self.total_loss,
             [
                 self.scores[self.player1],
                 self.scores[self.player2],
@@ -543,9 +545,10 @@ class Game:
             if player.player_type == "learning":
                 other_scores = scores[:player_index] + scores[player_index + 1:]
                 diff = score - max(other_scores)
-                player.play_agent.backpropagate(
+                loss = player.play_agent.backpropagate(
                     player.play_agent.last_terminal_node, result=score, diff=diff,
                 )
+                self.total_loss += loss
 
             # For keeping track of mistakes
             if player.player_name == "player1":

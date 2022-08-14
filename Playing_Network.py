@@ -72,7 +72,7 @@ class PlayingNetwork:
         # print("Replay size: ", len(self.replay_memory))
         # Start training only if certain number of samples is already saved
         if len(self.replay_memory) < MIN_REPLAY_MEMORY_SIZE:
-            return
+            return 0
 
         # Get a minibatch of random samples from memory replay table
         minibatch = random.sample(self.replay_memory, MINIBATCH_SIZE)
@@ -87,13 +87,15 @@ class PlayingNetwork:
         rewards = np.array([transition[1] for transition in minibatch])
 
         # Fit on all samples as one batch, log only on terminal state
-        self.model.fit(
+        history = self.model.fit(
             states,
             rewards,
             batch_size=MINIBATCH_SIZE,
             verbose=0,
             shuffle=False,
         )
+        loss = history.history["loss"][0]
+        return loss
 
     def predict(self, state):
         return self.model.predict(state.reshape(-1, *state.shape))[0]

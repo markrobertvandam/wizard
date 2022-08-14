@@ -282,7 +282,7 @@ def play_game(
         guess_agent3=guess_agent3,
         playing_agent3=playing_agent3,
     )
-    scores, offs = wizard.play_game()
+    loss, scores, offs = wizard.play_game()
     off_game = wizard.get_game_performance()
     distribution = wizard.get_distribution()
     overshoot = wizard.get_overshoot()
