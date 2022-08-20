@@ -279,8 +279,7 @@ def avg_n_games(
     if opp_guesstype.startswith("learn") or opp_playertype.startswith("learn"):
         print(f"Opposing agents: {guess_agent2}, {playing_agent2}, {guess_agent3}, {playing_agent3}")
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
-        if verbose:
-            print("\nGame instance: ", game_instance)
+        print("\nGame instance: ", game_instance)
         wizard = game.Game(
             full_deck,
             deck_dict,

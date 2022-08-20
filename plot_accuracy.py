@@ -42,7 +42,7 @@ def plot_accuracy(
         plt.ylabel("Wins of 1000 games", fontsize=13)
     elif name == "relative_scores":
         plt.ylabel("Avg. score diff to winning heuristic", fontsize=13)
-    fig.legend(loc="right", fontsize=8)
+    fig.legend(loc="center right", bbox_to_anchor=(1,0.3), ncol=2, fontsize=8)
     fig.savefig(f"wizard/plots/{save_folder}/{name}_plot")
     plt.close()
 
@@ -72,6 +72,7 @@ if __name__ == "__main__":
                 for filename in sorted(os.listdir(folder_path)):
                     avg_distribution = [0] * 21
                     total_corr = 0
+                    iters = ""
                     if filename.endswith(".log"):
                         f = open(os.path.join(folder_path, filename), "r")
                         lines = f.readlines()
@@ -96,9 +97,9 @@ if __name__ == "__main__":
                                 )
                                 rel_score.append(round(score[-1][0] - max(score[-1][1:]), 2))
                                 my_score.append(score[-1][0])
-                        iters = lines[2][7:]
+                            if line.startswith("Iters: "):
+                                iters = line.split()[1]
                         accuracy = total_corr / 200
-
                         x.append(iters)
                         y.append(accuracy)
 
@@ -115,7 +116,7 @@ if __name__ == "__main__":
     print(score_avg)
     print(relative_scores)
     print(my_scores)
-    folder = "new"
+    folder = "new_mcts"
     plot_accuracy(x_values, y_values, names, folder, "accuracy")
     plot_accuracy(x_values, win_totals, names, folder, "wins")
     plot_accuracy(x_values, relative_scores, names, folder, "relative_scores")
