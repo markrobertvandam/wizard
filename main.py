@@ -41,6 +41,30 @@ def parse_args() -> argparse.Namespace:
         type=int,
     )
     parser.add_argument(
+        "--guesser_size",
+        help="optional argument to set guesser input size to something other than 68",
+        default=68,
+        type=int,
+    )
+    parser.add_argument(
+        "--player_size",
+        help="optional argument to set player input size to something other than 192",
+        default=192,
+        type=int,
+    )
+    parser.add_argument(
+        "--opp_guesser_size",
+        help="optional argument to set opp guesser input size to something other than 68",
+        default=68,
+        type=int,
+    )
+    parser.add_argument(
+        "--opp_player_size",
+        help="optional argument to set opp player input size to something other than 192",
+        default=192,
+        type=int,
+    )
+    parser.add_argument(
         "--model",
         help="optional argument to load in the weights of a saved guessing model",
     )
@@ -154,6 +178,10 @@ def avg_n_games(
     model_path: str,
     player_model: str,
     verbose: int,
+    guesser_size: int,
+    player_size: int,
+    opp_guesser_size: int,
+    opp_player_size: int,
     opp_guesstype: str,
     opp_playertype: str,
     opp_model: str,
@@ -165,10 +193,10 @@ def avg_n_games(
     player_epsilon: float,
     iters_done: int,
 ) -> None:
-    input_size_guess = 68
-    input_size_play = 192
-    opp_size = 68
-    opp_play_size = 192
+    input_size_guess = guesser_size
+    input_size_play = player_size
+    opp_size = opp_guesser_size
+    opp_play_size = opp_player_size
 
     name = None
     if save_folder != "":
@@ -457,6 +485,10 @@ if __name__ == "__main__":
         args.model,
         args.play_model,
         args.verbose,
+        args.guesser_size,
+        args.player_size,
+        args.opp_guesser_size,
+        args.opp_player_size,
         args.opp_guesstype,
         args.opp_playertype,
         args.opp_model,
