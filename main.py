@@ -126,15 +126,10 @@ def plot_history(
     history: list, game_instance: int, save_folder: str, iters_done: int, y="Accuracy",
 ) -> None:
 
-    # first iterations not plotted in loss history because no learning yet
-    base = 10
-    if iters_done == 0:
-        base = 30
-
     if y == "Accuracy":
         x = list(range(iters_done + 10, game_instance + 1, 10))
     elif y == "Loss":
-        x = list(range(iters_done + base, game_instance + 1, 10))
+        x = list(range(iters_done + 30, game_instance + 1, 10))
     else:
         return
     plt.plot(x, history)
@@ -342,7 +337,7 @@ def avg_n_games(
             accuracy = last_ten_performance[0] / 200
             guess_agent.accuracy = accuracy
             accuracy_history.append(accuracy)
-            if game_instance >= 30:
+            if game_instance - iters_done >= 30:
                 loss_history.append(avg_loss/10)
             print(
                 f"Game {game_instance}, accuracy: {accuracy}, Avg loss: {avg_loss/10}, Epsilon: {round(epsilon,2)}, "
