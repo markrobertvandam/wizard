@@ -101,13 +101,14 @@ class Player:
                 print("Amount of nodes: ", len(self.play_agent.nodes.keys()))
 
             # NODE IS HERE BEFORE PLAY
+            key_state = util.state_to_key(state_space)
+            self.play_agent.full_cntr[game_instance.game_round - 1] += 1
+            if key_state in self.play_agent.nodes.keys():
+                self.play_agent.cntr[game_instance.game_round - 1] += 1
 
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
-                if (
-                    util.state_to_key(state_space)
-                    not in self.play_agent.nodes.keys()
-                ):
+                if key_state not in self.play_agent.nodes.keys():
                     self.play_agent.unseen_state(state_space)
                 else:
                     self.play_agent.parent_node = self.play_agent.get_node(state_space)

@@ -129,6 +129,8 @@ class PlayingAgent:
         self.punish = punish
         self.score = score
         self.counter = 0
+        self.cntr = [0] * 20
+        self.full_cntr = [0] * 20
         self.parent_node = None
         self.last_terminal_node = None
 

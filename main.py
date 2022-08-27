@@ -344,6 +344,8 @@ def avg_n_games(
                 f"Epsilon P: {round(player_epsilon,2)}, "
                 f"Last10: {last_ten_performance}"
             )
+            print(f"Total states: {playing_agent.full_cntr}")
+            print(f"Re-occured states: {playing_agent.cntr}\n")
             avg_loss = 0.0
             last_ten_performance *= 0
 
