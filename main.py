@@ -459,6 +459,10 @@ def avg_n_games(
 if __name__ == "__main__":
     args = parse_args()
     print(f"Save bool: '{args.save}'")
+    print(f"Save folder: '{args.save_folder}'")
+    if args.save.startswith("y") and args.save_folder == "":
+        print("save bool is true but no save folder given.")
+        exit()
     print(f"Opponent guesstype: {args.opp_guesstype}")
     print(f"Opponent playertype: {args.opp_playertype}")
     print(f"Opponent model: {args.opp_model}")
