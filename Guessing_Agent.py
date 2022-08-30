@@ -4,7 +4,6 @@ from collections import deque
 from keras.models import Model
 from keras.layers import Input, Dense
 from keras.optimizers import adam_v2
-
 import random
 
 REPLAY_MEMORY_SIZE = 2000  # How many last steps to keep for model training, 2000 means remember last 100 games

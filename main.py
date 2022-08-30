@@ -278,6 +278,7 @@ def avg_n_games(
     win_counter = [0, 0, 0]
     score_counter = [0, 0, 0]
     total_offs = [0, 0]
+    total_round_offs = np.zeros(20, dtype=int)
 
     # Make the deck
     full_deck = []
@@ -321,7 +322,8 @@ def avg_n_games(
             guess_agent3=guess_agent3,
             playing_agent3=playing_agent3,
         )
-        game_loss, scores, offs = wizard.play_game()
+        game_loss, scores, offs, round_offs = wizard.play_game()
+        total_round_offs += round_offs
         avg_loss += game_loss
 
         # For command-line output while training
@@ -346,6 +348,7 @@ def avg_n_games(
             )
             print(f"Total states: {playing_agent.full_cntr}")
             print(f"Re-occured states: {playing_agent.cntr}\n")
+            print(f"Total mistakes made in each round: {list(total_round_offs)}")
             avg_loss = 0.0
             last_ten_performance *= 0
 
@@ -454,6 +457,7 @@ def avg_n_games(
     print("Scores: ", score_counter)
     print("Wins: ", win_counter)
     print("Mistakes: ", total_offs)
+    print("Mistakes in each round: ", list(total_round_offs))
 
 
 if __name__ == "__main__":

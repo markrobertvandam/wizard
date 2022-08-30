@@ -93,6 +93,8 @@ class Game:
             0,
         ]
         self.off_game = np.zeros(21, dtype=int)
+        self.round_offs = np.zeros(20, dtype=int)
+
         self.guess_distribution = np.zeros(21, dtype=int)
         self.actual_distribution = np.zeros(21, dtype=int)
         self.overshoot = np.zeros(20, dtype=int)
@@ -121,7 +123,7 @@ class Game:
                     f"{[p.player_name for p in self.players]}")
             self.play_round()
             if self.verbose >= 2:
-                print("Round over.. \n\n")
+                print(f"Round {self.game_round} over.. \n\n")
 
             for player in self.players:
                 player.possible_cards_one = [1] * 60
@@ -142,6 +144,7 @@ class Game:
                 self.scores[self.player3],
             ],
             self.offs,
+            self.round_offs,
         )
 
     def play_round(self) -> None:
@@ -532,6 +535,8 @@ class Game:
 
             if player.player_name == "player1":
                 self.actual_distribution[player.get_trick_wins()] += 1
+                if off_mark > 0:
+                    self.round_offs[self.game_round-1] += 1
                 if off_mark > 19 or player.get_guesses() > 19:
                     print(
                         player.get_guesses(), player.get_trick_wins(), self.game_round
@@ -552,7 +557,7 @@ class Game:
 
             # For keeping track of mistakes
             if player.player_name == "player1":
-                if self.verbose >= 2:
+                if self.verbose >= 1:
                     print(
                         "player_won: ",
                         player.get_trick_wins(),

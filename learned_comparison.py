@@ -187,6 +187,7 @@ def learned_n_games(
 
     # win_counter, score_counter, total_offs(too high guess, too low guess), last_ten, accuracy_hist
     performance = [[0, 0, 0], [0, 0, 0], [0, 0], 21 * [0], []]
+    total_round_offs = np.zeros(20, dtype=int)
     total_distribution = np.zeros(21, dtype=int)
     total_actual = np.zeros(21, dtype=int)
     total_overshoot = np.zeros(20, dtype=int)
@@ -197,7 +198,7 @@ def learned_n_games(
             (game_instance - 1) * 20: (game_instance - 1) * 20 + 20
         ]
         shuffled_players = all_players[game_instance - 1]
-        off_game, scores, offs, guess_distribution, actual_distribution, overshoot = play_game(
+        off_game, scores, offs, round_offs, guess_distribution, actual_distribution, overshoot = play_game(
             full_deck,
             deck_dict,
             guess_type,
@@ -216,6 +217,7 @@ def learned_n_games(
         )
         total_distribution = np.add(total_distribution, guess_distribution)
         total_actual = np.add(total_actual, actual_distribution)
+        total_round_offs = np.add(total_round_offs, round_offs)
         total_overshoot = np.add(total_overshoot, overshoot)
         # win_counter, score_counter, total_offs(too high guess, too low guess), last_ten, accuracy_hist
         # For command-line output
@@ -235,6 +237,7 @@ def learned_n_games(
                 f"Game {game_instance}, accuracy: {accuracy}, "
                 f"Last10: {list(performance[3])}"
             )
+            print(f"Total round offs: {list(total_round_offs)}")
             performance[3] *= 0
 
     print("Pair: ", pair_name)
@@ -244,6 +247,7 @@ def learned_n_games(
     print(f"Overshot: {list(total_overshoot)}")
     print(f"Guesses: {list(total_distribution)}")
     print(f"Actual: {list(total_actual)}")
+    print(f"Total round offs: {list(total_round_offs)}")
 
 
 def play_game(
@@ -282,11 +286,11 @@ def play_game(
         guess_agent3=guess_agent3,
         playing_agent3=playing_agent3,
     )
-    loss, scores, offs = wizard.play_game()
+    loss, scores, offs, round_offs = wizard.play_game()
     off_game = wizard.get_game_performance()
     distribution = wizard.get_distribution()
     overshoot = wizard.get_overshoot()
-    return off_game, scores, offs, distribution[0], distribution[1], overshoot
+    return off_game, scores, offs, round_offs, distribution[0], distribution[1], overshoot
 
 
 if __name__ == "__main__":
