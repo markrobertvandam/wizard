@@ -103,7 +103,7 @@ class Player:
             # NODE IS HERE BEFORE PLAY
             key_state = util.state_to_key(state_space)
             self.play_agent.full_cntr[game_instance.game_round - 1] += 1
-            if self.player_name == "player1":
+            if self.player_name == "player1" and self.verbose >= 2:
                 util.write_state(state_space, "all-states", 192)
 
             # Node either visited before or added through expansion
@@ -113,7 +113,7 @@ class Player:
                 # if node was encountered before
                 if node.actual_encounters > 0:
                     self.play_agent.cntr[game_instance.game_round - 1] += 1
-                    if self.player_name == "player1":
+                    if self.player_name == "player1" and self.verbose >= 2:
                         util.write_state(state_space, "reoccured-states", 192)
 
             # ROOT NODE (cards in hand == round) -> add root and children

@@ -65,7 +65,8 @@ class PlayingAgent:
 
     # function for backpropagation
     def backpropagate(self, node: Node, result: int, diff: int, loss=0.0) -> float:
-        write_state(key_to_state(192, node.state), "backprop", 192)
+        if self.verbose >= 3:
+            write_state(key_to_state(192, node.state), "backprop", 192)
         self.counter += 1
         if self.counter % 2000 == 0:
             print(self.counter)
@@ -157,7 +158,8 @@ class PlayingAgent:
         :return:
         """
         # Write node that is getting expanded
-        write_state(key_to_state(192, self.parent_node.state), "expanded-nodes", 192)
+        if self.verbose >= 3:
+            write_state(key_to_state(192, self.parent_node.state), "expanded-nodes", 192)
 
         if self.verbose >= 2:
             print("Expanding the following moves: ", legal_moves)
