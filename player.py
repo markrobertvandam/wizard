@@ -103,15 +103,30 @@ class Player:
             # NODE IS HERE BEFORE PLAY
             key_state = util.state_to_key(state_space)
             self.play_agent.full_cntr[game_instance.game_round - 1] += 1
+            if self.player_name == "player1":
+                util.write_state(state_space, "all-states", 192)
+
+            # Node either visited before or added through expansion
             if key_state in self.play_agent.nodes.keys():
-                self.play_agent.cntr[game_instance.game_round - 1] += 1
+                node = self.play_agent.nodes[key_state]
+
+                # if node was encountered before
+                if node.actual_encounters > 0:
+                    self.play_agent.cntr[game_instance.game_round - 1] += 1
+                    if self.player_name == "player1":
+                        util.write_state(state_space, "reoccured-states", 192)
 
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
+                # Unseen root node
                 if key_state not in self.play_agent.nodes.keys():
                     self.play_agent.unseen_state(state_space)
+                    self.play_agent.parent_node.actual_encounters += 1
+                # Previously seen root node
                 else:
                     self.play_agent.parent_node = self.play_agent.get_node(state_space)
+                    self.play_agent.parent_node.actual_encounters += 1
+
                 # expand either way in case of unseen children
                 self.play_agent.expand(
                     legal_cards,
@@ -131,6 +146,19 @@ class Player:
 
             # its a child, either terminal or not
             else:
+                # Create node of current state and add it to saved nodes
+                key_state = util.state_to_key(state_space)
+                current_node = Playing_Agent.Node(key_state)
+                self.play_agent.nodes[key_state] = current_node
+
+                # Set parent of node to previous parent node (for backprop)
+                current_node.parent = self.play_agent.parent_node
+                self.play_agent.parent_node.children.append(current_node)
+
+                # Current node becomes new parent node
+                self.play_agent.parent_node = current_node
+                self.play_agent.parent_node.actual_encounters += 1
+
                 # expand in case of unseen children, then predict best move
                 self.play_agent.expand(
                     legal_cards,
@@ -141,10 +169,10 @@ class Player:
                     self.hand,
                 )
                 if np.random.random() > self.player_epsilon:
-                    # evaluate the best state
+                    # evaluate the best resulting state and return the corresponding move
                     card = self.play_agent.predict()
                 else:
-                    # rollout till end of game
+                    # rollout play
                     card = self.play_agent.rollout_policy()
 
         elif self.player_type == "learned":

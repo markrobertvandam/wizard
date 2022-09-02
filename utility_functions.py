@@ -6,6 +6,99 @@ import interactive_game
 from scipy.sparse import coo_matrix
 
 
+def write_state(play_state: np.ndarray, output_path: str, input_size: int, actual=False) -> None:
+    """
+    Write playing state to text file for debugging
+    :param play_state: actual playing state
+    :param output_path: path to textfile
+    :param input_size: input size of the playing model
+    :param actual: simulated node or actual node reached in play
+    :return:
+    """
+    f = open(f"{output_path}.txt", "a")
+    f.write("\n\n\n")
+    np.set_printoptions(threshold=np.inf)
+    if actual:
+        f.write("Actual node\n")
+    else:
+        f.write("Simulated node\n")
+    f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
+    current_pos = 60
+    # # if cheater
+    # if input_size % 100 == 15 or input_size % 100 == 13:
+    #     f.write("Hand2: " + str(np.nonzero(play_state[60:120])[0].tolist()) + "\n")
+    #     f.write("Hand3: " + str(np.nonzero(play_state[120:180])[0].tolist()) + "\n")
+    #     current_pos = 180
+    f.write("Trump: " + str(play_state[current_pos: current_pos + 5]) + "\n")
+    current_pos += 5
+
+    # if old
+    if input_size % 100 == 31:
+        f.write("Guesses: " + str(play_state[current_pos: current_pos + 2]) + "\n")
+        current_pos += 2
+    else:
+        f.write("Guesses: " + str(play_state[current_pos: current_pos + 3]) + "\n")
+        current_pos += 3
+    f.write("Round: " + str(play_state[current_pos]) + "\n")
+    f.write("Tricks needed: " + str(play_state[current_pos + 1]) + "\n")
+    current_pos += 2
+
+    f.write(
+        "Tricks needed others: " + str(play_state[current_pos: current_pos + 2]) + "\n"
+    )
+    current_pos += 2
+
+    # if not olds
+    if input_size % 100 == 93 or input_size == 313:
+        f.write("Order: " + str(play_state[current_pos]) + "\n")
+        f.write(
+            "played trick: "
+            + str(
+                np.nonzero(play_state[current_pos + 1: current_pos + 121])[0].tolist()
+            )
+            + "\n"
+        )
+        current_pos += 121
+    elif input_size % 100 == 95 or input_size == 315:
+        f.write("Order: " + str(play_state[current_pos: current_pos + 3]) + "\n")
+        f.write(
+            "played trick: "
+            + str(
+                np.nonzero(play_state[current_pos + 3: current_pos + 123])[0].tolist()
+            )
+            + "\n"
+        )
+        current_pos += 123
+    elif input_size % 100 == 31:
+        f.write(
+            "played trick: "
+            + str(np.nonzero(play_state[current_pos: current_pos + 60])[0].tolist())
+            + "\n"
+        )
+        current_pos += 60
+
+    # if not small
+    if input_size > 3600:
+        f.write(
+            "played round: "
+            + str(np.nonzero(play_state[current_pos:])[0].tolist())
+            + "\n"
+        )
+
+    if input_size in [313, 315]:
+        f.write(
+            "possible cards one: "
+            + str(np.nonzero(~(play_state[current_pos:current_pos+60] != 0))[0].tolist())
+            + "\n"
+        )
+        f.write(
+            "possible cards two: "
+            + str(np.nonzero(~(play_state[current_pos+60:] != 0))[0].tolist())
+            + "\n"
+        )
+    f.close()
+
+
 def trick_winner(played_cards: list, trump: int) -> int:
     """
     Determine the winner of a trick

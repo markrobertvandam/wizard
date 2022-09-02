@@ -2,7 +2,7 @@ import numpy as np
 import random
 
 import Playing_Network
-from utility_functions import key_to_state, state_to_key, temp_game
+from utility_functions import key_to_state, state_to_key, temp_game, write_state
 
 
 class Node:
@@ -16,104 +16,12 @@ class Node:
         self.state = state
         self.parent = parent
         self.wins = 0
+        self.actual_encounters = 0
         self.children = []
         self.root = root
 
         # card that was played to get to the state
         self.card = card
-
-
-def write_state(play_state: np.ndarray, output_path: str, input_size: int, actual=False) -> None:
-    """
-    Write playing state to text file for debugging
-    :param play_state: actual playing state
-    :param output_path: path to textfile
-    :param input_size: input size of the playing model
-    :param actual: simulated node or actual node reached in play
-    :return:
-    """
-    f = open(f"{output_path}.txt", "a")
-    f.write("\n\n\n")
-    np.set_printoptions(threshold=np.inf)
-    if actual:
-        f.write("Actual node\n")
-    else:
-        f.write("Simulated node\n")
-    f.write("Hand: " + str(np.nonzero(play_state[:60])[0].tolist()) + "\n")
-    current_pos = 60
-    # # if cheater
-    # if input_size % 100 == 15 or input_size % 100 == 13:
-    #     f.write("Hand2: " + str(np.nonzero(play_state[60:120])[0].tolist()) + "\n")
-    #     f.write("Hand3: " + str(np.nonzero(play_state[120:180])[0].tolist()) + "\n")
-    #     current_pos = 180
-    f.write("Trump: " + str(play_state[current_pos: current_pos + 5]) + "\n")
-    current_pos += 5
-
-    # if old
-    if input_size % 100 == 31:
-        f.write("Guesses: " + str(play_state[current_pos: current_pos + 2]) + "\n")
-        current_pos += 2
-    else:
-        f.write("Guesses: " + str(play_state[current_pos: current_pos + 3]) + "\n")
-        current_pos += 3
-    f.write("Round: " + str(play_state[current_pos]) + "\n")
-    f.write("Tricks needed: " + str(play_state[current_pos + 1]) + "\n")
-    current_pos += 2
-
-    f.write(
-        "Tricks needed others: " + str(play_state[current_pos: current_pos + 2]) + "\n"
-    )
-    current_pos += 2
-
-    # if not olds
-    if input_size % 100 == 93 or input_size == 313:
-        f.write("Order: " + str(play_state[current_pos]) + "\n")
-        f.write(
-            "played trick: "
-            + str(
-                np.nonzero(play_state[current_pos + 1: current_pos + 121])[0].tolist()
-            )
-            + "\n"
-        )
-        current_pos += 121
-    elif input_size % 100 == 95 or input_size == 315:
-        f.write("Order: " + str(play_state[current_pos: current_pos + 3]) + "\n")
-        f.write(
-            "played trick: "
-            + str(
-                np.nonzero(play_state[current_pos + 3: current_pos + 123])[0].tolist()
-            )
-            + "\n"
-        )
-        current_pos += 123
-    elif input_size % 100 == 31:
-        f.write(
-            "played trick: "
-            + str(np.nonzero(play_state[current_pos: current_pos + 60])[0].tolist())
-            + "\n"
-        )
-        current_pos += 60
-
-    # if not small
-    if input_size > 3600:
-        f.write(
-            "played round: "
-            + str(np.nonzero(play_state[current_pos:])[0].tolist())
-            + "\n"
-        )
-
-    if input_size in [313, 315]:
-        f.write(
-            "possible cards one: "
-            + str(np.nonzero(~(play_state[current_pos:current_pos+60] != 0))[0].tolist())
-            + "\n"
-        )
-        f.write(
-            "possible cards two: "
-            + str(np.nonzero(~(play_state[current_pos+60:] != 0))[0].tolist())
-            + "\n"
-        )
-    f.close()
 
 
 # Agent class
@@ -147,14 +55,17 @@ class PlayingAgent:
         if self.verbose >= 2:
             print("Rollout policy used...")
         if len(node.children) > 0:
-            self.parent_node = random.choice(node.children)
+            card = random.choice(node.children).card
         else:
             print("Parent has no children!!! oh no!")
-            return tuple((0, 0))
-        return self.parent_node.card
+            exit()
+        # Remove simulated children
+        del self.parent_node.children[:]
+        return card
 
     # function for backpropagation
     def backpropagate(self, node: Node, result: int, diff: int, loss=0.0) -> float:
+        write_state(key_to_state(192, node.state), "backprop", 192)
         self.counter += 1
         if self.counter % 2000 == 0:
             print(self.counter)
@@ -190,7 +101,10 @@ class PlayingAgent:
             elif value == max_value and random.getrandbits(1):
                 best_child = child
                 max_value = value
-        self.parent_node = best_child
+
+        # Remove simulated children
+        del self.parent_node.children[:]
+        #self.parent_node = best_child
 
         return best_child.card
 
@@ -242,6 +156,9 @@ class PlayingAgent:
         :param run_type: type of agent {"learning", "learned", "heuristic", "random"}
         :return:
         """
+        # Write node that is getting expanded
+        write_state(key_to_state(192, self.parent_node.state), "expanded-nodes", 192)
+
         if self.verbose >= 2:
             print("Expanding the following moves: ", legal_moves)
         if len(player_hand) > 1:

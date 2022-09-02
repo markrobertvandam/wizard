@@ -223,6 +223,7 @@ class Game:
             if self.verbose >= 2:
                 print(f"player order before changing: {[p.player_name for p in player_order]}")
             winner_index, player_order = self.play_trick(player_order, 4, 0)
+
             if self.verbose >= 2:
                 print(f"player order after changing: {[p.player_name for p in player_order]}")
                 print(f"We made it HERE! Trick was played!, winner is: {winner_index}")
