@@ -567,7 +567,7 @@ class Game:
                     )
                 if player.get_guesses() > player.get_trick_wins():
                     self.offs[0] += 1
-                else:
+                elif player.get_guesses() < player.get_trick_wins():
                     self.offs[1] += 1
         #  print("\n\n")
 
