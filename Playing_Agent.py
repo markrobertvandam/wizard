@@ -69,7 +69,7 @@ class PlayingAgent:
         if self.counter % 2000 == 0:
             print(self.counter)
 
-        node.wins += result / 100
+        node.wins += result == 1
         if self.verbose >= 3:
             print("Node card: ", node.card)
         if self.score:
@@ -281,5 +281,5 @@ class PlayingAgent:
         if run_type == "learning":
             self.nodes[key_state] = node
 
-        if terminal_node and run_type == "learning":
-            self.last_terminal_node = self.nodes[key_state]
+            if terminal_node:
+                self.last_terminal_node = node
