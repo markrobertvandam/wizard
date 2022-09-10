@@ -26,7 +26,7 @@ class Node:
 
 # Agent class
 class PlayingAgent:
-    def __init__(self, input_size: int, name=None, verbose=0, interactive=False, punish=False, score=False):
+    def __init__(self, input_size: int, name=None, verbose=0, interactive=False, diff=False, punish=False, score=False):
 
         self.game = None
         self.input_size = input_size
@@ -34,6 +34,7 @@ class PlayingAgent:
         self.nodes = dict()
         self.network_policy = Playing_Network.PlayingNetwork(input_size, name)
         self.verbose = verbose
+        self.diff = diff
         self.punish = punish
         self.score = score
         self.counter = 0
@@ -64,7 +65,7 @@ class PlayingAgent:
         return card
 
     # function for backpropagation
-    def backpropagate(self, node: Node, result: int, diff: int, loss=0.0) -> float:
+    def backpropagate(self, node: Node, result: int, score: int, diff: int, loss=0.0) -> float:
         self.counter += 1
         if self.counter % 2000 == 0:
             print(self.counter)
@@ -72,9 +73,12 @@ class PlayingAgent:
         node.wins += result == 1
         if self.verbose >= 3:
             print("Node card: ", node.card)
-        if self.score:
+        if self.diff:
             # use difference between own score and highest opponent score as result
             self.network_policy.update_replay_memory([node.state, diff])
+        if self.score:
+            # use own score as result
+            self.network_policy.update_replay_memory([node.state, score])
         elif self.punish:
             # use (1 - difference between tricks won and tricks guessed) as result
             self.network_policy.update_replay_memory([node.state, result])
@@ -88,7 +92,7 @@ class PlayingAgent:
             loss += self.network_policy.train()
             return loss
 
-        return self.backpropagate(node.parent, result, diff=diff, loss=loss)
+        return self.backpropagate(node.parent, result, diff=diff, score=score, loss=loss)
 
     def best_child(self, node: Node) -> tuple:
         best_child = node.children[0]

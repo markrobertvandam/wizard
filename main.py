@@ -97,6 +97,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--punish", action="store_true",
                         help="optional argument to punish play depending on difference with goal trick wins")
     parser.add_argument("--score", action="store_true",
+                        help="optional argument to reward play based on actual point gains")
+    parser.add_argument("--diff", action="store_true",
                         help="optional argument to reward play based on relative point gains compared to opp")
     parser.add_argument("--soft_guess", action="store_true",
                         help="optional argument to sample guessing softmax curve instead of taking argmax")
@@ -183,6 +185,7 @@ def avg_n_games(
     opp_playmodel: str,
     punish: bool,
     score: bool,
+    diff: bool,
     soft_guess: bool,
     epsilon: float,
     player_epsilon: float,
@@ -208,7 +211,8 @@ def avg_n_games(
         name = player_model.split("/")[0].split("_")[1]
 
     guess_agent = GuessingAgent(input_size=input_size_guess, guess_max=21, soft_guess=soft_guess)
-    playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose, punish=punish)
+    playing_agent = PlayingAgent(input_size=input_size_play, name=name, verbose=verbose, punish=punish,
+                                 score=score, diff=diff)
     guess_agent2 = None
     playing_agent2 = None
     guess_agent3 = None
@@ -235,8 +239,10 @@ def avg_n_games(
 
     if opp_playertype.startswith("learn"):
         print("Creating play agents for opponents..")
-        playing_agent2 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose, punish=punish, score=score)
-        playing_agent3 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose, punish=punish, score=score)
+        playing_agent2 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose, punish=punish,
+                                      score=score, diff=diff)
+        playing_agent3 = PlayingAgent(input_size=opp_play_size, name=name, verbose=verbose, punish=punish,
+                                      score=score, diff=diff)
         print("Opposing play model:\n")
         playing_agent2.network_policy.model.summary()
         print(f"\nPlayer loss-function opponents: ", playing_agent2.network_policy.model.loss)
@@ -500,6 +506,7 @@ if __name__ == "__main__":
         args.opp_playmodel,
         args.punish,
         args.score,
+        args.diff,
         args.soft_guess,
         args.epsilon,
         args.player_epsilon,

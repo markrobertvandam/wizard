@@ -551,8 +551,9 @@ class Game:
             if player.player_type == "learning":
                 other_scores = scores[:player_index] + scores[player_index + 1:]
                 diff = score - max(other_scores)
+                result = 1 - off_mark
                 loss = player.play_agent.backpropagate(
-                    player.play_agent.last_terminal_node, result=score, diff=diff,
+                    player.play_agent.last_terminal_node, result=result, diff=diff, score=score
                 )
                 self.total_loss += loss
 
