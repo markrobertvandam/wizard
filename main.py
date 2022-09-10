@@ -478,7 +478,8 @@ if __name__ == "__main__":
     print(f"Opponent model: {args.opp_model}")
     print(f"Opponent playermodel: {args.opp_playmodel}")
     print(f"Punish based on distance from goal: {args.punish}")
-    print(f"reward based on differences in score: {args.score}")
+    print(f"reward based on own score: {args.score}")
+    print(f"reward based on differences in score: {args.diff}")
     print(f"Guess based on softmax curve instead of argmax: {args.soft_guess}")
 
     if not args.opp_guesstype.startswith("learn") and args.opp_model:
