@@ -48,8 +48,17 @@ def write_state(play_state: np.ndarray, output_path: str, input_size: int, actua
     )
     current_pos += 2
 
+    if input_size % 100 == 92:
+        f.write(
+            "played trick: "
+            + str(
+                np.nonzero(play_state[current_pos: current_pos + 120])[0].tolist()
+            )
+            + "\n"
+        )
+        current_pos += 120
     # if not olds
-    if input_size % 100 == 93 or input_size == 313:
+    elif input_size % 100 == 93 or input_size == 313:
         f.write("Order: " + str(play_state[current_pos]) + "\n")
         f.write(
             "played trick: "

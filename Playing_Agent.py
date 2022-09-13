@@ -70,6 +70,10 @@ class PlayingAgent:
         if self.counter % 2000 == 0:
             print(self.counter)
 
+        if node.root:
+            # root node is not added to memory
+            return loss
+
         node.wins += result == 1
         if self.verbose >= 3:
             print("Node card: ", node.card)
@@ -88,9 +92,8 @@ class PlayingAgent:
                 result = 0
             self.network_policy.update_replay_memory([node.state, result])
 
-        if node.root:
-            loss += self.network_policy.train()
-            return loss
+        # Training after every memory update
+        loss += self.network_policy.train()
 
         return self.backpropagate(node.parent, result, diff=diff, score=score, loss=loss)
 
