@@ -284,7 +284,6 @@ class PlayingAgent:
             temp_instance.played_cards,
             temp=True,
         )
-        write_state(play_state, "child", self.input_size)
 
         if self.verbose:
             write_state(play_state, game_instance.output_path, self.input_size)
