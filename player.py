@@ -26,7 +26,7 @@ class Player:
 
         if player_name == "player1" and reoccur_path != "reoccur":
             if  not os.path.exists(reoccur_path):
-                os.mkdir(reoccur_path)
+                os.makedirs(reoccur_path)
             self.reoccur_path = reoccur_path
 
         self.verbose = verbose
