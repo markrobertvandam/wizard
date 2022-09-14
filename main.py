@@ -327,6 +327,7 @@ def avg_n_games(
             playing_agent2=playing_agent2,
             guess_agent3=guess_agent3,
             playing_agent3=playing_agent3,
+            save_folder=save_folder,
         )
         game_loss, scores, offs, round_offs = wizard.play_game()
         total_round_offs += round_offs

@@ -6,16 +6,17 @@ import interactive_game
 from scipy.sparse import coo_matrix
 
 
-def write_state(play_state: np.ndarray, output_path: str, input_size: int, actual=False) -> None:
+def write_state(play_state: np.ndarray, output_path: str, input_size: int, actual=False, write_mode="a") -> None:
     """
     Write playing state to text file for debugging
     :param play_state: actual playing state
     :param output_path: path to textfile
     :param input_size: input size of the playing model
     :param actual: simulated node or actual node reached in play
+    :param write_mode: for manually setting the write mode
     :return:
     """
-    f = open(f"{output_path}.txt", "a")
+    f = open(f"{output_path}.txt", write_mode)
     f.write("\n\n\n")
     np.set_printoptions(threshold=np.inf)
     if actual:

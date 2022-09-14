@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import random
 
 import Playing_Agent
@@ -20,7 +21,14 @@ class Player:
         player_epsilon=None,
         verbose=False,
         soft_guess=False,
+        reoccur_path="",
     ) -> None:
+
+        if player_name == "player1" and reoccur_path != "reoccur":
+            if  not os.path.exists(reoccur_path):
+                os.mkdir(reoccur_path)
+            self.reoccur_path = reoccur_path
+
         self.verbose = verbose
         self.player_name = player_name
         self.hand = []
@@ -113,8 +121,8 @@ class Player:
                 # if node was encountered before
                 if node.actual_encounters > 0:
                     self.play_agent.cntr[game_instance.game_round - 1] += 1
-                    if self.player_name == "player1" and self.verbose >= 2:
-                        util.write_state(state_space, "reoccured-states", 192)
+                    if self.player_name == "player1":
+                        util.write_state(state_space, os.path.join(self.reoccur_path, "reoccured-states"), 192)
 
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:

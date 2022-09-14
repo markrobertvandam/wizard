@@ -1,8 +1,9 @@
 from math import floor
 
 import player as player_class
-import random
 import numpy as np
+import os
+import random
 import utility_functions as util
 
 
@@ -27,6 +28,7 @@ class Game:
         playing_agent2=None,
         guess_agent3=None,
         playing_agent3=None,
+        save_folder="",
     ) -> None:
         self.verbose = verbose
         self.full_deck = full_deck
@@ -45,6 +47,7 @@ class Game:
             epsilon,
             player_epsilon,
             verbose,
+            reoccur_path=os.path.join("reoccur", save_folder),
         )
         self.opp_guesstype = opp_guesstype
         self.opp_playertype = opp_playertype
@@ -110,7 +113,7 @@ class Game:
         Plays a single game of wizard
         :return: tuple with all scores and player1 mistakes
         """
-        for game_round in range(20):
+        for game_round in range(2):
             self.played_round = []
             if self.shuffled_decks is None:
                 self.deck = self.full_deck[:]
