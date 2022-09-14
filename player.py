@@ -111,29 +111,15 @@ class Player:
             # NODE IS HERE BEFORE PLAY
             key_state = util.state_to_key(state_space)
             self.play_agent.full_cntr[game_instance.game_round - 1] += 1
-            if self.player_name == "player1" and self.verbose >= 2:
-                util.write_state(state_space, "all-states", 192)
-
-            # Node either visited before or added through expansion
-            if key_state in self.play_agent.nodes.keys():
-                node = self.play_agent.nodes[key_state]
-
-                # if node was encountered before
-                if node.actual_encounters > 0:
-                    self.play_agent.cntr[game_instance.game_round - 1] += 1
-                    if self.player_name == "player1":
-                        util.write_state(state_space, os.path.join(self.reoccur_path, "reoccured-states"), 192)
 
             # ROOT NODE (cards in hand == round) -> add root and children
             if len(self.hand) == game_instance.game_round:
                 # Unseen root node
                 if key_state not in self.play_agent.nodes.keys():
                     self.play_agent.unseen_state(state_space)
-                    self.play_agent.parent_node.actual_encounters += 1
                 # Previously seen root node
                 else:
                     self.play_agent.parent_node = self.play_agent.get_node(state_space)
-                    self.play_agent.parent_node.actual_encounters += 1
 
                 # expand either way in case of unseen children
                 self.play_agent.expand(
@@ -170,7 +156,19 @@ class Player:
                     # rollout play
                     card = self.play_agent.rollout_policy()
 
+            if self.player_name == "player1":
+                new_parent = self.play_agent.parent_node
+                new_state = new_parent.state
+                sparse_state = util.key_to_state(192, new_state)
+
+                if self.verbose >= 2:
+                    util.write_state(sparse_state, "all-states", 192)
                 self.play_agent.parent_node.actual_encounters += 1
+
+                # if node was encountered before
+                if self.play_agent.parent_node.actual_encounters > 1:
+                    self.play_agent.cntr[game_instance.game_round - 1] += 1
+                    util.write_state(sparse_state, os.path.join(self.reoccur_path, "reoccured-states"), 192)
 
         elif self.player_type == "learned":
             key_state = util.state_to_key(state_space)
