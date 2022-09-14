@@ -52,17 +52,22 @@ class PlayingAgent:
 
     # function for randomly selecting a child node
     def rollout_policy(self) -> tuple:
-        node = self.parent_node
+        parent = self.parent_node
         if self.verbose >= 2:
             print("Rollout policy used...")
-        if len(node.children) > 0:
-            card = random.choice(node.children).card
+        if len(parent.children) > 0:
+            child = random.choice(parent.children)
         else:
             print("Parent has no children!!! oh no!")
             exit()
-        # Remove simulated children
-        del self.parent_node.children[:]
-        return card
+
+        # Child becomes new selected parent node
+        self.parent_node = child
+
+        # Remove simulated children, no longer needed
+        del parent.children[:]
+
+        return self.parent_node.card
 
     # function for backpropagation
     def backpropagate(self, node: Node, result: int, score: int, diff: int, loss=0.0) -> float:
@@ -109,9 +114,11 @@ class PlayingAgent:
                 best_child = child
                 max_value = value
 
+        # Selected child becomes new parent
+        self.parent_node = best_child
+
         # Remove simulated children
-        del self.parent_node.children[:]
-        #self.parent_node = best_child
+        del self.parent_node.parent.children[:]
 
         return best_child.card
 
@@ -277,6 +284,7 @@ class PlayingAgent:
             temp_instance.played_cards,
             temp=True,
         )
+        write_state(play_state, "child", self.input_size)
 
         if self.verbose:
             write_state(play_state, game_instance.output_path, self.input_size)

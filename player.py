@@ -154,19 +154,6 @@ class Player:
 
             # its a child, either terminal or not
             else:
-                # Create node of current state and add it to saved nodes
-                key_state = util.state_to_key(state_space)
-                current_node = Playing_Agent.Node(key_state)
-                self.play_agent.nodes[key_state] = current_node
-
-                # Set parent of node to previous parent node (for backprop)
-                current_node.parent = self.play_agent.parent_node
-                self.play_agent.parent_node.children.append(current_node)
-
-                # Current node becomes new parent node
-                self.play_agent.parent_node = current_node
-                self.play_agent.parent_node.actual_encounters += 1
-
                 # expand in case of unseen children, then predict best move
                 self.play_agent.expand(
                     legal_cards,
@@ -182,6 +169,8 @@ class Player:
                 else:
                     # rollout play
                     card = self.play_agent.rollout_policy()
+
+                self.play_agent.parent_node.actual_encounters += 1
 
         elif self.player_type == "learned":
             key_state = util.state_to_key(state_space)

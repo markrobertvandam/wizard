@@ -65,7 +65,7 @@ class PlayingNetwork:
     # Adds data to a memory replay array
     # (state, reward)
     def update_replay_memory(self, transition):
-        # util.write_state(util.key_to_state(192, transition[0]), "backprop", 192)
+        util.write_state(util.key_to_state(192, transition[0]), "backprop", 192)
         self.replay_memory.append(transition)
 
     # Trains main network once every backpropagation/round
