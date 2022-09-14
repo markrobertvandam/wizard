@@ -113,7 +113,7 @@ class Game:
         Plays a single game of wizard
         :return: tuple with all scores and player1 mistakes
         """
-        for game_round in range(2):
+        for game_round in range(20):
             self.played_round = []
             if self.shuffled_decks is None:
                 self.deck = self.full_deck[:]
