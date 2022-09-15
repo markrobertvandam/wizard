@@ -293,7 +293,8 @@ class PlayingAgent:
         node = Node(key_state, card=move, parent=parent)
         parent.children.append(node)
         if run_type == "learning":
-            self.nodes[key_state] = node
+            if key_state not in self.nodes.keys():
+                self.nodes[key_state] = node
 
             if terminal_node:
                 self.last_terminal_node = node

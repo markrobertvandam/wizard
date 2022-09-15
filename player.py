@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import pickle
 import random
 
 import Playing_Agent
@@ -160,15 +161,34 @@ class Player:
                 new_parent = self.play_agent.parent_node
                 new_state = new_parent.state
                 sparse_state = util.key_to_state(192, new_state)
+                nodes = self.play_agent.nodes
+
+                nodes[new_state].actual_encounters += 1
 
                 if self.verbose >= 2:
                     util.write_state(sparse_state, "all-states", 192)
-                self.play_agent.parent_node.actual_encounters += 1
 
                 # if node was encountered before
-                if self.play_agent.parent_node.actual_encounters > 1:
+                if nodes[new_state].actual_encounters > 1:
                     self.play_agent.cntr[game_instance.game_round - 1] += 1
-                    util.write_state(sparse_state, os.path.join(self.reoccur_path, "reoccured-states"), 192)
+
+                    if len(self.hand) > 1:
+                        util.write_state(sparse_state, os.path.join(self.reoccur_path, "reoccured-states"), 192)
+                        file_path = os.path.join(self.reoccur_path, "reoccured-states.pkl")
+                    else:
+                        file_path = os.path.join(self.reoccur_path, "reoccured-terminal.pkl")
+
+                    if os.path.exists(file_path):
+                        file_reader = open(file_path, 'rb')
+                        data = pickle.load(file_reader)
+                        data.append(new_state)
+                        file_reader.close()
+                    else:
+                        data = [new_state]
+
+                    file_writer = open(file_path, 'wb')
+                    pickle.dump(data, file_writer)
+                    file_writer.close()
 
         elif self.player_type == "learned":
             key_state = util.state_to_key(state_space)
