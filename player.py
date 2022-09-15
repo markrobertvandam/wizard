@@ -160,20 +160,21 @@ class Player:
             if self.player_name == "player1":
                 new_parent = self.play_agent.parent_node
                 new_state = new_parent.state
-                sparse_state = util.key_to_state(192, new_state)
+                sparse_state = util.key_to_state(self.play_agent.input_size, new_state)
                 nodes = self.play_agent.nodes
 
                 nodes[new_state].actual_encounters += 1
 
                 if self.verbose >= 2:
-                    util.write_state(sparse_state, "all-states", 192)
+                    util.write_state(sparse_state, "all-states", self.play_agent.input_size)
 
                 # if node was encountered before
                 if nodes[new_state].actual_encounters > 1:
                     self.play_agent.cntr[game_instance.game_round - 1] += 1
 
                     if len(self.hand) > 1:
-                        util.write_state(sparse_state, os.path.join(self.reoccur_path, "reoccured-states"), 192)
+                        util.write_state(sparse_state, os.path.join(self.reoccur_path, "reoccured-states"),
+                                         self.play_agent.input_size)
                         file_path = os.path.join(self.reoccur_path, "reoccured-states.pkl")
                     else:
                         file_path = os.path.join(self.reoccur_path, "reoccured-terminal.pkl")

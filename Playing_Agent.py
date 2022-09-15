@@ -172,7 +172,7 @@ class PlayingAgent:
         """
         # Write node that is getting expanded
         if self.verbose >= 3:
-            write_state(key_to_state(192, self.parent_node.state), "expanded-nodes", 192)
+            write_state(key_to_state(self.input_size, self.parent_node.state), "expanded-nodes", self.input_size)
 
         if self.verbose >= 2:
             print("Expanding the following moves: ", legal_moves)
