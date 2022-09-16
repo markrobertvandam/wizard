@@ -23,9 +23,11 @@ class Player:
         verbose=False,
         soft_guess=False,
         reoccur_path="",
+        reoccur_bool=False,
     ) -> None:
 
         if player_name == "player1" and reoccur_path != "reoccur":
+            self.reoccur_bool = reoccur_bool
             if  not os.path.exists(reoccur_path):
                 os.makedirs(reoccur_path)
             self.reoccur_path = reoccur_path
@@ -172,24 +174,33 @@ class Player:
                 if nodes[new_state].actual_encounters > 1:
                     self.play_agent.cntr[game_instance.game_round - 1] += 1
 
-                    if len(self.hand) > 1:
-                        util.write_state(sparse_state, os.path.join(self.reoccur_path, "reoccured-states"),
-                                         self.play_agent.input_size)
-                        file_path = os.path.join(self.reoccur_path, "reoccured-states.pkl")
-                    else:
-                        file_path = os.path.join(self.reoccur_path, "reoccured-terminal.pkl")
+                    if self.reoccur_bool:
+                        if len(self.hand) > 1:
+                            util.write_state(sparse_state, os.path.join(self.reoccur_path, "reoccured-states"),
+                                             self.play_agent.input_size)
+                            file_path = os.path.join(self.reoccur_path, "reoccured-states.pkl")
+                        else:
+                            file_path = os.path.join(self.reoccur_path, "reoccured-terminal.pkl")
 
-                    if os.path.exists(file_path):
-                        file_reader = open(file_path, 'rb')
-                        data = pickle.load(file_reader)
-                        data.append(new_state)
-                        file_reader.close()
-                    else:
-                        data = [new_state]
+                        if os.path.exists(file_path):
+                            file_reader = open(file_path, 'rb')
+                            try:
+                                data = pickle.load(file_reader)
+                            except EOFError:
+                                file_reader.seek(0)
+                                try:
+                                    data = pickle.load(file_reader)
+                                except EOFError:
+                                    print("Can't find pre-existing data, making new data")
+                                    data = []
+                            data.append(new_state)
+                            file_reader.close()
+                        else:
+                            data = [new_state]
 
-                    file_writer = open(file_path, 'wb')
-                    pickle.dump(data, file_writer)
-                    file_writer.close()
+                        file_writer = open(file_path, 'wb')
+                        pickle.dump(data, file_writer)
+                        file_writer.close()
 
         elif self.player_type == "learned":
             key_state = util.state_to_key(state_space)

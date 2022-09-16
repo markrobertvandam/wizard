@@ -120,6 +120,8 @@ def parse_args() -> argparse.Namespace:
         default=0,
         type=int,
     )
+    parser.add_argument("--reoccur_bool", action="store_true",
+                        help="optional argument to save reoccuring states")
 
     return parser.parse_args()
 
@@ -190,6 +192,7 @@ def avg_n_games(
     epsilon: float,
     player_epsilon: float,
     iters_done: int,
+    reoccur_bool: bool,
 ) -> None:
     input_size_guess = guesser_size
     input_size_play = player_size
@@ -328,6 +331,7 @@ def avg_n_games(
             guess_agent3=guess_agent3,
             playing_agent3=playing_agent3,
             save_folder=save_folder,
+            reoccur_bool=reoccur_bool,
         )
         game_loss, scores, offs, round_offs = wizard.play_game()
         total_round_offs += round_offs
@@ -513,4 +517,5 @@ if __name__ == "__main__":
         args.epsilon,
         args.player_epsilon,
         args.iters_done,
+        args.reoccur_bool,
     )

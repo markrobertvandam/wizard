@@ -29,6 +29,7 @@ class Game:
         guess_agent3=None,
         playing_agent3=None,
         save_folder="",
+        reoccur_bool=False,
     ) -> None:
         self.verbose = verbose
         self.full_deck = full_deck
@@ -48,6 +49,7 @@ class Game:
             player_epsilon,
             verbose,
             reoccur_path=os.path.join("reoccur", save_folder),
+            reoccur_bool=reoccur_bool,
         )
         self.opp_guesstype = opp_guesstype
         self.opp_playertype = opp_playertype
