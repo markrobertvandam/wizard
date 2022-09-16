@@ -26,7 +26,7 @@ class Player:
         reoccur_bool=False,
     ) -> None:
 
-        if player_name == "player1" and reoccur_path != "reoccur":
+        if player_name == "player1" and reoccur_path != "reoccur" and reoccur_bool:
             self.reoccur_bool = reoccur_bool
             if  not os.path.exists(reoccur_path):
                 os.makedirs(reoccur_path)
@@ -185,14 +185,18 @@ class Player:
                         if os.path.exists(file_path):
                             file_reader = open(file_path, 'rb')
                             try:
+                                file_reader.seek(0)
                                 data = pickle.load(file_reader)
                             except EOFError:
-                                file_reader.seek(0)
-                                try:
-                                    data = pickle.load(file_reader)
-                                except EOFError:
-                                    print("Can't find pre-existing data, making new data")
-                                    data = []
+                                print("Can't find pre-existing data, making new data")
+                                data = []
+                            except FileNotFoundError:
+                                print("File does not exist anymore")
+                                print(os.path.exists(file_path))
+                                file_reader.close()
+                                file_reader = open(file_path, 'rb+')
+                                data = []
+
                             data.append(new_state)
                             file_reader.close()
                         else:
