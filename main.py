@@ -486,6 +486,7 @@ if __name__ == "__main__":
     print(f"reward based on own score: {args.score}")
     print(f"reward based on differences in score: {args.diff}")
     print(f"Guess based on softmax curve instead of argmax: {args.soft_guess}")
+    print(f"Save reoccuring states?: {args.reoccur_bool}")
 
     if not args.opp_guesstype.startswith("learn") and args.opp_model:
         print("Guessing agent given but not used")
