@@ -27,11 +27,11 @@ class Player:
     ) -> None:
 
         if player_name == "player1" and reoccur_path != "reoccur" and reoccur_bool:
-            self.reoccur_bool = reoccur_bool
             if  not os.path.exists(reoccur_path):
                 os.makedirs(reoccur_path)
             self.reoccur_path = reoccur_path
 
+        self.reoccur_bool = reoccur_bool
         self.verbose = verbose
         self.player_name = player_name
         self.hand = []
