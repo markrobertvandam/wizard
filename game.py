@@ -273,7 +273,7 @@ class Game:
             if player_limit and (3 > player_limit == player_index):
                 return None, None
 
-            if card is None:
+            if card is None and not temp:
                 playing_state = None
                 if player.player_type.startswith("learn"):
                     playing_state = self.playing_state_space(
@@ -292,12 +292,19 @@ class Game:
                 self.update_possible_hands(self.played_cards[-1], requested_color, player_order, player_index)
                 for player in self.players:
                     if player.player_type.startswith("learn") and player.play_agent.input_size in [313, 315]:
-                        # TODO: set possible cards to invert of one_hot_hand
                         # normal player only sees their own hand
                         move = self.deck_dict[self.played_cards[-1]]
                         player.possible_cards_one[move] = 0
                         player.possible_cards_two[move] = 0
             else:
+                if card is None:
+                    # temp call from a different player, wrapping up trick
+                    hand = player.get_hand()
+                    if len(hand) != 1:
+                        print("Error, should be wrap up with only 1 card!")
+                        exit(1)
+                    card = hand[0]
+
                 # play the passed card to simulate that child-node
                 if self.verbose >= 3:
                     print(
