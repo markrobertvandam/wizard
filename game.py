@@ -127,7 +127,7 @@ class Game:
                     f"\nInitial player order at start of round {self.game_round}: "
                     f"{[p.player_name for p in self.players]}")
             self.play_round()
-            if self.verbose >= 0:
+            if self.verbose >= 2:
                 print(f"Round {self.game_round} over.. \n\n")
 
             for player in self.players:
