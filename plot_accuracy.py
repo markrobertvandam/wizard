@@ -13,7 +13,7 @@ def parse_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description="Make plots")
     parser.add_argument("dir", help="maindir with subdirs", type=str)
-
+    parser.add_argument("arg", help="plotting arg to grey out specific plots", type=str)
     return parser.parse_args()
 
 
@@ -23,11 +23,24 @@ def plot_accuracy(
     names: list,
     save_folder: str,
     name: str,
+    substr: str,
 ) -> None:
     fig, ax = plt.subplots()
     for i in range(len(x_values)):
         if len(x_values[i]) > 1:
-            plt.plot(x_values[i], y_values[i], label=names[i], linestyle="-")
+            if substr == "none":
+                plt.plot(x_values[i], y_values[i], label=names[i], linestyle="-")
+            elif substr.startswith("not_"):
+                if any([sub in names[i] for sub in substr.split("_")]):
+                    pass
+                    # plt.plot(x_values[i], y_values[i], label=names[i], linestyle="-", color="grey")
+                else:
+                    plt.plot(x_values[i], y_values[i], label=names[i], linestyle="-")
+            elif substr in names[i]:
+                plt.plot(x_values[i], y_values[i], label=names[i], linestyle="-")
+            else:
+                pass
+                # plt.plot(x_values[i], y_values[i], label=names[i], linestyle="-", color="grey")
         else:
             # plot horizontal line for fixed agents
             plt.axhline(y=y_values[i][0], label=names[i], linestyle="--")
@@ -42,8 +55,8 @@ def plot_accuracy(
         plt.ylabel("Wins of 1000 games", fontsize=13)
     elif name == "relative_scores":
         plt.ylabel("Avg. score diff to winning heuristic", fontsize=13)
-    fig.legend(loc="center right", bbox_to_anchor=(1,0.3), ncol=2, fontsize=8)
-    fig.savefig(f"wizard/plots/{save_folder}/{name}_plot")
+    fig.legend(loc="center right", bbox_to_anchor=(0.87,0.92), ncol=3, fontsize=7)
+    fig.savefig(f"wizard/plots/{save_folder}/{name}_plot_{substr}")
     plt.close()
 
 
@@ -116,7 +129,7 @@ if __name__ == "__main__":
     print(score_avg)
     print(relative_scores)
     print(my_scores)
-    folder = "new_mcts"
-    plot_accuracy(x_values, y_values, names, folder, "accuracy")
-    plot_accuracy(x_values, win_totals, names, folder, "wins")
-    plot_accuracy(x_values, relative_scores, names, folder, "relative_scores")
+    folder = args.dir.split("/")[-2]
+    plot_accuracy(x_values, y_values, names, folder, "accuracy", args.arg)
+    plot_accuracy(x_values, win_totals, names, folder, "wins", args.arg)
+    plot_accuracy(x_values, relative_scores, names, folder, "relative_scores", args.arg)

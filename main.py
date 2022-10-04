@@ -3,6 +3,7 @@ import game
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import statistics
 import time
 import tensorflow as tf
 from Guessing_Agent import GuessingAgent
@@ -286,6 +287,9 @@ def avg_n_games(
     # For keeping track of performance
     win_counter = [0, 0, 0]
     score_counter = [0, 0, 0]
+    scores_player1 = []
+    scores_player2 = []
+    scores_player3 = []
     total_offs = [0, 0]
     total_round_offs = np.zeros(20, dtype=int)
 
@@ -339,6 +343,9 @@ def avg_n_games(
 
         # For command-line output while training
         last_ten_performance += wizard.get_game_performance()
+        scores_player1.append(scores[0])
+        scores_player2.append(scores[1])
+        scores_player3.append(scores[2])
         for player in range(3):
             score_counter[player] += scores[player] / n
             if scores[player] == max(scores):
@@ -465,8 +472,17 @@ def avg_n_games(
                     )
                     player.play_agent.nodes = dict()
 
-    print("Scores: ", score_counter)
+    print("Avg Scores: ", score_counter)
+    print("Max/Min/Median scores p1: ", {max(scores_player1)}, {min(scores_player1)},
+          {statistics.median(scores_player1)})
+
+    print("Max/Min/Median scores p2: ", {max(scores_player2)}, {min(scores_player2)},
+          {statistics.median(scores_player2)})
+
+    print("Max/Min/Median scores p3: ", {max(scores_player3)}, {min(scores_player3)},
+          {statistics.median(scores_player3)})
     print("Wins: ", win_counter)
+    print("Total draws: ", sum(win_counter) - game_instance)
     print("Mistakes: ", total_offs)
     print("Mistakes in each round: ", list(total_round_offs))
 

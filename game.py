@@ -127,7 +127,7 @@ class Game:
                     f"\nInitial player order at start of round {self.game_round}: "
                     f"{[p.player_name for p in self.players]}")
             self.play_round()
-            if self.verbose >= 2:
+            if self.verbose >= 0:
                 print(f"Round {self.game_round} over.. \n\n")
 
             for player in self.players:
@@ -160,7 +160,6 @@ class Game:
         # Players get dealt their hands
         for player in self.players:
             self.deck = player.draw_cards(self.game_round, self.deck)
-
         if self.game_round < 20:
             # Trump card becomes top card after hands are dealt
             trump_card = self.deck.pop()

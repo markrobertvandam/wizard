@@ -62,7 +62,7 @@ class Game:
         Plays a single game of wizard
         :return: tuple with all scores and player1 mistakes
         """
-        for game_round in range(20):
+        for game_round in range(21-self.game_round):
             self.played_round = []
             self.play_round()
             self.player1.possible_cards_one = [1] * 60
