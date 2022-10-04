@@ -3,6 +3,7 @@ import game
 import numpy as np
 import os
 import pickle
+import statistics
 import tensorflow as tf
 from Guessing_Agent import GuessingAgent
 from Playing_Agent import PlayingAgent
@@ -187,6 +188,11 @@ def learned_n_games(
 
     # win_counter, score_counter, total_offs(too high guess, too low guess), last_ten, accuracy_hist
     performance = [[0, 0, 0], [0, 0, 0], [0, 0], 21 * [0], []]
+
+    scores_player1 = []
+    scores_player2 = []
+    scores_player3 = []
+
     total_round_offs = np.zeros(20, dtype=int)
     total_distribution = np.zeros(21, dtype=int)
     total_actual = np.zeros(21, dtype=int)
@@ -219,6 +225,11 @@ def learned_n_games(
         total_actual = np.add(total_actual, actual_distribution)
         total_round_offs = np.add(total_round_offs, round_offs)
         total_overshoot = np.add(total_overshoot, overshoot)
+
+        scores_player1.append(scores[0])
+        scores_player2.append(scores[1])
+        scores_player3.append(scores[2])
+
         # win_counter, score_counter, total_offs(too high guess, too low guess), last_ten, accuracy_hist
         # For command-line output
         performance[3] += off_game
@@ -241,8 +252,17 @@ def learned_n_games(
             performance[3] *= 0
 
     print("Pair: ", pair_name)
-    print("Scores: ", performance[1])
+    print("Avg Scores: ", performance[1])
+    print("Max/Min/Median scores p1: ", {max(scores_player1)}, {min(scores_player1)},
+          {statistics.median(scores_player1)})
+
+    print("Max/Min/Median scores p2: ", {max(scores_player2)}, {min(scores_player2)},
+          {statistics.median(scores_player2)})
+
+    print("Max/Min/Median scores p3: ", {max(scores_player3)}, {min(scores_player3)},
+          {statistics.median(scores_player3)})
     print("Wins: ", performance[0])
+    print("Total draws: ", sum(performance[0]) - game_instance)
     print("Mistakes (high guess, low guess): ", performance[2])
     print(f"Overshot: {list(total_overshoot)}")
     print(f"Guesses: {list(total_distribution)}")
