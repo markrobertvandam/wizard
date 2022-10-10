@@ -124,6 +124,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--reoccur_bool", action="store_true",
                         help="optional argument to save reoccuring states")
 
+    parser.add_argument("--train_every_game", action="store_true",
+                        help="optional arg to make model train every game instead of every round")
+
     return parser.parse_args()
 
 
@@ -194,6 +197,7 @@ def avg_n_games(
     player_epsilon: float,
     iters_done: int,
     reoccur_bool: bool,
+    train_every_game: bool,
 ) -> None:
     input_size_guess = guesser_size
     input_size_play = player_size
@@ -315,6 +319,11 @@ def avg_n_games(
     print("Guess type: ", guess_type, "Player type: ", player_type)
     if opp_guesstype.startswith("learn") or opp_playertype.startswith("learn"):
         print(f"Opposing agents: {guess_agent2}, {playing_agent2}, {guess_agent3}, {playing_agent3}")
+
+    train_every = "round"
+    if train_every_game:
+        train_every = "game"
+
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
         print("\nGame instance: ", game_instance)
         wizard = game.Game(
@@ -336,6 +345,7 @@ def avg_n_games(
             playing_agent3=playing_agent3,
             save_folder=save_folder,
             reoccur_bool=reoccur_bool,
+            train_every=train_every,
         )
         game_loss, scores, offs, round_offs = wizard.play_game()
         total_round_offs += round_offs
@@ -503,6 +513,7 @@ if __name__ == "__main__":
     print(f"reward based on differences in score: {args.diff}")
     print(f"Guess based on softmax curve instead of argmax: {args.soft_guess}")
     print(f"Save reoccuring states?: {args.reoccur_bool}")
+    print(f"Train every game instead of round?: {args.train_every_game}")
 
     if not args.opp_guesstype.startswith("learn") and args.opp_model:
         print("Guessing agent given but not used")
@@ -535,4 +546,5 @@ if __name__ == "__main__":
         args.player_epsilon,
         args.iters_done,
         args.reoccur_bool,
+        args.train_every_game,
     )

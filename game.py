@@ -30,6 +30,7 @@ class Game:
         playing_agent3=None,
         save_folder="",
         reoccur_bool=False,
+        train_every="round",
     ) -> None:
         self.verbose = verbose
         self.full_deck = full_deck
@@ -110,6 +111,9 @@ class Game:
         self.played_cards = []
         self.guesses = []
 
+        # for training
+        self.train_every = train_every
+
     def train_network(self, player) -> None:
         if player.player_type == "learning":
             # Training
@@ -137,9 +141,10 @@ class Game:
 
             self.play_round()
 
-            # Train networks after every round/backprop
-            for player in self.players:
-                self.train_network(player)
+            if self.train_every == "round":
+                # Train networks after every round/backprop
+                for player in self.players:
+                    self.train_network(player)
 
             if self.verbose >= 2:
                 print(f"Round {self.game_round} over.. \n\n")
@@ -154,6 +159,11 @@ class Game:
             for player in self.players:  # reset trick wins
                 player.trick_wins = 0
                 player.win_cards = []
+
+        if self.train_every == "game":
+            # Train networks after every game
+            for player in self.players:
+                self.train_network(player)
 
         return (
             self.total_loss,

@@ -70,7 +70,7 @@ class PlayingNetwork:
 
     # Trains main network once every backpropagation/round
     def train(self):
-        # print("Replay size: ", len(self.replay_memory))
+        # print("Calling train, Replay size: ", len(self.replay_memory))
         # Start training only if certain number of samples is already saved
         if len(self.replay_memory) < MIN_REPLAY_MEMORY_SIZE:
             return 0

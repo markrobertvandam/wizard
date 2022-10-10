@@ -271,7 +271,9 @@ def learned_n_games(
     print(f"Total round offs: {list(total_round_offs)}")
 
     plt.hist(scores_player1, bins=30)
-    plt.savefig(f"plots/score_plots/plot_{playing_model}_{opp_playmodel}")
+    if not os.path.exists("plots/score_plots/"):
+        os.mkdir("plots/score_plots/")
+    plt.savefig(f"plots/score_plots/plot_{playing_model.rstrip('.model')}_{opp_playmodel.rstrip('.model')}.png")
     plt.close()
 
 
