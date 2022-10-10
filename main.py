@@ -124,8 +124,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--reoccur_bool", action="store_true",
                         help="optional argument to save reoccuring states")
 
-    parser.add_argument("--train_every_game", action="store_true",
-                        help="optional arg to make model train every game instead of every round")
+    parser.add_argument("--train_every",
+                        help="optional arg to make model train every game instead of every round",
+                        default="round",
+                        type=str,
+                        )
 
     return parser.parse_args()
 
@@ -197,7 +200,7 @@ def avg_n_games(
     player_epsilon: float,
     iters_done: int,
     reoccur_bool: bool,
-    train_every_game: bool,
+    train_every: str,
 ) -> None:
     input_size_guess = guesser_size
     input_size_play = player_size
@@ -320,9 +323,9 @@ def avg_n_games(
     if opp_guesstype.startswith("learn") or opp_playertype.startswith("learn"):
         print(f"Opposing agents: {guess_agent2}, {playing_agent2}, {guess_agent3}, {playing_agent3}")
 
-    train_every = "round"
-    if train_every_game:
-        train_every = "game"
+    train_every_games = None
+    if train_every.isnumeric():
+        train_every_games = int(train_every)
 
     for game_instance in range(1 + iters_done, n + 1 + iters_done):
         print("\nGame instance: ", game_instance)
@@ -362,6 +365,10 @@ def avg_n_games(
                 win_counter[player] += 1
         total_offs[0] += offs[0]
         total_offs[1] += offs[1]
+
+        if train_every_games and (game_instance-iters_done) % train_every_games == 0:
+            for player in wizard.players:
+                avg_loss += wizard.train_network(player)
 
         if game_instance % 10 == 0:
             accuracy = last_ten_performance[0] / 200
@@ -513,7 +520,7 @@ if __name__ == "__main__":
     print(f"reward based on differences in score: {args.diff}")
     print(f"Guess based on softmax curve instead of argmax: {args.soft_guess}")
     print(f"Save reoccuring states?: {args.reoccur_bool}")
-    print(f"Train every game instead of round?: {args.train_every_game}")
+    print(f"Train every: {args.train_every}")
 
     if not args.opp_guesstype.startswith("learn") and args.opp_model:
         print("Guessing agent given but not used")
@@ -546,5 +553,5 @@ if __name__ == "__main__":
         args.player_epsilon,
         args.iters_done,
         args.reoccur_bool,
-        args.train_every_game,
+        args.train_every,
     )

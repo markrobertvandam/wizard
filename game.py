@@ -114,13 +114,17 @@ class Game:
         # for training
         self.train_every = train_every
 
-    def train_network(self, player) -> None:
+    def train_network(self, player) -> float:
         if player.player_type == "learning":
             # Training
             loss = player.play_agent.network_policy.train()
 
             if player.player_name == "player1":
                 self.total_loss += loss
+                return loss
+
+        return 0.0
+
 
     def play_game(self) -> tuple:
         """
