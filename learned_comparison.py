@@ -1,5 +1,6 @@
 import argparse
 import game
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pickle
@@ -268,6 +269,10 @@ def learned_n_games(
     print(f"Guesses: {list(total_distribution)}")
     print(f"Actual: {list(total_actual)}")
     print(f"Total round offs: {list(total_round_offs)}")
+
+    plt.hist(scores_player1, bins=30)
+    plt.savefig(f"plots/score_plots/plot_{playing_model}_{opp_playmodel}")
+    plt.close()
 
 
 def play_game(

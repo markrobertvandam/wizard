@@ -110,6 +110,14 @@ class Game:
         self.played_cards = []
         self.guesses = []
 
+    def train_network(self, player) -> None:
+        if player.player_type == "learning":
+            # Training
+            loss = player.play_agent.network_policy.train()
+
+            if player.player_name == "player1":
+                self.total_loss += loss
+
     def play_game(self) -> tuple:
         """
         Plays a single game of wizard
@@ -126,7 +134,13 @@ class Game:
                 print(
                     f"\nInitial player order at start of round {self.game_round}: "
                     f"{[p.player_name for p in self.players]}")
+
             self.play_round()
+
+            # Train networks after every round/backprop
+            for player in self.players:
+                self.train_network(player)
+
             if self.verbose >= 2:
                 print(f"Round {self.game_round} over.. \n\n")
 
@@ -563,10 +577,10 @@ class Game:
                 other_scores = scores[:player_index] + scores[player_index + 1:]
                 diff = score - max(other_scores)
                 result = 1 - off_mark
-                loss = player.play_agent.backpropagate(
+
+                player.play_agent.backpropagate(
                     player.play_agent.last_terminal_node, result=result, diff=diff, score=score
                 )
-                self.total_loss += loss
 
             # For keeping track of mistakes
             if player.player_name == "player1":
