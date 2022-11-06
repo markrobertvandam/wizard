@@ -358,9 +358,8 @@ def avg_n_games(
         if player_type == "learning" or guess_type == "learning":
             if player_type == "learning" and game_instance % 10 == 0:
                     print("Updating target network weights..")
-                    target_model = playing_agent.network_policy.target_model
                     online_model = playing_agent.network_policy.model
-                    target_model.set_weights(online_model.get_weights())
+                    playing_agent.network_policy.target_model.set_weights(online_model.get_weights())
 
             if game_instance % 1000 == 0 and game_instance > iters_done:
                 if save_bool.startswith("y"):
